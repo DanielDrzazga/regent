@@ -61,16 +61,16 @@ opisuje `/regent:init` w `ai/docs/`, a komendy/agenci z nich korzystają.
 
 ## Użycie
 
-Regent jest **pluginem Claude Code** — instaluje się z GitHuba na każdej maszynie, a skille
-i agenci dostają prefiks `regent:` (`/regent:propose`, `regent:architect`).
+Regent jest **pluginem Claude Code w budowie** — do czasu ukończenia nie jest publikowany w żadnym
+marketplace (repo nie ma `marketplace.json`). Ładuje się wprost z klonu repo, na czas jednej sesji:
 
-```text
-/plugin marketplace add DanielDrzazga/regent
-/plugin install regent@regent
+```bash
+claude --plugin-dir <klon repo regent>
 ```
 
-Plugin nie ma pola `version`, więc śledzi commity `main` — aktualizacja: `/plugin marketplace update regent`.
-Do pracy nad samym pluginem: `claude --plugin-dir <klon repo>` ładuje go wprost z katalogu.
+Skille i agenci dostają prefiks `regent:` (`/regent:propose`, `regent:architect`). Stary framework
+w `~/.claude` działa równolegle, więc w sesji z pluginem reguły i komendy są podwójnie (`-sdd`
+i `regent:`) — świadomy stan przejściowy.
 Skille wołają skrypty przez `${CLAUDE_PLUGIN_ROOT}/scripts/…` — Claude Code podstawia katalog
 pluginu w treści skilli i agentów.
 
@@ -86,7 +86,7 @@ w projektach z `ai/docs/` oraz kopię statusline do stałej ścieżki — konfig
 
 ```
 regent/
-├── .claude-plugin/        # plugin.json (manifest) + marketplace.json
+├── .claude-plugin/        # plugin.json (manifest)
 ├── context/               # role.md (rola partnera), sdd.md (reguły SDD), sdd-map.md (mapa skilli i agentów)
 ├── agents/                # 9 subagentów (każdy z polem model:)
 │   ├── architect.md              (opus)

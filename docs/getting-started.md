@@ -4,37 +4,29 @@ Pierwsze uruchomienie frameworka w projekcie — krok po kroku.
 
 ## 0. Warunek wstępny
 
-Plugin `regent` musi być zainstalowany (patrz [README → Użycie](../README.md#użycie)). Sprawdź,
-że Claude Code go widzi: wpisz `/regent:` i Tab — lista powinna pokazać `/regent:init`,
+Plugin `regent` musi być załadowany (`claude --plugin-dir`, patrz [README → Użycie](../README.md#użycie)).
+Sprawdź, że Claude Code go widzi: wpisz `/regent:` i Tab — lista powinna pokazać `/regent:init`,
 `/regent:propose`, `/regent:apply` i resztę skilli.
 
 > **`ai/` jest osobisty.** Wszystko, co framework tworzy w `ai/`, to Twój warsztat — katalog jest
 > globalnie ignorowany (`/regent:init` Krok 0.5 sprawdzi to i zaproponuje wpis `/ai/`). Do repo
 > produktu trafia kod, testy i `Makefile`; plan zmiany niesie opis MR z `/regent:verify`.
 
-### Nowa maszyna — checklista
+### Nowa maszyna — checklista (do czasu publikacji pluginu)
 
-Raz na każdej maszynie (macOS, Fedora, Windows z Git Bash, serwer ze zdalnym Claude Code):
+Plugin nie jest publikowany w żadnym marketplace ani instalowany globalnie — ładuje się z klonu repo:
 
-1. Plugin w zakresie użytkownika:
-   ```bash
-   claude plugin marketplace add DanielDrzazga/regent
-   claude plugin install regent@regent
-   ```
-2. W `~/.claude/settings.json` — statusline z danych pluginu i bez atrybucji AI (statusline
-   pojawi się po pierwszej sesji, bo kopię tworzy hook `SessionStart`):
-   ```json
-   {
-     "statusLine": { "type": "command", "command": "bash \"$HOME/.claude/plugins/data/regent-regent/bin/statusline.sh\"" },
-     "attribution": { "commit": "", "pr": "" }
-   }
-   ```
-3. Stary framework w `~/.claude` (klon `claude-sdd-framework`: `agents/`, `commands/`, `templates/`,
-   `scripts/`, `docs/`, `CLAUDE.md`) — usuń, inaczej reguły i komendy `-sdd` dublują się z pluginem.
-4. W projektach z dawnym wpisem hooka `$HOME/.claude/scripts/hooks/git-guard.sh`
-   w `.claude/settings*.json` — usuń wpis; git-guard rejestruje plugin.
-5. Klon repo `regent` (praca nad pluginem): `git config user.email 40364469+DanielDrzazga@users.noreply.github.com`.
-6. Nowa sesja: `/regent:` + Tab pokazuje skille, w projekcie z `ai/docs/` działa `/regent:status`.
+1. Klon repo `regent` i adres autora commitów:
+   `git config user.email 40364469+DanielDrzazga@users.noreply.github.com`.
+2. Sesja z pluginem: `claude --plugin-dir <klon repo regent>`. Stary framework w `~/.claude` zostaje
+   (reguły i komendy `-sdd` dublują się wtedy z `regent:`).
+3. W `~/.claude/settings.json` bez atrybucji AI: `"attribution": { "commit": "", "pr": "" }`.
+4. Statusline z pluginu (opcjonalnie; przy `--plugin-dir` dane pluginu są w
+   `~/.claude/plugins/data/regent-inline/`) — zob. [statusline.md](statusline.md).
+5. Nowa sesja z `--plugin-dir`: `/regent:` + Tab pokazuje skille, w projekcie z `ai/docs/` działa `/regent:status`.
+
+Po ukończeniu (poza zakresem dziś): publikacja w marketplace, instalacja w zakresie `user`,
+usunięcie starego frameworka z `~/.claude` i wpisów git-guard wskazujących `$HOME/.claude/…`.
 
 ## 1. `/regent:init` — skonfiguruj projekt
 
