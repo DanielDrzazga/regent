@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
-# Testy scripts/hooks/git-guard.sh — JSON hooka PreToolUse na stdin, oczekiwany kod wyjścia.
+# Testy scripts/hooks/git-guard.sh — JSON hooka PreToolUse na stdin, oczekiwany kod wyjścia;
+# zakres: projekt SDD (ai/docs/), projekt bez SDD, GIT_GUARD_FORCE.
 # Użycie: bash scripts/tests/git-guard.test.sh      (kod wyjścia 0 = wszystkie zielone)
 
 set -u
 HOOK="$(cd "$(dirname "$0")" && pwd)/../hooks/git-guard.sh"
+T=$(mktemp -d "${TMPDIR:-/tmp}/git-guard.XXXXXX")
+trap 'rm -rf "$T"' EXIT
+mkdir -p "$T/sdd/ai/docs" "$T/plain"
+PROJECT="$T/sdd"
 pass=0
 fail=0
 
 # expect <kod> <komenda> [description]
 expect() {
   json=$(printf '{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"%s","description":"%s"}}' "$2" "${3:-}")
-  printf '%s' "$json" | "$BASH" "$HOOK" >/dev/null 2>&1
+  printf '%s' "$json" | CLAUDE_PROJECT_DIR="$PROJECT" "$BASH" "$HOOK" >/dev/null 2>&1
   code=$?
   if [ "$code" -eq "$1" ]; then pass=$((pass + 1)); else fail=$((fail + 1)); echo "FAIL: '$2' → kod $code, oczekiwano $1"; fi
 }
@@ -46,6 +51,17 @@ expect 0 'echo \"--no-verify to zly pomysl\"'
 expect 0 'git commit -m \"drop -a flag\"'
 expect 0 'git add \"src/a b.ts\" src/c.ts'
 expect 0 'git commit -m \"x\" --no-edit'
+
+# zakres: poza projektem SDD przepuszcza, GIT_GUARD_FORCE=1 wymusza
+PROJECT="$T/plain"
+expect 0 'git add .' 'projekt bez ai/docs'
+expect 0 'git commit -m \"x\" --no-verify' 'projekt bez ai/docs'
+export GIT_GUARD_FORCE=1
+expect 2 'git add .' 'projekt bez ai/docs, GIT_GUARD_FORCE=1'
+unset GIT_GUARD_FORCE
+# bez CLAUDE_PROJECT_DIR decyduje bieżący katalog
+code=$(cd "$T/sdd" && printf '%s' '{"tool_input":{"command":"git add ."}}' | env -u CLAUDE_PROJECT_DIR "$BASH" "$HOOK" >/dev/null 2>&1; echo $?)
+if [ "$code" -eq 2 ]; then pass=$((pass + 1)); else fail=$((fail + 1)); echo "FAIL: bez CLAUDE_PROJECT_DIR w projekcie SDD → kod $code, oczekiwano 2"; fi
 
 echo "git-guard tests: $pass passed, $fail failed"
 [ "$fail" -eq 0 ]

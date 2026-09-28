@@ -223,38 +223,17 @@ Jeśli `Makefile` już istnieje → NIE nadpisuj: zaproponuj brakujące cele jak
 
 ---
 
-## Krok 3.5: Barierki git w projekcie (opcjonalnie, za zgodą)
+## Krok 3.5: Barierki git w projekcie
 
-Reguły „`git add` wyłącznie z listą plików" i „bez `--no-verify`" żyją w promptach. Hook
-Claude Code `scripts/hooks/git-guard.sh` egzekwuje je deterministycznie: blokuje `git add .`
-/ `-A` / `--all` / `-u`, `git commit -a` i `--no-verify`, a agentowi mówi, co zrobić zamiast tego.
+Reguły „`git add` wyłącznie z listą plików" i „bez `--no-verify`" żyją w promptach, a egzekwuje je
+deterministycznie hook `scripts/hooks/git-guard.sh`, **rejestrowany przez plugin** (`hooks/hooks.json`):
+blokuje `git add .` / `-A` / `--all` / `-u`, `git commit -a` i `--no-verify`, a agentowi mówi, co
+zrobić zamiast tego. Działa w każdym projekcie z `ai/docs/`, więc od zapisu plików w Kroku 4 chroni
+także ten projekt — bez wpisu w jego `.claude/settings*.json` i bez pytania o zgodę.
 
-Zapytaj (`AskUserQuestion`) — instalacja tylko po zgodzie:
-
-| Opcja | Plik | Kiedy |
-|---|---|---|
-| Tylko dla mnie (Recommended) | `.claude/settings.local.json` (poza repo) | styl pracy z AI jest osobisty — jak `ai/` |
-| Dla zespołu | `.claude/settings.json` projektu (w repo) | zespół umówił się na wspólne barierki |
-| Bez hooka | — | wystarczą barierki w promptach |
-
-Wpis dołącz do istniejącego pliku — pozostałe ustawienia zostają bez zmian:
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      { "matcher": "Bash", "hooks": [ { "type": "command",
-        "command": "f=\"$HOME/.claude/scripts/hooks/git-guard.sh\"; [ -f \"$f\" ] || exit 0; exec bash \"$f\"" } ] }
-    ]
-  }
-}
-```
-
-Hook globalny (`~/.claude/settings.json`) działałby we wszystkich projektach, także tych bez
-SDD — dlatego instalujemy go per projekt. Członek zespołu bez frameworka w `~/.claude` nie ma
-skryptu, więc hook kończy się od razu i nic nie blokuje.
-
----
+Sprawdź tylko, czy projekt nie ma starego wpisu hooka wskazującego `$HOME/.claude/scripts/hooks/`
+(sprzed pluginu) w `.claude/settings.json` lub `.claude/settings.local.json`. Jest → zaproponuj
+jego usunięcie (dubluje hook pluginu, a po usunięciu frameworka z `~/.claude` nic nie robi).
 
 ## Krok 4: Prezentacja i zatwierdzenie
 
@@ -274,7 +253,7 @@ skryptu, więc hook kończy się od razu i nic nie blokuje.
 ✅ ai/docs/patterns/logging-patterns.md (wykryto: nestjs-pino)
 ⬜ ai/docs/patterns/frontend-patterns.md (opcjonalny — nie wykryto frontendu)
 ✅ Makefile (Node.js, pnpm, Prisma)
-✅ .claude/settings.json — hook git-guard (lub ⬜ pominięty)
+✅ git-guard — hook pluginu aktywny (projekt ma ai/docs/); stary wpis w .claude/settings*.json: brak / usunięty
 
 ### Podsumowanie:
 - Runtime: Node.js 20 + TypeScript 5.3

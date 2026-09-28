@@ -76,12 +76,16 @@ pluginu w treści skilli i agentów.
 
 Po instalacji wpisz `/regent:` i Tab — lista pokazuje cały framework.
 
+Plugin rejestruje hooki (`hooks/hooks.json`): kontekst `context/` w sesji i subagentach, git-guard
+w projektach z `ai/docs/` oraz kopię statusline do stałej ścieżki — konfiguracja statusline:
+[`docs/statusline.md`](docs/statusline.md).
+
 ## Struktura repo
 
 ```
 regent/
 ├── .claude-plugin/        # plugin.json (manifest) + marketplace.json
-├── context/               # sdd.md (reguły SDD + mapa skilli), role.md (rola partnera)
+├── context/               # role.md (rola partnera), sdd.md (reguły SDD), sdd-map.md (mapa skilli i agentów)
 ├── agents/                # 9 subagentów (każdy z polem model:)
 │   ├── architect.md              (opus)
 │   ├── spec-writer.md            (sonnet)
@@ -101,9 +105,10 @@ regent/
 └── README.md · CONTRIBUTING.md
 ```
 
-`context/` nie jest ładowany automatycznie — plugin nie wczytuje `CLAUDE.md`. Wstrzykiwanie
-`context/sdd.md` (tylko w projektach z `ai/docs/`) i `context/role.md` przez hook SessionStart
-dochodzi w zmianie `plugin-hooks` (`docs/plans/`).
+`context/` wstrzykują hooki pluginu (plugin nie wczytuje `CLAUDE.md`): `role.md` zawsze,
+`sdd.md` i `sdd-map.md` tylko w projektach z `ai/docs/` — w sesji i w subagentach. Każdy plik
+idzie osobnym hookiem, bo wyjście jednego hooka Claude Code obcina do 10 000 znaków; lint
+pilnuje limitu 9000 bajtów na plik.
 
 ## Szybki start
 

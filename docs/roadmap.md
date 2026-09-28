@@ -24,7 +24,7 @@ przenieś go do układu pluginu (`commands/<nazwa>-sdd.md` → `skills/<nazwa>/S
 git checkout 39445f1 -- commands/discover-sdd.md agents/product-manager.md templates/discovery-template.md
 ```
 
-Po przywróceniu skilla dopisz go do tabel w `README.md` i `context/sdd.md` — inaczej
+Po przywróceniu skilla dopisz go do tabel w `README.md` i `context/sdd-map.md` — inaczej
 `framework-lint.sh` zgłosi błąd.
 
 ## Odłożone decyzje

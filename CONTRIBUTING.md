@@ -11,7 +11,7 @@ kodu aplikacyjnego, więc „testem” jest spójność, przenośność i zgodno
   testy w pętli TDD uruchamiają wąsko (moduł/pattern), pełny `make check` tylko w bramkach.
 - **Kontrakt subagenta** — subagent nie rozmawia z użytkownikiem w trakcie pracy: bramki
   akceptacji prowadzi sesja główna, artefakty do akceptacji agent zwraca w raporcie
-  (szczegóły w `context/sdd.md`).
+  (szczegóły w `context/sdd-map.md`).
 - **Zwięzłość** — komendy i agenci mają być krótkie i konkretne; bez rozwlekłych opisów.
 - **Język** — dokumentacja i treść: polski; `action`/kod/identyfikatory: angielski.
 
@@ -30,7 +30,7 @@ Struktura zgodna z istniejącymi skillami (nazwa katalogu bez sufiksu, wywołani
    i sparuj go wtedy z celem. Powód w sekcji „Jak pisać prompty”.
 5. Jeśli skill deleguje pracę — wskaż, którego **agenta** uruchamia, pełną nazwą `regent:<agent>`.
 
-Po dodaniu dopisz skill do tabeli w `README.md` i `context/sdd.md`.
+Po dodaniu dopisz skill do tabeli w `README.md` i `context/sdd-map.md`.
 
 ## Jak pisać prompty (komendy i agenci)
 
@@ -111,7 +111,7 @@ bash scripts/framework-lint.sh      # RESULT: OK → można commitować
 ```
 
 Sprawdza frontmatter agentów i skilli, istnienie każdego wskazanego skilla/agenta/szablonu/skryptu,
-prefiks `regent:` przy agentach, zgodność tabel w `context/sdd.md` i `README.md` z `skills/`
+prefiks `regent:` przy agentach, zgodność tabel w `context/sdd-map.md` i `README.md` z `skills/`
 i `agents/`, wycofane nazwy (także dawne `-sdd`) oraz
 **regresje** — wzorce naprawionych błędów promptów (`forbid`/`require` w sekcji 7 skryptu).
 Naprawiasz błąd promptu → dopisz regułę regresji w tym samym commicie. Lint uruchamia też

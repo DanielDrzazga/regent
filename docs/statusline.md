@@ -18,27 +18,30 @@ Pokazuje: model, procent okna, tokeny (zajęte / max), etykietę progu i koszt s
 
 ## Instalacja
 
-Wymaga `jq`.
+Wymaga `jq` i włączonego pluginu `regent`. Hook `SessionStart` pluginu
+([`scripts/hooks/sync-bin.sh`](../scripts/hooks/sync-bin.sh)) kopiuje skrypt do stałej ścieżki
+w danych pluginu, która przetrwa aktualizacje — katalog pluginu w cache zmienia się z każdą wersją,
+więc `statusLine` nie może wskazywać na niego wprost:
 
-1. Z katalogu sklonowanego repo skopiuj skrypt do katalogu `scripts/` w swojej
-   konfiguracji Claude Code i nadaj prawa wykonywania (jeśli framework masz już
-   wgrany w `~/.claude`, skrypt jest na miejscu — pomiń `cp`):
+```
+~/.claude/plugins/data/regent-regent/bin/statusline.sh      # plugin regent@regent z marketplace
+~/.claude/plugins/data/regent-inline/bin/statusline.sh      # claude --plugin-dir (praca nad pluginem)
+```
 
-   ```bash
-   cp scripts/statusline.sh ${CLAUDE_PLUGIN_ROOT}/scripts/statusline.sh
-   chmod +x ${CLAUDE_PLUGIN_ROOT}/scripts/statusline.sh
-   ```
+Raz na maszynie dodaj wpis do `~/.claude/settings.json` (plugin nie może ustawić `statusLine`
+głównej sesji):
 
-2. Dodaj wpis do `~/.claude/settings.json`:
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"$HOME/.claude/plugins/data/regent-regent/bin/statusline.sh\""
+  }
+}
+```
 
-   ```json
-   {
-     "statusLine": {
-       "type": "command",
-       "command": "${CLAUDE_PLUGIN_ROOT}/scripts/statusline.sh"
-     }
-   }
-   ```
+W tym samym katalogu leży `session-tokens.sh` — zużycie tokenów sesji per prompt:
+`bash ~/.claude/plugins/data/regent-regent/bin/session-tokens.sh`.
 
 Statusline odświeża się po każdej odpowiedzi asystenta.
 

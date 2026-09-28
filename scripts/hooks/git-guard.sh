@@ -6,10 +6,14 @@
 #   git commit -a | --all                   — to samo, tylnymi drzwiami
 #   --no-verify, git commit -n              — pomija hooki pre-commit, czyli bramkę testów
 #
-# Instalacja: /regent:init Krok 3.5 (wpis w .claude/settings.json projektu, za zgodą użytkownika).
+# Rejestracja: hooks/hooks.json pluginu. Zakres: projekt SDD (ai/docs/ w korzeniu projektu,
+# ${CLAUDE_PROJECT_DIR} albo bieżący katalog) — poza nim hook przepuszcza wszystko.
+# GIT_GUARD_FORCE=1 wymusza barierki także bez ai/docs/ (np. repo samego pluginu).
 # Wejście: JSON hooka na stdin; sprawdzane jest wyłącznie pole tool_input.command.
 
 set -u
+
+[ -d "${CLAUDE_PROJECT_DIR:-$PWD}/ai/docs" ] || [ "${GIT_GUARD_FORCE:-}" = 1 ] || exit 0
 
 # Wyciąga wartość pierwszego klucza "command" z JSON-a (bez jq/pythona — przenośnie).
 cmd=$(awk '

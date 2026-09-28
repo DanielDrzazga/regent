@@ -2,7 +2,7 @@
 # framework-lint.sh — spójność pluginu Regent: frontmatter, odwołania, tabele, regresje.
 #
 # Plugin to prompty, więc „testem" jest spójność: każde odwołanie do skilla, agenta,
-# szablonu i skryptu prowadzi do istniejącego pliku, tabele w context/sdd.md i README.md
+# szablonu i skryptu prowadzi do istniejącego pliku, tabele w context/sdd-map.md i README.md
 # zgadzają się z skills/ i agents/, a naprawione błędy promptów nie wracają.
 # Na końcu sprawdza składnię skryptów i uruchamia ich testy w /bin/bash (3.2) i w bashu z PATH.
 #
@@ -65,7 +65,7 @@ done
 # Agenci pluginu mają nazwę regent:<agent> — delegacja po gołej nazwie nie trafi do subagenta.
 for a in agents/*.md; do
   n=$(basename "$a" .md)
-  hits=$(grep -n "\`$n\`" skills/*/SKILL.md context/sdd.md 2>/dev/null)
+  hits=$(grep -n "\`$n\`" skills/*/SKILL.md context/*.md 2>/dev/null)
   [ -z "$hits" ] || err "odwołanie do agenta $n bez prefiksu regent: — $hits"
 done
 
@@ -92,13 +92,13 @@ done
 # --- 5. Tabele skilli i agentów zgodne z katalogami -----------------------------------------
 for f in skills/*/SKILL.md; do
   n="/regent:$(basename "$(dirname "$f")")"
-  for doc in context/sdd.md README.md; do
+  for doc in context/sdd-map.md README.md; do
     grep -qE "^\| \`$n\` \|" "$doc" || err "$doc: brak $n w tabeli skilli"
   done
 done
 for f in agents/*.md; do
   n=$(basename "$f" .md)
-  for doc in context/sdd.md README.md; do
+  for doc in context/sdd-map.md README.md; do
     grep -q "\`regent:$n\`" "$doc" || err "$doc: brak agenta regent:$n"
   done
 done
@@ -108,6 +108,24 @@ grep -qE "# $nc skilli" README.md     || err "README.md: drzewo repo podaje inn�
 grep -qE "# $na subagentów" README.md || err "README.md: drzewo repo podaje inną liczbę agentów niż $na"
 for s in scripts/*.sh; do
   grep -q "$s" docs/README.md || err "docs/README.md: brak skryptu $s w tabeli Skrypty"
+done
+
+# --- 5b. Hooki i kontekst pluginu --------------------------------------------------------
+# Każdy skrypt z hooks/hooks.json i każdy plik context/, który wstrzykuje session-context.sh, istnieje.
+if [ -f hooks/hooks.json ]; then
+  for p in $(grep -oE '\$\{CLAUDE_PLUGIN_ROOT\}/[A-Za-z0-9_./-]+' hooks/hooks.json | sed 's#^\${CLAUDE_PLUGIN_ROOT}/##' | sort -u); do
+    [ -e "$p" ] || err "hooks/hooks.json: nieistniejący plik $p"
+  done
+  for c in $(grep -oE 'session-context\.sh\\?"? +[a-z]+ +[a-z]+ +[A-Za-z0-9_.-]+' hooks/hooks.json | awk '{ print $NF }' | sort -u); do
+    [ -f "context/$c" ] || err "hooks/hooks.json: nieistniejący plik kontekstu context/$c"
+  done
+else
+  err "brak hooks/hooks.json"
+fi
+# Wyjście jednego hooka Claude Code obcina do 10 000 znaków; bajtów jest ≥ znaków, więc 9000 B to zapas.
+for f in context/*.md; do
+  b=$(wc -c < "$f" | tr -d ' ')
+  [ "$b" -le 9000 ] || err "$f: $b B > 9000 B — hook obetnie kontekst; podziel plik i dodaj wpis w hooks/hooks.json"
 done
 
 # --- 6. Wycofane nazwy nie wracają ----------------------------------------------------------
@@ -162,6 +180,8 @@ require skills/explore/SKILL.md        'Kandydat 1 = walking skeleton'          
 forbid  skills/explore/SKILL.md        'ai/product'                             "discovery bez żywego backlogu w ai/ — kandydaci 2..N do trackera"
 
 require docs/roadmap.md                 'git checkout 39445f1 --'                "rejestr decyzji podaje drogę przywrócenia usuniętych elementów"
+forbid  skills/init/SKILL.md           '"command": "f=.*git-guard\.sh'            "git-guard rejestruje plugin (hooks/hooks.json), nie wpis w projekcie"
+require hooks/hooks.json               'scripts/hooks/git-guard\.sh'           "plugin rejestruje git-guard"
 
 # --- 8. Skrypty: składnia i testy w każdym dostępnym bashu ---------------------------------
 # /bin/bash na macOS to 3.2 — bash z PATH bywa nowszy (Homebrew) i ukrywa błędy składni 3.2.
