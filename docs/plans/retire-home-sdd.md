@@ -24,35 +24,35 @@ zamrożone z odnośnikiem, a dla pozostałych maszyn jest checklista.
 
 W repo `regent` (gałąź):
 
-- [ ] T1: `disable-model-invocation: true` we frontmatterze 17 skilli (wszystkie poza `status`);
+- [x] T1: `disable-model-invocation: true` we frontmatterze 17 skilli (wszystkie poza `status`);
   lint: każdy skill poza `status` ma to pole; README i CONTRIBUTING — skille uruchamia użytkownik
-- [ ] T2: checklista „Nowa maszyna" w `docs/getting-started.md` — marketplace i plugin, `statusLine`,
+- [x] T2: checklista „Nowa maszyna" w `docs/getting-started.md` — marketplace i plugin, `statusLine`,
   `attribution`, usunięcie starego SDD z `~/.claude`, `git config user.email` w klonie `regent`
-- [ ] T3: bramka (lint w obu bashach + `claude plugin validate .`), merge do `main`, push —
+- [x] T3: bramka (lint w obu bashach + `claude plugin validate .`), merge do `main`, push —
   instalacja w T6 bierze plugin z `main`
 
 Na tym Macu (każdy krok usuwający — po potwierdzeniu):
 
-- [ ] T4: kopia zapasowa SDD z `~/.claude` do `~/_Private/regent-notes/claude-home-sdd-2026-09-28.tar.gz`:
+- [x] T4: kopia zapasowa SDD z `~/.claude` do `~/_Private/regent-notes/claude-home-sdd-2026-09-28.tar.gz`:
   `agents/`, `commands/`, `templates/`, `scripts/`, `docs/` (z `announcements/`), `README.md`,
   `CONTRIBUTING.md`, `CLAUDE.md`, `.gitignore`, `.git/`
-- [ ] T5: zamrożenie `claude-sdd-framework` — w `~/.claude` commit tylko `README.md` z odnośnikiem
+- [~] T5 (zmiana decyzji — niżej): zamrożenie `claude-sdd-framework` — w `~/.claude` commit tylko `README.md` z odnośnikiem
   do `github.com/DanielDrzazga/regent`; push na `github` i `origin` (GitLab)
-- [ ] T6: `claude plugin marketplace add DanielDrzazga/regent` + `claude plugin install regent@regent`
+- [~] T6 (zmiana decyzji — niżej): `claude plugin marketplace add DanielDrzazga/regent` + `claude plugin install regent@regent`
   (zakres `user`)
-- [ ] T7: `~/.claude/settings.json` — `statusLine.command` →
+- [~] T7 (zmiana decyzji — niżej): `~/.claude/settings.json` — `statusLine.command` →
   `bash "$HOME/.claude/plugins/data/regent-regent/bin/statusline.sh"`, `attribution.pr: ""`
-- [ ] T8: usunięcie SDD z `~/.claude` — lista z T4; `~/.claude` przestaje być repo gita
+- [~] T8 (zmiana decyzji — niżej): usunięcie SDD z `~/.claude` — lista z T4; `~/.claude` przestaje być repo gita
   (bez `skills/`, `plugins/`, `projects/`, `settings.json` i reszty konfiguracji Claude Code)
-- [ ] T9: usunięcie starego wpisu git-guard z
+- [~] T9 (zmiana decyzji — niżej): usunięcie starego wpisu git-guard z
   `~/PhpstormProjects/external-communication-service/.claude/settings.local.json` (plik lokalny, poza repo projektu)
-- [ ] T10: weryfikacja w nowych sesjach (`claude -p`, Haiku):
+- [~] T10 (zmiana decyzji — niżej): weryfikacja w nowych sesjach (`claude -p`, Haiku):
   - lista komend: są `regent:*`, nie ma `*-sdd`;
   - projekt SDD dostaje `role.md`, `sdd.md` i `sdd-map.md`; `~/.claude/CLAUDE.md` nie istnieje, więc bez duplikatów;
   - opisy 17 skilli poza kontekstem, `/regent:status` działa;
   - statusline z danych pluginu zwraca linię;
   - git-guard w repo `regent` (nowa sesja) blokuje `git add .`
-- [ ] T11: zamknięcie — plan, pamięć, reguła projektu (etap: migracja zakończona)
+- [x] T11: zamknięcie — plan, pamięć, reguła projektu (etap: migracja zakończona)
 
 ## Poza zakresem
 
@@ -70,3 +70,23 @@ albo zgłoszenie do GitHub Support — decyzja użytkownika).
   dopiero w nowej sesji.
 - **Projekty z pracy na tym Macu** — dostają kontekst i git-guard z pluginu tak jak dziś z `~/.claude`;
   treść z tych projektów nie trafia do repo `regent` (`.claude/rules/privacy.md`).
+
+## Przebieg (2026-09-28) — zmiana decyzji w trakcie
+
+W trakcie T5 użytkownik zdecydował: **„nic nie usuwaj repo z SDD"**. Nowy stan docelowy:
+
+- SDD w `~/.claude` zostaje bez zmian (pliki i `.git`) i dalej obsługuje codzienną pracę; statusline
+  zostaje z `~/.claude/scripts/statusline.sh`; wpis git-guard w `external-communication-service`
+  zostaje (wskazuje istniejący skrypt).
+- Plugin **nie jest nigdzie włączony** ani deklarowany w marketplace; **do czasu ukończenia projekt
+  nie pojawia się w żadnym marketplace** — `.claude-plugin/marketplace.json` usunięty z repo,
+  instrukcje mówią o `claude --plugin-dir`.
+- Commit z odnośnikiem „repo zamrożone" w starym repo cofnięty commitem `revert` (`4b45307`,
+  wypchnięty na GitHub). Na firmowy GitLab nic nie trafiło (był nieosiągalny, a jego historia
+  rozeszła się z `main` o 12 commitów — tam nigdy force-push).
+- Wykonane: T1–T3 (17 skilli z `disable-model-invocation`, checklista), T4 (kopia zapasowa
+  `~/_Private/regent-notes/claude-home-sdd-2026-09-28.tar.gz`), `attribution.pr: ""`
+  w `~/.claude/settings.json`. Powstał też klon `~/_Private/claude-sdd-framework` (remote `github`
+  i `gitlab`) — nieusuwany.
+- Otwarte: które z dwóch miejsc (`~/.claude` czy `regent`) jest źródłem prawdy dla dalszych zmian
+  frameworka — bez decyzji kopie się rozjadą.
