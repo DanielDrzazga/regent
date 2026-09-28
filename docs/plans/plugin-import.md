@@ -79,11 +79,12 @@ instalacja pluginu). Poza zakresem tej zmiany: wpis hooka git-guard w `init` Kro
   sdd-check 124/124) i `claude plugin validate .`
 - [x] T8: parytet — ten sam skrypt podmian na kopii źródła w `mktemp -d`, `diff -r` z repo:
   różnice tylko w edycjach ręcznych wymienionych wyżej
-- [ ] T9: smoke w pustym repo testowym:
+- [ ] T9 (odłożony): smoke w pustym repo testowym — pominięty przy merge na prośbę użytkownika;
+  plugin nie jest jeszcze nigdzie zainstalowany, więc wykonać przed pierwszą instalacją (`plugin-hooks`):
   - `/regent:status` przez `claude -p … --plugin-dir` (skill ładuje się, `sdd-check.sh` rusza przez `${CLAUDE_PLUGIN_ROOT}`);
   - lista agentów zawiera 9 × `regent:<agent>`;
   - jedna delegacja do `regent:<agent>` — tylko za zgodą (agent na Opusie kosztuje)
-- [ ] T10: merge `feat/plugin-import` → `main`, push
+- [x] T10: merge `feat/plugin-import` → `main` (fast-forward), push
 
 ## Poza zakresem (zmiany 2 i 3)
 
