@@ -88,5 +88,5 @@ W trakcie T5 użytkownik zdecydował: **„nic nie usuwaj repo z SDD"**. Nowy st
   `~/_Private/regent-notes/claude-home-sdd-2026-09-28.tar.gz`), `attribution.pr: ""`
   w `~/.claude/settings.json`. Powstał też klon `~/_Private/claude-sdd-framework` (remote `github`
   i `gitlab`) — nieusuwany.
-- Otwarte: które z dwóch miejsc (`~/.claude` czy `regent`) jest źródłem prawdy dla dalszych zmian
-  frameworka — bez decyzji kopie się rozjadą.
+- Źródło prawdy dla dalszych zmian frameworka: **`regent`** (decyzja użytkownika). `~/.claude`
+  zostaje bez zmian i nie dostaje nowych poprawek.
