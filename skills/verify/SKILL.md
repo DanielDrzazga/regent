@@ -1,5 +1,6 @@
 ---
 description: 9-etapowa weryfikacja zmiany (testy, spec compliance, review, DB, security, smoke) + zapis verification.md
+disable-model-invocation: true
 argument-hint: <nazwa-zmiany>
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---

@@ -1,5 +1,6 @@
 ---
 description: Pisanie testów (unit, integration, E2E) i weryfikacja pokrycia przez qa-engineer
+disable-model-invocation: true
 argument-hint: [unit|integration|e2e|coverage] [target]
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---

@@ -1,5 +1,6 @@
 ---
 description: Analiza read-only — zbadaj temat, porównaj opcje, bez plików i commitów
+disable-model-invocation: true
 argument-hint: <temat> | --discovery <inicjatywa>
 allowed-tools: Task, Read, Grep, Glob, AskUserQuestion, SendMessage, Bash(git log:*), Bash(git diff:*), Bash(git show:*), Bash(ls:*)
 ---

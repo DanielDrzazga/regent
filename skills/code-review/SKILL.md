@@ -1,5 +1,6 @@
 ---
 description: Peer code review zmian (architektura, jakość, testy, wydajność) przez agenta code-reviewer
+disable-model-invocation: true
 argument-hint: [--branch <branch>] [--scope <path>] [--files <lista>]
 allowed-tools: Task, Read, Grep, Glob, Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(git status:*), Bash(git symbolic-ref:*), Bash(git branch:*)
 ---

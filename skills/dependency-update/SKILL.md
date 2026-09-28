@@ -1,5 +1,6 @@
 ---
 description: Aktualizacja zależności i security patches (audyt, kategoryzacja, adaptacja kodu)
+disable-model-invocation: true
 argument-hint: [security-only|all|specific <pkg>]
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---

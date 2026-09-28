@@ -1,5 +1,6 @@
 ---
 description: Zamknięcie zmiany — merge delta specs do main specs, retrospektywa, przeniesienie do archiwum
+disable-model-invocation: true
 argument-hint: <nazwa-zmiany> [--force | --abandon]
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, SendMessage, Bash
 ---

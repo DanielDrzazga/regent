@@ -4,6 +4,10 @@
 
 ## Wszystkie komendy
 
+Skille poza `/regent:status` uruchamia wyłącznie użytkownik (`disable-model-invocation`). Gdy
+przepływ prowadzi do kolejnego skilla (np. diagnoza → `/regent:bugfix`), podaj gotowe polecenie
+do wpisania zamiast odtwarzać jego kroki.
+
 | Komenda | Rola |
 |---------|------|
 | `/regent:init` | Inicjalizacja `ai/docs/` (stack, wzorce, konwencje) + Makefile |

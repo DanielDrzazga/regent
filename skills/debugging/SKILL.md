@@ -1,5 +1,6 @@
 ---
 description: Systematyczna diagnoza problemu — reprodukcja, analiza, root cause; fix przez /regent:bugfix
+disable-model-invocation: true
 argument-hint: <opis-problemu>
 allowed-tools: Read, Grep, Glob, Bash
 ---

@@ -1,5 +1,6 @@
 ---
 description: Formalna propozycja zmiany — proposal, delta specs, design, tasks (spec przed kodem)
+disable-model-invocation: true
 argument-hint: <nazwa-zmiany> [--type feature|refactor|bugfix]
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, AskUserQuestion, SendMessage, Bash
 ---

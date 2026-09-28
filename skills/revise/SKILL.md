@@ -1,5 +1,6 @@
 ---
 description: Aktualizacja ai/docs/ gdy podejście się zmienia (architektura, stack, konwencje)
+disable-model-invocation: true
 argument-hint: <plik-lub-temat>
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---

@@ -1,5 +1,6 @@
 ---
 description: Implementacja tasków z aktywnej zmiany (TDD Red → Green → Refactor)
+disable-model-invocation: true
 argument-hint: <nazwa-zmiany> [--tasks 1,3,5] [--group Setup]
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, AskUserQuestion, SendMessage, Bash
 ---

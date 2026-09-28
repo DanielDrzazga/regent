@@ -1,5 +1,6 @@
 ---
 description: Refactoring bez zmiany zachowania — pełny cykl propose → apply → verify → archive z INVARIANTS
+disable-model-invocation: true
 argument-hint: <opis>
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---

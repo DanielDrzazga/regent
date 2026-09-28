@@ -1,5 +1,6 @@
 ---
 description: Emergency fix na produkcji — minimalna zmiana (max 3 pliki), szybki deploy, monitoring, plan rollbacku
+disable-model-invocation: true
 argument-hint: <opis-problemu>
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---

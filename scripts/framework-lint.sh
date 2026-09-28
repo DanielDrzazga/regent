@@ -40,12 +40,18 @@ for f in agents/*.md; do
 done
 
 # --- 2. Skille: frontmatter, nazwa bez sufiksu, nagłówek, uprawnienia --------------------
+MODEL_INVOCABLE='status'
 for f in skills/*/SKILL.md; do
   n=$(basename "$(dirname "$f")")
   fm=$(frontmatter "$f")
   case "$n" in *-sdd) err "$f: skill z sufiksem -sdd (namespace regent: zastępuje sufiks)" ;; esac
   echo "$fm" | grep -qE '^description: .+' || err "$f: brak description we frontmatterze"
   grep -qE "^# /regent:$n( |$)" "$f"        || err "$f: brak nagłówka '# /regent:$n'"
+  # Skille uruchamia użytkownik; model może sam wywołać tylko te z MODEL_INVOCABLE (czysty odczyt).
+  case " $MODEL_INVOCABLE " in
+    *" $n "*) ! echo "$fm" | grep -qx 'disable-model-invocation: true' || err "$f: skill z MODEL_INVOCABLE nie może mieć disable-model-invocation" ;;
+    *)        echo "$fm" | grep -qx 'disable-model-invocation: true' || err "$f: brak disable-model-invocation: true (skill uruchamia użytkownik)" ;;
+  esac
   tools=$(echo "$fm" | sed -n 's/^allowed-tools: //p')
   if [ -n "$tools" ]; then
     if grep -qE 'narzędziem Task|\(Task\)' "$f" && ! echo "$tools" | grep -qE '(^|, *)Task(,|$)'; then

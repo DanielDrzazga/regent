@@ -1,5 +1,6 @@
 ---
 description: Inicjalizacja projektu SDD — wypełnienie ai/docs/ (stack, wzorce, konwencje) + Makefile
+disable-model-invocation: true
 argument-hint: [--detect | --manual]
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, AskUserQuestion, SendMessage, Bash
 ---

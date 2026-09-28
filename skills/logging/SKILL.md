@@ -1,5 +1,6 @@
 ---
 description: Instrumentacja istniejącego kodu logami wg logging-patterns.md projektu
+disable-model-invocation: true
 argument-hint: <ścieżka-lub-opis> [--level debug|info|warn|error|fatal] [--type business|technical]
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, AskUserQuestion, SendMessage, Bash
 ---

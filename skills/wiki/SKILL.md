@@ -1,5 +1,6 @@
 ---
 description: Żywa wiki biznesowa w Obsidian — szkielet z kodu, treść z Twoich źródeł (notatki, maile, transkrypty)
+disable-model-invocation: true
 argument-hint: [init | ingest <plik|url> | query <pytanie> | lint [--fix] | sync | confirm <strona>]
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, AskUserQuestion, WebFetch, SendMessage, Bash(ls:*), Bash(find:*), Bash(grep:*), Bash(git log:*), Bash(git diff:*), Bash(git status:*), Bash(git rev-parse:*), Bash(git cat-file:*), Bash(git config:*), Bash(mkdir:*), Bash(wc:*), Bash(sort:*), Bash(head:*), Bash(date:*)
 ---

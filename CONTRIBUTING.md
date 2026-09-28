@@ -19,7 +19,8 @@ kodu aplikacyjnego, więc „testem” jest spójność, przenośność i zgodno
 
 Struktura zgodna z istniejącymi skillami (nazwa katalogu bez sufiksu, wywołanie `/regent:<nazwa>`):
 
-0. Frontmatter YAML: `description` (do listy komend), `argument-hint` (gdy są argumenty),
+0. Frontmatter YAML: `description` (do listy komend), `disable-model-invocation: true` (skill
+   uruchamia użytkownik; wyjątek tylko dla czystego odczytu — `MODEL_INVOCABLE` w lincie), `argument-hint` (gdy są argumenty),
    `allowed-tools` (dla komend read-only, np. `/regent:explore`, `/regent:status`).
 1. Nagłówek `# /regent:<nazwa> — <cel>` + jednozdaniowy cel.
 2. Blok użycia z argumentami i przykładami.

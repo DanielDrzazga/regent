@@ -1,5 +1,6 @@
 ---
 description: Strukturalna naprawa buga w dev/staging — reprodukcja, root cause, test regresji
+disable-model-invocation: true
 argument-hint: <opis-buga>
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---

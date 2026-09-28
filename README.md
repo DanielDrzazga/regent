@@ -74,7 +74,9 @@ Do pracy nad samym pluginem: `claude --plugin-dir <klon repo>` ładuje go wprost
 Skille wołają skrypty przez `${CLAUDE_PLUGIN_ROOT}/scripts/…` — Claude Code podstawia katalog
 pluginu w treści skilli i agentów.
 
-Po instalacji wpisz `/regent:` i Tab — lista pokazuje cały framework.
+Po instalacji wpisz `/regent:` i Tab — lista pokazuje cały framework. Skille poza `/regent:status`
+uruchamiasz sam: Claude ich nie wywoła i zamiast tego poda polecenie do wpisania (ich opisy nie
+zajmują też kontekstu sesji).
 
 Plugin rejestruje hooki (`hooks/hooks.json`): kontekst `context/` w sesji i subagentach, git-guard
 w projektach z `ai/docs/` oraz kopię statusline do stałej ścieżki — konfiguracja statusline:

@@ -1,5 +1,6 @@
 ---
 description: Atomic commity zgodnie z git workflow (format, pre-commit checks, zatwierdzenie)
+disable-model-invocation: true
 argument-hint: [description]
 allowed-tools: Read, Grep, Glob, Bash
 ---
