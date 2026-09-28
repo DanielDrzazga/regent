@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Statusline: licznik kontekstu z progiem ostrzegawczym.
 # Wejście: JSON na stdin (Claude Code przekazuje context_window.* gotowe policzone).
 
@@ -31,8 +31,8 @@ NEW=0; ALL=0
 if [ -n "$TRANSCRIPT" ] && [ -f "$TRANSCRIPT" ]; then
   files=("$TRANSCRIPT")
   for s in "${TRANSCRIPT%.jsonl}"/subagents/*.jsonl; do [ -f "$s" ] && files+=("$s"); done
-  # cache: licz ponownie tylko gdy któryś plik urósł
-  key=$(stat -f '%z' "${files[@]}" | tr '\n' ' ')
+  # cache: licz ponownie tylko gdy któryś plik urósł (wc -c — stat -f/-c różni się między BSD a GNU)
+  key=$(for f in "${files[@]}"; do wc -c < "$f"; done | tr -d ' ' | tr '\n' ' ')
   cache="${TMPDIR:-/tmp}/claude-statusline-$(basename "$TRANSCRIPT" .jsonl)"
   if [ -f "$cache" ] && [ "$(head -1 "$cache")" = "$key" ]; then
     read -r NEW ALL < <(sed -n 2p "$cache")
