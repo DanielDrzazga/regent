@@ -12,6 +12,30 @@ Plugin `regent` musi być zainstalowany (patrz [README → Użycie](../README.md
 > globalnie ignorowany (`/regent:init` Krok 0.5 sprawdzi to i zaproponuje wpis `/ai/`). Do repo
 > produktu trafia kod, testy i `Makefile`; plan zmiany niesie opis MR z `/regent:verify`.
 
+### Nowa maszyna — checklista
+
+Raz na każdej maszynie (macOS, Fedora, Windows z Git Bash, serwer ze zdalnym Claude Code):
+
+1. Plugin w zakresie użytkownika:
+   ```bash
+   claude plugin marketplace add DanielDrzazga/regent
+   claude plugin install regent@regent
+   ```
+2. W `~/.claude/settings.json` — statusline z danych pluginu i bez atrybucji AI (statusline
+   pojawi się po pierwszej sesji, bo kopię tworzy hook `SessionStart`):
+   ```json
+   {
+     "statusLine": { "type": "command", "command": "bash \"$HOME/.claude/plugins/data/regent-regent/bin/statusline.sh\"" },
+     "attribution": { "commit": "", "pr": "" }
+   }
+   ```
+3. Stary framework w `~/.claude` (klon `claude-sdd-framework`: `agents/`, `commands/`, `templates/`,
+   `scripts/`, `docs/`, `CLAUDE.md`) — usuń, inaczej reguły i komendy `-sdd` dublują się z pluginem.
+4. W projektach z dawnym wpisem hooka `$HOME/.claude/scripts/hooks/git-guard.sh`
+   w `.claude/settings*.json` — usuń wpis; git-guard rejestruje plugin.
+5. Klon repo `regent` (praca nad pluginem): `git config user.email 40364469+DanielDrzazga@users.noreply.github.com`.
+6. Nowa sesja: `/regent:` + Tab pokazuje skille, w projekcie z `ai/docs/` działa `/regent:status`.
+
 ## 1. `/regent:init` — skonfiguruj projekt
 
 W katalogu projektu:
