@@ -3,5 +3,18 @@
     "commit": "",
     "pr": "",
     "sessionUrl": false
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "GIT_GUARD_FORCE=1 bash \"$CLAUDE_PROJECT_DIR/scripts/hooks/git-guard.sh\""
+          }
+        ]
+      }
+    ]
   }
 }
