@@ -1,0 +1,147 @@
+# Makefile — Node.js / TypeScript
+# Wygenerowany przez /regent:init. Dostosuj PKG_MANAGER i sekcję Database do swojego projektu.
+#
+# Użycie: make help
+
+# npm | pnpm | yarn
+PKG_MANAGER ?= npm
+
+# === Testy ===
+# Cele test-unit / test-integration wymagają skryptów "test:unit" / "test:integration"
+# w package.json — zdefiniuj je pod swój runner, np.:
+#   Jest:   "test:unit": "jest tests/unit"
+#   Vitest: "test:unit": "vitest run tests/unit"
+# PATTERN zawęża uruchomienie do modułu/pliku: make test-unit PATTERN=user
+.PHONY: test test-unit test-integration test-e2e test-coverage
+
+test:              ## Uruchom wszystkie testy
+	$(PKG_MANAGER) test
+
+test-unit:         ## Uruchom testy jednostkowe (make test-unit PATTERN=user)
+	$(PKG_MANAGER) run test:unit -- $(PATTERN)
+
+test-integration:  ## Uruchom testy integracyjne
+	$(PKG_MANAGER) run test:integration -- $(PATTERN)
+
+test-e2e:          ## Uruchom testy E2E — API lub przeglądarkowe, wg projektu
+	$(PKG_MANAGER) exec playwright test
+
+test-coverage:     ## Uruchom testy z raportem pokrycia
+	$(PKG_MANAGER) test -- --coverage
+
+# === Frontend (odkomentuj razem z .PHONY, gdy projekt ma frontend) ===
+# Wymaga skryptu "test:component" w package.json, np. "vitest run tests/component"
+# .PHONY: test-component
+# test-component:  ## Testy komponentowe UI (make test-component PATTERN=LoginForm)
+# 	$(PKG_MANAGER) run test:component -- $(PATTERN)
+
+# === Jakość kodu ===
+.PHONY: lint lint-fix format type-check
+
+lint:              ## Uruchom linter
+	$(PKG_MANAGER) run lint
+
+lint-fix:          ## Uruchom linter z auto-poprawkami
+	$(PKG_MANAGER) run lint -- --fix
+
+format:            ## Sformatuj kod
+	$(PKG_MANAGER) run format
+
+type-check:        ## Sprawdź typy TypeScript
+	$(PKG_MANAGER) run type-check
+
+# === Sprawdzenia ===
+# check — bramki frameworka (/regent:apply Krok 2, /regent:verify Etap 1, /regent:bugfix, /regent:dependency-update)
+# check-quick — szybka pętla lokalna (opcjonalny, nieużywany przez komendy)
+.PHONY: check check-quick
+
+check:             ## Pełne sprawdzenie (lint + typy + testy)
+	$(MAKE) lint
+	$(MAKE) type-check
+	$(MAKE) test
+
+check-quick:       ## Szybkie sprawdzenie (lint + typy)
+	$(MAKE) lint
+	$(MAKE) type-check
+
+# === Build ===
+.PHONY: build dev
+
+build:             ## Build produkcyjny
+	$(PKG_MANAGER) run build
+
+dev:               ## Uruchom serwer deweloperski
+	$(PKG_MANAGER) run dev
+
+# === Docker ===
+.PHONY: docker-up docker-down docker-restart docker-logs docker-ps docker-shell
+
+docker-up:         ## Uruchom wszystkie kontenery w tle
+	docker compose up -d
+
+docker-down:       ## Zatrzymaj i usuń kontenery
+	docker compose down
+
+docker-restart:    ## Zrestartuj kontenery
+	docker compose restart
+
+docker-logs:       ## Śledź logi wszystkich kontenerów
+	docker compose logs -f
+
+docker-ps:         ## Pokaż status kontenerów
+	docker compose ps
+
+docker-shell:      ## Wejdź do shella kontenera app (make docker-shell SVC=app)
+	docker compose exec $(SVC) sh
+
+# === Baza danych (przez Docker) ===
+# Odkomentuj (razem z .PHONY) i dostosuj do swojego ORM (Prisma / TypeORM / Knex / MikroORM)
+# .PHONY: db-migrate db-seed db-reset
+
+# --- Prisma ---
+# db-migrate:      ## Uruchom migracje
+# 	docker compose exec app $(PKG_MANAGER) exec prisma migrate dev
+# db-seed:         ## Wypełnij bazę danymi testowymi
+# 	docker compose exec app $(PKG_MANAGER) exec prisma db seed
+# db-reset:        ## Zresetuj bazę (DESTRUKCYJNE)
+# 	docker compose exec app $(PKG_MANAGER) exec prisma migrate reset
+
+# --- TypeORM ---
+# db-migrate:      ## Uruchom migracje
+# 	docker compose exec app $(PKG_MANAGER) run typeorm migration:run
+# db-seed:         ## Wypełnij bazę danymi testowymi
+# 	docker compose exec app $(PKG_MANAGER) run seed
+# db-reset:        ## Zresetuj bazę (DESTRUKCYJNE)
+# 	docker compose exec app $(PKG_MANAGER) run typeorm schema:drop && $(MAKE) db-migrate
+
+# === Zależności ===
+.PHONY: install deps-outdated deps-audit deps-audit-fix deps-update deps-upgrade
+
+install:           ## Zainstaluj zależności
+	$(PKG_MANAGER) install
+
+deps-outdated:     ## Pokaż przestarzałe pakiety
+	$(PKG_MANAGER) outdated
+
+deps-audit:        ## Skanuj podatności bezpieczeństwa
+	$(PKG_MANAGER) audit
+
+# UWAGA: "audit fix" działa dla npm; pnpm: "pnpm audit --fix"; yarn classic nie ma
+# odpowiednika (użyj "yarn upgrade" per pakiet) — dostosuj do PKG_MANAGER.
+deps-audit-fix:    ## Auto-napraw podatności bezpieczeństwa
+	$(PKG_MANAGER) audit fix
+
+deps-update:       ## Zaktualizuj pakiet (make deps-update PKG=express)
+	$(PKG_MANAGER) update $(PKG)
+
+deps-upgrade:      ## Upgrade do najnowszej wersji (make deps-upgrade PKG=express)
+	$(PKG_MANAGER) install $(PKG)@latest
+
+# === Pomoc ===
+.PHONY: help
+
+help:              ## Pokaż dostępne komendy
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+.DEFAULT_GOAL := help
