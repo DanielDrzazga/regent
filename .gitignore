@@ -1,3 +1,0 @@
-# Artefakty SDD budowy Regenta są wersjonowane (dostępne na każdej maszynie),
-# wbrew globalnemu wykluczeniu /ai/ w ~/.gitignore_global.
-!/ai/
