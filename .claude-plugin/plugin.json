@@ -1,0 +1,6 @@
+{
+  "name": "regent",
+  "description": "Regent — framework SDD dla Claude Code: skille cyklu propose → apply → verify → archive, agenci ról i skrypty walidujące",
+  "author": { "name": "Daniel Drzazga", "url": "https://github.com/DanielDrzazga" },
+  "repository": "https://github.com/DanielDrzazga/regent"
+}

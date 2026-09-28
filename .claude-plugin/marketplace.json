@@ -1,0 +1,15 @@
+{
+  "name": "regent",
+  "description": "Regent — osobisty harness pracy z agentami w Claude Code",
+  "owner": {
+    "name": "Daniel Drzazga",
+    "url": "https://github.com/DanielDrzazga"
+  },
+  "plugins": [
+    {
+      "name": "regent",
+      "source": "./",
+      "description": "Framework SDD dla Claude Code jako plugin: /regent:propose, /regent:apply, /regent:verify, /regent:archive i reszta cyklu"
+    }
+  ]
+}
