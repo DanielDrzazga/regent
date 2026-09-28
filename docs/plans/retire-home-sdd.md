@@ -1,0 +1,72 @@
+# Plan: retire-home-sdd
+
+> Zmiana 3 z 3 migracji (`plugin-import` → `plugin-hooks` → `retire-home-sdd`). Lekka ścieżka:
+> gałąź `feat/retire-home-sdd`, ten plan, bramka i smoke. Pierwsza zmiana, która dotyka globalnej
+> konfiguracji — każdy krok usuwający coś spoza repo jest potwierdzany osobno przed wykonaniem.
+
+## Cel
+
+Framework SDD działa na tym Macu wyłącznie z pluginu `regent` (zakres `user`): stare SDD znika
+z `~/.claude`, statusline idzie z danych pluginu, stare repo `claude-sdd-framework` jest
+zamrożone z odnośnikiem, a dla pozostałych maszyn jest checklista.
+
+## Decyzje (2026-09-28)
+
+| Decyzja | Wartość |
+|---|---|
+| Ten Mac | mieszany — projekty prywatne i z pracy etatowej; plugin w zakresie `user` obejmie też projekty z pracy (tak jak dziś `~/.claude`) |
+| Zamrożenie | commit z odnośnikiem w README starego repo, wypchnięty na GitHub i na firmowy GitLab; working tree `~/.claude` (niezacommitowany `statusline.sh`, nieśledzone `session-tokens.sh` i `docs/announcements/`) nie trafia do tego commita |
+| Wywołanie skilli | 17 skilli z `disable-model-invocation: true` (opisy poza kontekstem, uruchamia tylko użytkownik); model może sam wywołać wyłącznie `/regent:status` |
+| Atrybucja | `attribution.pr: ""` w `~/.claude/settings.json` — zakaz atrybucji obejmuje też opisy PR |
+| Wizja | poza repo (repo jest publiczne): `~/_Private/regent-notes/vision.md`, tylko na tym Macu |
+
+## Taski
+
+W repo `regent` (gałąź):
+
+- [ ] T1: `disable-model-invocation: true` we frontmatterze 17 skilli (wszystkie poza `status`);
+  lint: każdy skill poza `status` ma to pole; README i CONTRIBUTING — skille uruchamia użytkownik
+- [ ] T2: checklista „Nowa maszyna" w `docs/getting-started.md` — marketplace i plugin, `statusLine`,
+  `attribution`, usunięcie starego SDD z `~/.claude`, `git config user.email` w klonie `regent`
+- [ ] T3: bramka (lint w obu bashach + `claude plugin validate .`), merge do `main`, push —
+  instalacja w T6 bierze plugin z `main`
+
+Na tym Macu (każdy krok usuwający — po potwierdzeniu):
+
+- [ ] T4: kopia zapasowa SDD z `~/.claude` do `~/_Private/regent-notes/claude-home-sdd-2026-09-28.tar.gz`:
+  `agents/`, `commands/`, `templates/`, `scripts/`, `docs/` (z `announcements/`), `README.md`,
+  `CONTRIBUTING.md`, `CLAUDE.md`, `.gitignore`, `.git/`
+- [ ] T5: zamrożenie `claude-sdd-framework` — w `~/.claude` commit tylko `README.md` z odnośnikiem
+  do `github.com/DanielDrzazga/regent`; push na `github` i `origin` (GitLab)
+- [ ] T6: `claude plugin marketplace add DanielDrzazga/regent` + `claude plugin install regent@regent`
+  (zakres `user`)
+- [ ] T7: `~/.claude/settings.json` — `statusLine.command` →
+  `bash "$HOME/.claude/plugins/data/regent-regent/bin/statusline.sh"`, `attribution.pr: ""`
+- [ ] T8: usunięcie SDD z `~/.claude` — lista z T4; `~/.claude` przestaje być repo gita
+  (bez `skills/`, `plugins/`, `projects/`, `settings.json` i reszty konfiguracji Claude Code)
+- [ ] T9: usunięcie starego wpisu git-guard z
+  `~/PhpstormProjects/external-communication-service/.claude/settings.local.json` (plik lokalny, poza repo projektu)
+- [ ] T10: weryfikacja w nowych sesjach (`claude -p`, Haiku):
+  - lista komend: są `regent:*`, nie ma `*-sdd`;
+  - projekt SDD dostaje `role.md`, `sdd.md` i `sdd-map.md`; `~/.claude/CLAUDE.md` nie istnieje, więc bez duplikatów;
+  - opisy 17 skilli poza kontekstem, `/regent:status` działa;
+  - statusline z danych pluginu zwraca linię;
+  - git-guard w repo `regent` (nowa sesja) blokuje `git add .`
+- [ ] T11: zamknięcie — plan, pamięć, reguła projektu (etap: migracja zakończona)
+
+## Poza zakresem
+
+Instalacja na Fedorze, TrueNAS i Windows (checklista z T2 — wykonuje użytkownik albo sesja na tamtej
+maszynie), instalacja na PC firmowym (decyzja użytkownika i polityka firmy), synchronizacja wizji
+między maszynami, pełne usunięcie starych commitów z GitHuba (usunięcie i ponowne założenie repo
+albo zgłoszenie do GitHub Support — decyzja użytkownika).
+
+## Ryzyka
+
+- **Okno bez frameworka** — między T8 a działającym pluginem; dlatego T6 i T7 przed T8, a weryfikacja
+  pluginu przed usunięciem.
+- **Nieodwracalność T8** — kopia z T4; stare repo zostaje na GitHubie i GitLabie.
+- **Bieżąca sesja** — ma w kontekście stary `CLAUDE.md` i komendy `-sdd` do końca; zmiany widać
+  dopiero w nowej sesji.
+- **Projekty z pracy na tym Macu** — dostają kontekst i git-guard z pluginu tak jak dziś z `~/.claude`;
+  treść z tych projektów nie trafia do repo `regent` (`.claude/rules/privacy.md`).
