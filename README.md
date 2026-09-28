@@ -100,7 +100,7 @@ regent/
 ├── templates/             # Szablony artefaktów zmian + Makefile
 │   └── docs/              # Szablony plików ai/docs/ (wypełniane przez /regent:init)
 ├── scripts/               # sdd-check.sh (walidacja artefaktów), framework-lint.sh, statusline.sh, session-tokens.sh
-├── docs/                  # Dokumentacja frameworka, wizja Regenta, plany zmian
+├── docs/                  # Dokumentacja frameworka i plany zmian
 ├── .claude/               # reguły pracy nad tym repo (nie są częścią pluginu)
 └── README.md · CONTRIBUTING.md
 ```
@@ -248,8 +248,9 @@ Framework **nie buduje** dashboardów — tylko wymusza refleksję. Brak `observ
 
 ## Bezpieczeństwo danych
 
-Repo zawiera wyłącznie plugin, jego dokumentację i wizję Regenta — bez danych z `~/.claude`
-(historia, transkrypty, sesje) i bez kodu ani danych z pracy etatowej (`.claude/rules/privacy.md`).
+Repo jest publiczne i zawiera wyłącznie plugin i jego dokumentację — bez danych z `~/.claude`
+(historia, transkrypty, sesje), bez notatek osobistych i bez kodu ani danych z pracy etatowej
+(`.claude/rules/privacy.md`).
 
 - Przed pushem sprawdź `git status` — `git add` tylko z listą konkretnych plików.
 - Nigdy nie commituj sekretów ani realnych logów/payloadów.
@@ -262,5 +263,4 @@ Repo zawiera wyłącznie plugin, jego dokumentację i wizję Regenta — bez dan
 - [`docs/workflow.md`](docs/workflow.md) — pełny cykl SDD + skróty
 - [`docs/writing-docs.md`](docs/writing-docs.md) — `ai/docs/`, logowanie, observability
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — jak dodać skill/agenta/szablon
-- [`docs/vision.md`](docs/vision.md) — wizja Regenta
 - [`docs/`](docs/README.md) — indeks całej dokumentacji (m.in. `statusline.md` — konfiguracja statusline)

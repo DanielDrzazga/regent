@@ -17,10 +17,10 @@ warnings=0
 err()  { echo "ERROR $*"; errors=$((errors + 1)); }
 warn() { echo "WARN  $*"; warnings=$((warnings + 1)); }
 
-# Poza lintem: reguły pracy nad repo (.claude/), wizja i plany zmian — opisują pliki, które
+# Poza lintem: reguły pracy nad repo (.claude/) i plany zmian — opisują pliki, które
 # dopiero powstaną, i dawne nazwy.
 FILES=$(git ls-files --cached --others --exclude-standard -- '*.md' 2>/dev/null \
-  | grep -vE '^(\.claude/|docs/vision\.md$|docs/plans/)')
+  | grep -vE '^(\.claude/|docs/plans/)')
 [ -n "$FILES" ] || { echo "ERROR brak plików .md — uruchom w repo regent"; exit 2; }
 # Dokumenty decyzji świadomie wymieniają wycofane komendy i usunięte pliki — sekcje 3, 4 i 6
 # ich nie sprawdzają. Dopisuj tu tylko pliki-rejestry decyzji, nie zwykłą dokumentację.

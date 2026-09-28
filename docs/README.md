@@ -10,7 +10,6 @@ Indeks dokumentacji frameworka. Szczegóły w plikach poniżej.
 | [workflow.md](workflow.md) | Przepływ pracy SDD: komendy, cykl zmiany, delegacja do agentów |
 | [writing-docs.md](writing-docs.md) | Jak pisać dokumentację w tym repo (styl, struktura) |
 | [roadmap.md](roadmap.md) | Świadome decyzje (czego nie ma i dlaczego, jak przywrócić), pomysły odłożone i zrealizowane |
-| [vision.md](vision.md) | Wizja Regenta — wynik wywiadu: problem, rdzeń, napięcia, otwarte pytania |
 | [plans/](plans/) | Plany zmian prowadzonych lekką ścieżką (gałąź + checklista) |
 
 ## Skrypty
