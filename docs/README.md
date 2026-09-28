@@ -10,6 +10,7 @@ Indeks dokumentacji frameworka. Szczegóły w plikach poniżej.
 | [workflow.md](workflow.md) | Przepływ pracy SDD: komendy, cykl zmiany, delegacja do agentów |
 | [writing-docs.md](writing-docs.md) | Jak pisać dokumentację w tym repo (styl, struktura) |
 | [roadmap.md](roadmap.md) | Świadome decyzje (czego nie ma i dlaczego, jak przywrócić), pomysły odłożone i zrealizowane |
+| [agent-teams.md](agent-teams.md) | Agent teams w tmux (włączenie per projekt, koszt, wpływ na delegację) i podgląd `regent-watch` |
 | [plans/](plans/) | Plany zmian prowadzonych lekką ścieżką (gałąź + checklista) |
 
 ## Skrypty
@@ -29,3 +30,11 @@ terminala `${CLAUDE_PLUGIN_ROOT}` oznacza katalog pluginu — przy pracy nad plu
 
 Gdy dojdzie nowy skrypt do `scripts/` — dopisz wiersz w tabeli powyżej i (jeśli
 wymaga wyjaśnienia) osobny plik `docs/<nazwa>.md`.
+
+## Narzędzia
+
+Pakiety Node w [`tools/`](../tools/) — poza komponentami pluginu, instalowane osobno:
+
+| Pakiet | Dokumentacja | O czym |
+|--------|--------------|--------|
+| [`tools/watch/`](../tools/watch/) | [agent-teams.md](agent-teams.md#regent-watch) | `regent-watch`: agenci Claude Code na żywo — akcje, oś czasu, tokeny i koszt, blokady i błędy |

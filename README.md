@@ -24,6 +24,7 @@ projektu (`ai/docs/`) jest jedynym źródłem prawdy dla AI.
 - [Agenci i modele](#agenci-i-modele)
 - [Szablony](#szablony)
 - [Observability (opcjonalnie)](#observability-opcjonalnie)
+- [Agent teams i regent-watch (opcjonalnie)](#agent-teams-i-regent-watch-opcjonalnie)
 - [Konwencje](#konwencje)
 - [Bezpieczeństwo danych](#bezpieczeństwo-danych)
 - [Dokumentacja rozszerzona](#dokumentacja-rozszerzona)
@@ -103,6 +104,7 @@ regent/
 │   └── docs/              # Szablony plików ai/docs/ (wypełniane przez /regent:init)
 ├── scripts/               # sdd-check.sh (walidacja artefaktów), framework-lint.sh, statusline.sh, session-tokens.sh
 ├── docs/                  # Dokumentacja frameworka i plany zmian
+├── tools/watch/           # regent-watch — podgląd agentów w terminalu (Node, poza pluginem)
 ├── .claude/               # reguły pracy nad tym repo (nie są częścią pluginu)
 └── README.md · CONTRIBUTING.md
 ```
@@ -236,6 +238,14 @@ pilnuje, by **zmiana logowanej `action` nie rozjechała się z dashboardem**:
 
 Framework **nie buduje** dashboardów — tylko wymusza refleksję. Brak `observability/` → kroki N/A.
 
+## Agent teams i regent-watch (opcjonalnie)
+
+Praca agentów widoczna na żywo w tmux: natywne agent teams Claude Code w trybie split-pane
+(każdy członek zespołu we własnym panelu) i `regent-watch` w osobnym oknie — agenci z bieżącą
+akcją, oś czasu, tokeny i koszt, blokady i błędy. Teams włączasz **tylko w wybranym projekcie**
+(`.claude/settings.local.json`), bo zmieniają delegację: nazwany agent startuje jako członek
+zespołu, nie subagent. Szczegóły, koszt i ograniczenia: [docs/agent-teams.md](docs/agent-teams.md).
+
 ## Konwencje
 
 - **Commity:** `<type>: (<KEY>) <opis>` — **jedna linia, max 100 znaków, bez body**. Długi opis =
@@ -264,5 +274,6 @@ Repo jest publiczne i zawiera wyłącznie plugin i jego dokumentację — bez da
 - [`docs/getting-started.md`](docs/getting-started.md) — pierwsze uruchomienie krok po kroku
 - [`docs/workflow.md`](docs/workflow.md) — pełny cykl SDD + skróty
 - [`docs/writing-docs.md`](docs/writing-docs.md) — `ai/docs/`, logowanie, observability
+- [`docs/agent-teams.md`](docs/agent-teams.md) — agent teams w tmux i `regent-watch`
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — jak dodać skill/agenta/szablon
 - [`docs/`](docs/README.md) — indeks całej dokumentacji (m.in. `statusline.md` — konfiguracja statusline)
