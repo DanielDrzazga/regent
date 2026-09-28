@@ -241,8 +241,9 @@ Framework **nie buduje** dashboardów — tylko wymusza refleksję. Brak `observ
 ## Agent teams i regent-watch (opcjonalnie)
 
 Praca agentów widoczna na żywo w tmux: natywne agent teams Claude Code w trybie split-pane
-(każdy członek zespołu we własnym panelu) i `regent-watch` w osobnym oknie — agenci z bieżącą
-akcją, oś czasu, tokeny i koszt, blokady i błędy. Teams włączasz **tylko w wybranym projekcie**
+(każdy członek zespołu we własnym panelu) i `regent-watch` w osobnym oknie — mission control
+w stylu OpenRig: drzewo aktywnych sesji z całej maszyny, zakładki Tabela, Oś czasu, Graf, Przegląd
+i Zdrowie, szczegóły agenta i skok do jego panelu tmux. Teams włączasz **tylko w wybranym projekcie**
 (`.claude/settings.local.json`), bo zmieniają delegację: nazwany agent startuje jako członek
 zespołu, nie subagent. Szczegóły, koszt i ograniczenia: [docs/agent-teams.md](docs/agent-teams.md).
 

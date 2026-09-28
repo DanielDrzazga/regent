@@ -37,4 +37,4 @@ Pakiety Node w [`tools/`](../tools/) — poza komponentami pluginu, instalowane 
 
 | Pakiet | Dokumentacja | O czym |
 |--------|--------------|--------|
-| [`tools/watch/`](../tools/watch/) | [agent-teams.md](agent-teams.md#regent-watch) | `regent-watch`: agenci Claude Code na żywo — akcje, oś czasu, tokeny i koszt, blokady i błędy |
+| [`tools/watch/`](../tools/watch/) | [agent-teams.md](agent-teams.md#regent-watch) | `regent-watch`: mission control agentów Claude Code — sesje z całej maszyny, akcje, kontekst, oś czasu, graf, koszt, zdrowie |
