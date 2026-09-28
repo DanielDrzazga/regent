@@ -114,7 +114,7 @@ export class SessionStore {
       }));
   }
 
-  view(): ViewModel {
-    return buildView({ agents: this.sources(), ...(this.team ? { team: this.team } : {}) });
+  view(now = Date.now()): ViewModel {
+    return buildView({ agents: this.sources(), ...(this.team ? { team: this.team } : {}), now });
   }
 }

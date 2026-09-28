@@ -97,3 +97,13 @@ export function costOf(model: string, u: Usage, fast = false): number | undefine
 export function shortModel(model: string): string {
   return model.replace(/^claude-/, '').replace(/-\d{8}$/, '');
 }
+
+/**
+ * Okno kontekstu wg modelu. Transkrypt go nie zapisuje, więc to szacunek z tabeli modeli:
+ * Haiku 4.5 — 200k, pozostałe bieżące modele — 1M. Sesja z wariantem 200k pokaże zaniżony procent.
+ */
+export function contextWindow(model: string | undefined): number | undefined {
+  if (!model || model === '<synthetic>') return undefined;
+  if (model.startsWith('claude-haiku-4-5')) return 200_000;
+  return priceFor(model) ? 1_000_000 : undefined;
+}

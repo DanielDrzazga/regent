@@ -31,6 +31,17 @@ export interface ToolCall {
   error?: boolean;
 }
 
+export interface SpawnedMember {
+  color?: string;
+  model?: string;
+  paneId?: string;
+}
+
+export interface ToolCount {
+  calls: number;
+  errors: number;
+}
+
 export interface TranscriptState {
   sessionId?: string;
   /** Członek zespołu: nazwa i zespół (pola agentName/teamName w każdym rekordzie). */
@@ -53,6 +64,14 @@ export interface TranscriptState {
   usage: Map<string, Usage>;
   seenMessages: Set<string>;
   seenToolUses: Set<string>;
+  /** Rozmiar kontekstu po ostatnim wywołaniu API: wejście + zapis i odczyt cache. */
+  context?: number;
+  /** Wysłane wiadomości (SendMessage) per adresat. */
+  sent: Map<string, number>;
+  /** Wywołania i błędy per narzędzie. */
+  toolCounts: Map<string, ToolCount>;
+  /** Członkowie zespołu uruchomieni przez tę sesję (toolUseResult teammate_spawned). */
+  spawned: Map<string, SpawnedMember>;
   /** Koszt wg Claude Code (rekord cost-state, zapisywany przy zamknięciu sesji). */
   costUSD?: number;
   /** Sesja zamknięta: ostatni był cost-state; wznowienie dopisuje nowe rekordy i kasuje flagę. */
@@ -68,6 +87,9 @@ export function createState(): TranscriptState {
     events: [],
     problems: [],
     usage: new Map(),
+    sent: new Map(),
+    toolCounts: new Map(),
+    spawned: new Map(),
     seenMessages: new Set(),
     seenToolUses: new Set(),
     invalidLines: 0,
@@ -104,7 +126,9 @@ function onAssistant(s: TranscriptState, rec: Rec, ts: number): void {
     s.seenMessages.add(id);
     if (model && model !== '<synthetic>' && isObj(msg.usage)) {
       const key = `${model}|${msg.usage.speed === 'fast' ? 'fast' : 'standard'}`;
-      s.usage.set(key, addUsage(s.usage.get(key) ?? emptyUsage(), usageFromRecord(msg.usage)));
+      const u = usageFromRecord(msg.usage);
+      s.usage.set(key, addUsage(s.usage.get(key) ?? emptyUsage(), u));
+      s.context = u.input + u.cacheWrite5m + u.cacheWrite1h + u.cacheRead;
     }
   }
   if (model && model !== '<synthetic>') s.model = model;
@@ -118,8 +142,13 @@ function onAssistant(s: TranscriptState, rec: Rec, ts: number): void {
     const call: ToolCall = { id: toolId, name, summary: summarizeTool(name, block.input, s.cwd), start: ts };
     s.pending.set(toolId, call);
     s.lastTool = call;
+    const count = s.toolCounts.get(name) ?? { calls: 0, errors: 0 };
+    count.calls++;
+    s.toolCounts.set(name, count);
     const input = isObj(block.input) ? block.input : {};
     if (name === 'SendMessage') {
+      const to = str(input.to);
+      if (to) s.sent.set(to, (s.sent.get(to) ?? 0) + 1);
       s.events.push({ ts, kind: 'message', text: call.summary });
     } else if ((name === 'Agent' || name === 'Task') && str(input.name)) {
       const m = str(input.model);
@@ -161,7 +190,17 @@ function onUser(s: TranscriptState, rec: Rec, ts: number): void {
       const call = s.pending.get(toolId) ?? (s.lastTool?.id === toolId ? s.lastTool : undefined);
       s.pending.delete(toolId);
       if (call) call.end = ts;
+      const spawn = rec.toolUseResult;
+      if (isObj(spawn) && spawn.status === 'teammate_spawned' && str(spawn.name)) {
+        const m: SpawnedMember = {};
+        if (str(spawn.color)) m.color = str(spawn.color);
+        if (str(spawn.model)) m.model = str(spawn.model);
+        if (str(spawn.tmux_pane_id)) m.paneId = str(spawn.tmux_pane_id);
+        s.spawned.set(str(spawn.name) as string, m);
+      }
       if (r.is_error !== true) continue;
+      const counted = call ? s.toolCounts.get(call.name) : undefined;
+      if (counted) counted.errors++;
       const raw = resultText(r.content) || (typeof rec.toolUseResult === 'string' ? rec.toolUseResult : '');
       const err = classifyError(raw);
       const tool = call?.name ?? '?';
