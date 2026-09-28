@@ -21,12 +21,13 @@ nazwy, ścieżki i miejsce plików.
 | Agenci | bez zmian w plikach; w odwołaniach pełna nazwa `regent:<agent>` |
 | Reguły SDD z `CLAUDE.md` | → `context/sdd.md` (wstrzykiwany przez hook w zmianie 2, tylko przy `ai/docs/`) |
 | „Twoja rola" | → `context/role.md` (wstrzykiwany przez hook w zmianie 2, zawsze) |
-| Bramka | `bash scripts/framework-lint.sh` (w nim testy w obu bashach) + `claude plugin validate --strict .` |
+| Bramka | `bash scripts/framework-lint.sh` (w nim testy w obu bashach) + `claude plugin validate .` — bez `--strict`, bo jedyne ostrzeżenie to świadomy brak `version` |
+| Wersja pluginu | bez pola `version` — plugin śledzi commity `main` (wersją jest SHA); `--strict` traktowałby to jako błąd |
 
 ## Układ docelowy
 
 ```
-.claude-plugin/plugin.json        # manifest: name regent, version 0.1.0
+.claude-plugin/plugin.json        # manifest: name regent, bez version
 .claude-plugin/marketplace.json   # marketplace regent, plugin source "./"
 skills/<nazwa>/SKILL.md           # 18 ← ~/.claude/commands/<nazwa>-sdd.md
 agents/*.md                       # 9  ← ~/.claude/agents/
@@ -59,10 +60,10 @@ instalacja pluginu). Poza zakresem tej zmiany: wpis hooka git-guard w `init` Kro
 
 ## Taski
 
-- [ ] T1: import plików ze źródła (bez historii, bez `docs/announcements/`, bez `.gitignore` starego repo)
-- [ ] T2: `commands/<nazwa>-sdd.md` → `skills/<nazwa>/SKILL.md`; `CLAUDE.md` → `context/sdd.md` + `context/role.md`
-- [ ] T3: podmiany 1–5 skryptem (`scripts/migrate-names.sh` w scratchpadzie, nie w repo) + edycje ręczne
-- [ ] T4: `framework-lint.sh` pod układ pluginu:
+- [x] T1: import plików ze źródła (bez historii, bez `docs/announcements/`, bez `.gitignore` starego repo)
+- [x] T2: `commands/<nazwa>-sdd.md` → `skills/<nazwa>/SKILL.md`; `CLAUDE.md` → `context/sdd.md` + `context/role.md`
+- [x] T3: podmiany 1–5 skryptem (`scripts/migrate-names.sh` w scratchpadzie, nie w repo) + edycje ręczne
+- [x] T4: `framework-lint.sh` pod układ pluginu:
   - `FILES` bez `.claude/`, `docs/vision.md`, `docs/plans/`;
   - §2 po `skills/*/SKILL.md` — zakaz sufiksu `-sdd`, nagłówek `# /regent:<nazwa>`;
   - §3 `/regent:<nazwa>` → istniejący `skills/<nazwa>/SKILL.md`;
@@ -71,12 +72,12 @@ instalacja pluginu). Poza zakresem tej zmiany: wpis hooka git-guard w `init` Kro
   - §6 dawne nazwy `/<nazwa>-sdd` na liście wycofanych (poza `docs/roadmap.md`);
   - §7 ścieżki `commands/…-sdd.md` → `skills/…/SKILL.md`;
   - nowa reguła: skille nie odwołują się do agenta bez prefiksu `regent:`
-- [ ] T5: `.claude-plugin/plugin.json` i `.claude-plugin/marketplace.json`
-- [ ] T6: README, CONTRIBUTING, `docs/`: instalacja (`/plugin marketplace add DanielDrzazga/regent`,
+- [x] T5: `.claude-plugin/plugin.json` i `.claude-plugin/marketplace.json`
+- [x] T6: README, CONTRIBUTING, `docs/`: instalacja (`/plugin marketplace add DanielDrzazga/regent`,
   `/plugin install regent@regent`, dev: `claude --plugin-dir .`), drzewo repo, wiersz dla `vision.md`
-- [ ] T7: bramka zielona — `bash scripts/framework-lint.sh` w obu bashach (git-guard 28/28,
-  sdd-check 124/124) i `claude plugin validate --strict .`
-- [ ] T8: parytet — ten sam skrypt podmian na kopii źródła w `mktemp -d`, `diff -r` z repo:
+- [x] T7: bramka zielona — `bash scripts/framework-lint.sh` w obu bashach (git-guard 28/28,
+  sdd-check 124/124) i `claude plugin validate .`
+- [x] T8: parytet — ten sam skrypt podmian na kopii źródła w `mktemp -d`, `diff -r` z repo:
   różnice tylko w edycjach ręcznych wymienionych wyżej
 - [ ] T9: smoke w pustym repo testowym:
   - `/regent:status` przez `claude -p … --plugin-dir` (skill ładuje się, `sdd-check.sh` rusza przez `${CLAUDE_PLUGIN_ROOT}`);
@@ -98,3 +99,16 @@ zamrożenie `claude-sdd-framework`, usunięcie lokalnego `.claude/settings.local
 - **Budowanie Regenta samym sobą** — do końca zmiany 3 prace prowadzi stary framework z `~/.claude`;
   plugin w tej zmianie nie jest instalowany globalnie, więc nie dubluje kontekstu w innych sesjach.
 - **Stan źródła się zmieni w trakcie** — import robiony raz, z zapisanym `HEAD` i listą plików.
+
+## Przebieg (2026-09-28)
+
+- T1–T8 wykonane. Parytet (T8): po podmianach 1–5 różnice między kopią źródła a repo tylko
+  w edycjach ręcznych — `README.md`, `CONTRIBUTING.md`, `docs/README.md`, `docs/getting-started.md`,
+  `docs/roadmap.md`, `scripts/framework-lint.sh`, `skills/refactor/SKILL.md` i podział `context/`.
+  Pozostałe 17 skilli, 9 agentów, 19 szablonów i skrypty są identyczne ze źródłem po podmianach.
+- Odchyłki od planu: brak `version` w manifeście (wyżej); `docs/roadmap.md` wskazuje, że hashe
+  przywracania pochodzą z zamrożonego `claude-sdd-framework`; reguła regresji `resume tego samego
+  .spec-writer.` → `.regent:spec-writer.`; `docs/README.md` dostał brakujący wiersz
+  `session-tokens.sh` (przyczyna dawnego ERROR lintu) oraz wiersze `vision.md` i `plans/`.
+- `claude plugin validate` w 2.1.280 sprawdza manifesty, ale nie raportuje skilli i agentów
+  (`contents: []`) — ładowanie komponentów potwierdza dopiero smoke (T9).
