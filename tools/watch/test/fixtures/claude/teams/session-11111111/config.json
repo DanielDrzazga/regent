@@ -1,0 +1,32 @@
+{
+  "name": "session-11111111",
+  "createdAt": 1767261600000,
+  "leadAgentId": "team-lead@session-11111111",
+  "leadSessionId": "11111111-aaaa-4bbb-8ccc-000000000001",
+  "members": [
+    {
+      "agentId": "team-lead@session-11111111",
+      "name": "team-lead",
+      "agentType": "team-lead",
+      "joinedAt": 1767261600000,
+      "tmuxPaneId": "leader",
+      "cwd": "/tmp/demo",
+      "subscriptions": [],
+      "backendType": "in-process"
+    },
+    {
+      "agentId": "alpha@session-11111111",
+      "name": "alpha",
+      "color": "blue",
+      "joinedAt": 1767261602000,
+      "tmuxPaneId": "%1",
+      "subscriptions": [],
+      "model": "haiku",
+      "prompt": "Zadanie alpha",
+      "planModeRequired": false,
+      "cwd": "/tmp/demo",
+      "backendType": "tmux",
+      "isActive": true
+    }
+  ]
+}
