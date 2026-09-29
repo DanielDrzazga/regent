@@ -39,7 +39,7 @@
 
 ## Taski
 
-- [ ] T1: pakiet `tools/regent/` (Node 24, TS, Vitest, bin `regent`), warstwa bazy w jednym pliku
+- [x] T1: pakiet `tools/regent/` (Node 24, TS, Vitest, bin `regent`), warstwa bazy w jednym pliku
   (ścieżka, WAL, `busy_timeout`, migracje przez `user_version`, wyciszone `ExperimentalWarning`
   z `node:sqlite`); testy na bazie w katalogu tymczasowym
 - [ ] T2: model zadań — dwa poziomy, stany, tabela przejść, właściciel, log tylko do dopisywania,

@@ -1,0 +1,28 @@
+{
+  "name": "regent",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Rdzeń zadań Regenta — zadania, właściciele i log przejść w lokalnej bazie SQLite",
+  "type": "module",
+  "bin": {
+    "regent": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "npm run build",
+    "start": "node dist/cli.js",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}
