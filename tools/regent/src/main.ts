@@ -9,6 +9,7 @@ import { renderList, renderShow, taskLine } from './format.js';
 import { STATE_LABEL, TransitionError, UsageError, isOwner, type Owner, type State } from './model.js';
 import { projectRoot } from './project.js';
 import { openTaskDb } from './schema.js';
+import { DEFAULT_STUCK_MIN, findStuck, type Stuck } from './stuck.js';
 import { TaskStore, type Ctx, type Task } from './tasks.js';
 
 export interface Io {
@@ -39,7 +40,10 @@ Polecenia:
                                                  do agenta — przekazane, aż je weźmie
   regent task done <id> --reason <powód>         zakończone
   regent task drop <id> --reason <powód>         porzucone
-  regent task list [--all]                       otwarte zadania; --all także zamknięte
+  regent task list [--all] [--stuck <min>]       otwarte zadania; --all także zamknięte.
+                                                 Uwaga: w toku, a transkrypt sesji stoi od
+                                                 progu (domyślnie ${DEFAULT_STUCK_MIN} min) albo bez
+                                                 sesji dłużej niż próg od wzięcia
   regent task show <id>                          zadanie i historia przejść
 
 Opcje: --json — wynik jako JSON; -h, --help — ta pomoc.
@@ -91,6 +95,17 @@ function owner(value: string | undefined): Owner {
   if (value === undefined || !isOwner(value)) throw new UsageError(`nieznany właściciel: ${value} (me albo agent)`);
   return value;
 }
+
+function stuckMinutes(value: string | boolean | undefined): number {
+  if (value === undefined) return DEFAULT_STUCK_MIN;
+  const minutes = Number(value);
+  if (!Number.isFinite(minutes) || minutes <= 0) throw new UsageError(`--stuck wymaga liczby minut > 0, podano: ${value}`);
+  return minutes;
+}
+
+const attentionJson = (stuck: Stuck[]) => ({
+  stuck: stuck.map((s) => ({ id: s.taskId, why: s.why, idleMinutes: Math.floor(s.idleMs / 60_000), since: s.since })),
+});
 
 function reason(call: Call, command: string): string {
   const text = typeof call.values.reason === 'string' ? call.values.reason.trim() : '';
@@ -162,20 +177,26 @@ const COMMANDS: Record<string, Command> = {
     },
   },
   list: {
-    options: { ...JSON_OPT, all: { type: 'boolean' } },
+    options: { ...JSON_OPT, all: { type: 'boolean' }, stuck: { type: 'string' } },
     run: (c) => {
       if (c.positionals.length) throw new UsageError(`list nie przyjmuje argumentów: ${c.positionals.join(' ')}`);
       const all = Boolean(c.values.all);
+      const thresholdMs = stuckMinutes(c.values.stuck) * 60_000;
       if (!existsSync(c.dbPath)) {
         c.io.out(
           c.values.json
-            ? JSON.stringify({ project: c.project, db: null, tasks: [] }, null, 2)
+            ? JSON.stringify({ project: c.project, db: null, tasks: [], attention: attentionJson([]) }, null, 2)
             : `Brak bazy zadań (${c.dbPath}) — nic jeszcze nie zapisano.`,
         );
         return 0;
       }
       const tasks = c.store().list(c.project, { all });
-      c.io.out(c.values.json ? JSON.stringify({ project: c.project, db: c.dbPath, tasks }, null, 2) : renderList(c.project, tasks, all));
+      const stuck = findStuck(tasks, { now: c.io.now(), thresholdMs });
+      c.io.out(
+        c.values.json
+          ? JSON.stringify({ project: c.project, db: c.dbPath, tasks, attention: attentionJson(stuck) }, null, 2)
+          : renderList(c.project, tasks, all, stuck),
+      );
       return 0;
     },
   },

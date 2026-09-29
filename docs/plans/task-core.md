@@ -46,7 +46,7 @@
   powód przy zamknięciu; testy dozwolonych i odrzuconych przejść
 - [x] T3: polecenia `add`, `take`, `handoff`, `done`, `drop`, `list`, `show` (tekst i `--json`; kody:
   0 — ok, 1 — odrzucone przejście, 2 — błędne użycie); testy
-- [ ] T4: utknięcie przy odczycie i sekcja Uwaga w `list`; testy z podmienionym zegarem
+- [x] T4: utknięcie przy odczycie i sekcja Uwaga w `list`; testy z podmienionym zegarem
 - [ ] T5: `sync` poziomu zmiany — mapa SDD → stan, sygnatura plików, ostrzeżenie o zniknięciu;
   w skillu `archive` przy `--abandon` zapis `Status: Abandoned` w `proposal.md`; testy na
   fixture'ach `ai/changes/`
@@ -96,3 +96,35 @@ Tydzień realnej pracy z pluginem na jednej maszynie:
 - tokeny wejścia pierwszej tury subagenta `apply` są niższe niż przed zmianą (punkt odniesienia:
   transkrypty `apply` z projektów prywatnych sprzed zmiany), a raporty `BRAK W PACZCE` nie
   powtarzają się dla tej samej sekcji.
+
+## Przebieg (2026-09-29) — sesja 1
+
+- T1–T4 na `feat/task-core`: 47 testów Vitest zielonych, `npm run typecheck` czysty. Smoke
+  zbudowanego CLI w osobnym procesie: `add` → `take` → `handoff me` → `done --reason`, kod 1
+  z listą możliwych, kod 2 bez `--reason`, Uwaga z zadaniem wziętym 45 min temu; bez
+  `ExperimentalWarning` (test wyciszenia uruchamia `src/db.ts` w osobnym procesie).
+- Rozstrzygnięte w sesji (pytanie do Ciebie): zadanie w toku bez sesji jest utknięte dopiero po
+  progu od wzięcia (`claimed_at`), nie od razu; `list --all` dokłada zamknięte z powodem, zakres
+  to zawsze bieżący projekt.
+- Doprecyzowania w kodzie:
+  - tabela przejść (`src/model.ts`): stany końcowe bez wyjścia; przekazane i zablokowane nie kończą
+    się bez wzięcia; przejścia bez polecenia CLI (w toku → oczekuje, → zablokowane) zostają dla
+    sync. Jeśli T6 (wygrana pliku przy ręcznym odznaczeniu) potrzebuje wyjścia ze stanu
+    końcowego — rozszerzyć tabelę tam;
+  - „wstrzymane do resetu” poza listą stanów do etapu 3 (stan to tekst, bez migracji);
+    „zablokowane” jest w modelu, ale bez polecenia CLI — plan nie wymienia `block`;
+  - wykonawca: `CLAUDECODE` w środowisku → `agent`, inaczej `me`; `take` ustawia właściciela na
+    wykonawcę, `add --owner` nadpisuje. Hooki dziedziczą `CLAUDECODE`, więc sync (T5, T8) podaje
+    własny `actor`/`source`;
+  - `take` zapisuje `session_id` z `CLAUDE_CODE_SESSION_ID` (jest w środowisku Bash sesji Claude
+    Code, nieudokumentowana). `transcript_path` dopisuje sync z hooka (T8), łącząc po `session_id`;
+  - utknięcie liczy się od późniejszego z: zapisu transkryptu i wzięcia; brak pliku transkryptu →
+    od wzięcia; ponowne wejście w „w toku” zeruje sesję poprzedniego wzięcia;
+  - kod 4 — błąd bazy lub środowiska (plan zna 0/1/2, a 3 zajmuje `regent.sh`);
+  - triggery w bazie blokują UPDATE i DELETE na `transitions` oraz DELETE na `tasks`;
+  - `list` i `show` nie zakładają bazy; brak bazy → komunikat (`--json`: `db: null`);
+  - projekt: korzeń gita szukany po `.git` w górę od `realpath(cwd)`, bez wołania `git`; poza
+    repo — sam katalog.
+- Pomiar: `regent task list` ~130 ms, z czego sam start Node (`node -e 0`) ~120 ms na tej
+  maszynie — koszt hooka `Stop` w T11 to głównie start Node.
+- Sesja 2 (T5–T7) może ruszać.

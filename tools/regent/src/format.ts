@@ -1,6 +1,7 @@
 // Tekstowe widoki zadań dla CLI. Kolumny dopasowane do treści, czas lokalny.
 
 import { CLOSED, STATE_LABEL, type Kind } from './model.js';
+import type { Stuck } from './stuck.js';
 import type { Task, Transition } from './tasks.js';
 
 const KIND_LABEL: Readonly<Record<Kind, string>> = { change: 'zmiana SDD', task: 'task zmiany', manual: 'ręczne' };
@@ -25,7 +26,30 @@ export function columns(rows: string[][], indent = '  '): string[] {
   return rows.map((row) => indent + row.map((cell, i) => (i === row.length - 1 ? cell : cell.padEnd(widths[i]!))).join('  '));
 }
 
-export function renderList(project: string, tasks: Task[], all: boolean): string {
+/** `45 min`, `2 godz. 30 min`. */
+export function fmtDuration(ms: number): string {
+  const minutes = Math.floor(ms / 60_000);
+  if (minutes < 60) return `${minutes} min`;
+  const rest = minutes % 60;
+  return `${Math.floor(minutes / 60)} godz.${rest ? ` ${rest} min` : ''}`;
+}
+
+const shortSession = (id: string) => id.slice(0, 8);
+
+export function describeStuck(s: Stuck, t: Task): string {
+  const since = fmtDuration(s.idleMs);
+  const session = t.sessionId ? ` ${shortSession(t.sessionId)}` : '';
+  switch (s.why) {
+    case 'idle':
+      return `transkrypt sesji${session} bez zmian od ${since}`;
+    case 'no-transcript':
+      return `brak transkryptu sesji${session} (${t.transcriptPath}), w toku od ${since}`;
+    case 'no-session':
+      return t.sessionId ? `w toku bez transkryptu sesji${session} od ${since}` : `w toku bez sesji od ${since}`;
+  }
+}
+
+export function renderList(project: string, tasks: Task[], all: boolean, stuck: Stuck[]): string {
   if (tasks.length === 0) return `Brak ${all ? '' : 'otwartych '}zadań w ${project}.`;
   const rows = tasks.map((t) => [
     `${t.parentId === null ? '' : '  '}#${t.id}`,
@@ -33,7 +57,11 @@ export function renderList(project: string, tasks: Task[], all: boolean): string
     t.owner,
     CLOSED.includes(t.state) && t.closureReason ? `${label(t)} — ${t.closureReason}` : label(t),
   ]);
-  return [`${project} — ${all ? 'wszystkie' : 'otwarte'}: ${tasks.length}`, '', ...columns(rows)].join('\n');
+  const lines = [`${project} — ${all ? 'wszystkie' : 'otwarte'}: ${tasks.length}`, '', ...columns(rows)];
+  const byId = new Map(tasks.map((t) => [t.id, t]));
+  const attention = stuck.map((s) => [`#${s.taskId}`, `utknięte — ${describeStuck(s, byId.get(s.taskId)!)}`]);
+  if (attention.length) lines.push('', 'Uwaga:', ...columns(attention));
+  return lines.join('\n');
 }
 
 export function renderShow(task: Task, history: Transition[], parent: Task | undefined): string {
