@@ -28,7 +28,7 @@
 
 - [x] T1: paczka — alias „Kontrakt API” dla „API / Interface Contract” (nazwa z szablonu wygrywa),
   test na fixture'ze; checklista `architect` z nazwą sekcji i regresja w lint; `docs/tasks.md`
-- [ ] T2: `regent-apply-tokens` — `firstturn.ts` z testami na syntetycznym transkrypcie, polecenie
+- [x] T2: `regent-apply-tokens` — `firstturn.ts` z testami na syntetycznym transkrypcie, polecenie
   z `--project`, `--since`, `--until`, `--json`, testy na syntetycznym katalogu `projects/`;
   dokumentacja (`docs/tasks.md` — sprawdzenie etapu, `docs/README.md` — Narzędzia)
 - [ ] T3: bramka (`framework-lint.sh`, `claude plugin validate .`, `npm test` i `npm run typecheck`

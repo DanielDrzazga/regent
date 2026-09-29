@@ -87,7 +87,7 @@ sesji i agentów po lewej, zakładki po prawej, podsumowanie w stopce.
 ```bash
 cd <klon repo regent>/tools/watch
 npm install        # zależności + build do dist/
-npm link           # opcjonalnie: polecenie regent-watch w PATH
+npm link           # opcjonalnie: regent-watch (i regent-apply-tokens, docs/tasks.md) w PATH
 ```
 
 Bez `npm link` uruchamiasz `node <klon repo regent>/tools/watch/dist/cli.js`.

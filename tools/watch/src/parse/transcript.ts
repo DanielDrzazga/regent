@@ -105,7 +105,7 @@ const clip = (s: string, n: number): string => {
   return line.length > n ? `${line.slice(0, n - 1)}…` : line;
 };
 
-const TURN_END = new Set(['end_turn', 'stop_sequence', 'max_tokens', 'refusal']);
+export const TURN_END: ReadonlySet<string> = new Set(['end_turn', 'stop_sequence', 'max_tokens', 'refusal']);
 
 function onAssistant(s: TranscriptState, rec: Rec, ts: number): void {
   const msg = rec.message;

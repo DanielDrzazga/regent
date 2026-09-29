@@ -5,7 +5,8 @@
   "description": "Podgląd pracy agentów Claude Code (agent teams, subagenci) — tylko odczyt transkryptów",
   "type": "module",
   "bin": {
-    "regent-watch": "dist/cli.js"
+    "regent-watch": "dist/cli.js",
+    "regent-apply-tokens": "dist/apply-tokens-cli.js"
   },
   "files": [
     "dist"

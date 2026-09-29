@@ -41,4 +41,4 @@ Pakiety Node w [`tools/`](../tools/) — poza komponentami pluginu, instalowane 
 | Pakiet | Dokumentacja | O czym |
 |--------|--------------|--------|
 | [`tools/regent/`](../tools/regent/) | [tasks.md](tasks.md) | `regent task`: zadania z właścicielem i logiem przejść, sync z `ai/changes/`, paczka dla agenta `apply` |
-| [`tools/watch/`](../tools/watch/) | [agent-teams.md](agent-teams.md#regent-watch) | `regent-watch`: mission control agentów Claude Code — sesje z całej maszyny, akcje, kontekst, oś czasu, graf, koszt, zdrowie |
+| [`tools/watch/`](../tools/watch/) | [agent-teams.md](agent-teams.md#regent-watch), [tasks.md](tasks.md#pomiar-paczki-regent-apply-tokens) | `regent-watch`: mission control agentów Claude Code — sesje z całej maszyny, akcje, kontekst, oś czasu, graf, koszt, zdrowie; `regent-apply-tokens`: tokeny pierwszej tury subagentów `apply` z paczką i bez |

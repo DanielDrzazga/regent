@@ -5,7 +5,7 @@ import { closeSync, existsSync, openSync, readFileSync, readSync, readdirSync, s
 import { homedir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 
-export const defaultClaudeDir = (): string => process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), '.claude');
+export const defaultClaudeDir = (env: NodeJS.ProcessEnv = process.env): string => env.CLAUDE_CONFIG_DIR ?? join(homedir(), '.claude');
 
 /** Katalog projektu w ~/.claude/projects: każdy znak spoza [A-Za-z0-9] → „-". */
 export const projectKey = (cwd: string): string => cwd.replace(/[^A-Za-z0-9]/g, '-');

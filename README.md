@@ -107,7 +107,7 @@ regent/
 ├── scripts/               # sdd-check.sh (walidacja artefaktów), regent.sh, framework-lint.sh, statusline.sh, session-tokens.sh
 ├── docs/                  # Dokumentacja frameworka i plany zmian
 ├── tools/regent/          # regent task — zadania i paczki dla agentów, baza SQLite (Node, poza pluginem)
-├── tools/watch/           # regent-watch — podgląd agentów w terminalu (Node, poza pluginem)
+├── tools/watch/           # regent-watch — podgląd agentów w terminalu, regent-apply-tokens — pomiar paczki (Node, poza pluginem)
 ├── .claude/               # reguły pracy nad tym repo (nie są częścią pluginu)
 └── README.md · CONTRIBUTING.md
 ```

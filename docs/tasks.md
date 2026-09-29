@@ -203,6 +203,26 @@ i rozjazd stanu z artefaktami. Pod listą stoi czas ostatniego sync; przed pierw
   kod 3 albo inny błąd → dotychczasowa praca na plikach. Routing po tagach, budżet subagentów
   i commit per task są w obu ścieżkach te same.
 
+## Pomiar paczki: `regent-apply-tokens`
+
+Czy paczka zmniejsza koszt agenta, pokazują transkrypty. `regent-apply-tokens` (pakiet
+[`tools/watch/`](../tools/watch/), instalacja jak `regent-watch` — `npm link` dodaje oba polecenia)
+bierze subagentów `backend-dev`, `frontend-dev` i `dba` z promptem o `ai/changes/` i dzieli ich
+na uruchomienia bez paczki i z paczką (`# Paczka:` w prompcie):
+
+```bash
+regent-apply-tokens --project ~/projekty --until 2026-09-28   # punkt odniesienia sprzed paczki
+regent-apply-tokens --project ~/projekty --since 2026-09-29   # tydzień z paczką
+```
+
+Mediany pierwszej tury (do `end_turn`, jak w parserze `regent-watch`): suma tokenów wejścia
+wszystkich wywołań API (wejście + zapis i odczyt cache), liczba wywołań, kontekst pierwszego
+wywołania, przy pierwszej edycji i maksymalny, odczyt `tasks.md`, `design.md` i `specs/` zmiany.
+Pod tabelą zgłoszenia `BRAK W PACZCE` z raportów subagentów, zliczone wg pliku i sekcji — sekcja,
+która wraca, to kandydat do reguły paczki. `--project` zawęża po katalogu sesji (z podkatalogami,
+więc także worktree) i można go powtórzyć; `--json` daje dokładne liczby. Polecenie tylko czyta
+transkrypty i wypisuje liczby — bez `--project` liczy wszystkie projekty na maszynie.
+
 ## Baza i prywatność
 
 Jedna baza na maszynę: `${XDG_STATE_HOME:-~/.local/state}/regent/regent.db` (`REGENT_DB` ją
