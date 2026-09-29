@@ -21,6 +21,8 @@ Przeczytaj:
 - `ai/docs/patterns/architecture.md` — wzorce (w tym sekcja Reference Implementations — wzorcowe encje/repozytoria/migracje)
 - **gdy pracujesz w `/regent:apply` (task `[DB]`):** `ai/changes/{nazwa}/tasks.md`, `design.md`
   (sekcja DB Changes + „Affected Files") i `specs/*.md` — to one definiują zakres taska
+  - gdy prompt z `/regent:apply` zawiera paczkę (CLI zadań) — zamiast tych trzech plików czytasz
+    paczkę; plik doczytujesz tylko, gdy czegoś w niej brakuje, i zgłaszasz w raporcie `BRAK W PACZCE: …`
 
 **Wzorce z docs, nie ze skanu src/:** wzorce persystencji (encje, repozytoria, migracje)
 bierz z `architecture.md` + Reference Implementations (wskazane pliki — `Read`). Do `src/`

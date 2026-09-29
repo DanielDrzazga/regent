@@ -65,6 +65,9 @@ for f in skills/*/SKILL.md; do
     if grep -q 'sdd-check.sh' "$f" && ! echo "$tools" | grep -qE '(^|, *)Bash(,|$)|sdd-check\.sh'; then
       err "$f: woła sdd-check.sh, a allowed-tools tego nie dopuszcza"
     fi
+    if grep -q 'regent\.sh' "$f" && ! echo "$tools" | grep -qE '(^|, *)Bash(,|$)|regent\.sh'; then
+      err "$f: woła regent.sh, a allowed-tools tego nie dopuszcza"
+    fi
   fi
 done
 
