@@ -24,6 +24,7 @@ projektu (`ai/docs/`) jest jedynym źródłem prawdy dla AI.
 - [Agenci i modele](#agenci-i-modele)
 - [Szablony](#szablony)
 - [Observability (opcjonalnie)](#observability-opcjonalnie)
+- [Zadania i regent task (opcjonalnie)](#zadania-i-regent-task-opcjonalnie)
 - [Agent teams i regent-watch (opcjonalnie)](#agent-teams-i-regent-watch-opcjonalnie)
 - [Konwencje](#konwencje)
 - [Bezpieczeństwo danych](#bezpieczeństwo-danych)
@@ -80,8 +81,9 @@ uruchamiasz sam: Claude ich nie wywoła i zamiast tego poda polecenie do wpisani
 zajmują też kontekstu sesji).
 
 Plugin rejestruje hooki (`hooks/hooks.json`): kontekst `context/` w sesji i subagentach, git-guard
-w projektach z `ai/docs/` oraz kopię statusline do stałej ścieżki — konfiguracja statusline:
-[`docs/statusline.md`](docs/statusline.md).
+w projektach z `ai/docs/`, kopię statusline do stałej ścieżki ([`docs/statusline.md`](docs/statusline.md))
+oraz — gdy CLI `regent` jest zbudowane — sync zadań na starcie sesji i na końcu każdej tury
+([`docs/tasks.md`](docs/tasks.md)).
 
 ## Struktura repo
 
@@ -102,8 +104,9 @@ regent/
 ├── skills/                # 18 skilli (/regent:propose, /regent:apply, ..., /regent:archive)
 ├── templates/             # Szablony artefaktów zmian + Makefile
 │   └── docs/              # Szablony plików ai/docs/ (wypełniane przez /regent:init)
-├── scripts/               # sdd-check.sh (walidacja artefaktów), framework-lint.sh, statusline.sh, session-tokens.sh
+├── scripts/               # sdd-check.sh (walidacja artefaktów), regent.sh, framework-lint.sh, statusline.sh, session-tokens.sh
 ├── docs/                  # Dokumentacja frameworka i plany zmian
+├── tools/regent/          # regent task — zadania i paczki dla agentów, baza SQLite (Node, poza pluginem)
 ├── tools/watch/           # regent-watch — podgląd agentów w terminalu (Node, poza pluginem)
 ├── .claude/               # reguły pracy nad tym repo (nie są częścią pluginu)
 └── README.md · CONTRIBUTING.md
@@ -238,6 +241,16 @@ pilnuje, by **zmiana logowanej `action` nie rozjechała się z dashboardem**:
 
 Framework **nie buduje** dashboardów — tylko wymusza refleksję. Brak `observability/` → kroki N/A.
 
+## Zadania i regent task (opcjonalnie)
+
+Rdzeń zadań warstwy runtime: `regent task` (pakiet `tools/regent/`, lokalna baza SQLite) trzyma
+każde zadanie z jednym właścicielem i logiem przejść. Zmiany z `ai/changes/` i ich taski zakładają
+się i przesuwają same — hooki `SessionStart` i `Stop` wołają sync, a stan liczy `sdd-check.sh`
+z artefaktów. `/regent:apply` z CLI bierze gotowe taski przez `next` i daje subagentowi paczkę
+(task, jego AC, potrzebne sekcje designu) zamiast całych plików zmiany. Bez zbudowanego CLI
+wszystko działa jak dotąd, na plikach. Instalacja, polecenia, mapa stanów i paczka:
+[docs/tasks.md](docs/tasks.md).
+
 ## Agent teams i regent-watch (opcjonalnie)
 
 Praca agentów widoczna na żywo w tmux: natywne agent teams Claude Code w trybie split-pane
@@ -268,13 +281,15 @@ Repo jest publiczne i zawiera wyłącznie plugin i jego dokumentację — bez da
 - Przed pushem sprawdź `git status` — `git add` tylko z listą konkretnych plików.
 - Nigdy nie commituj sekretów ani realnych logów/payloadów.
 - Dane, które plugin zapisuje w przyszłości (np. kronika), trafiają do `${CLAUDE_PLUGIN_DATA}`
-  na danej maszynie, nie do repo.
+  na danej maszynie, nie do repo. Baza zadań `regent task` leży w
+  `${XDG_STATE_HOME:-~/.local/state}/regent/` — też lokalnie, poza repo i projektem.
 
 ## Dokumentacja rozszerzona
 
 - [`docs/getting-started.md`](docs/getting-started.md) — pierwsze uruchomienie krok po kroku
 - [`docs/workflow.md`](docs/workflow.md) — pełny cykl SDD + skróty
 - [`docs/writing-docs.md`](docs/writing-docs.md) — `ai/docs/`, logowanie, observability
+- [`docs/tasks.md`](docs/tasks.md) — zadania `regent task`: instalacja, polecenia, mapa stanów, paczka
 - [`docs/agent-teams.md`](docs/agent-teams.md) — agent teams w tmux i `regent-watch`
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — jak dodać skill/agenta/szablon
 - [`docs/`](docs/README.md) — indeks całej dokumentacji (m.in. `statusline.md` — konfiguracja statusline)
