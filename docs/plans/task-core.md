@@ -128,3 +128,59 @@ Tydzień realnej pracy z pluginem na jednej maszynie:
 - Pomiar: `regent task list` ~130 ms, z czego sam start Node (`node -e 0`) ~120 ms na tej
   maszynie — koszt hooka `Stop` w T11 to głównie start Node.
 - Sesja 2 (T5–T7) może ruszać.
+
+## Przebieg (2026-09-29) — sesja 2
+
+- T5–T7 na `feat/task-core`: 91 testów Vitest zielonych (po sesji 1: 47), `npm run typecheck`
+  czysty, `framework-lint.sh` bez uwag, `claude plugin validate .` tylko z ostrzeżeniem o `version`.
+  Smoke zbudowanego CLI na kopii fixture'ów: `sync` zakłada 3 zmiany z taskami, `next note-tags
+  --layer BE` zwraca T-02 i T-05 (T-03 i T-06 czekają na zależności), `packet note-tags T-02
+  --stats` — 2240 B wobec 4819 B plików (46%), `done --commit --tests` przepisuje tylko linię T-02.
+- Rozstrzygnięte w sesji (pytanie do Ciebie):
+  - ponowne otwarcie w tabeli przejść: zakończone/porzucone → oczekuje. Woła je tylko sync
+    i zawsze z powodem. Przekazane i zablokowane dalej nie kończą się bez wzięcia — sync zostawia
+    stan, a `list` pokazuje w Uwadze rozjazd z artefaktami;
+  - sync przestawia stan tylko wtedy, gdy zmienił się stan wynikający z plików (`refs.implied`
+    zmiany, sygnatura linii taska). Ręczna zmiana przez CLI zostaje do następnej zmiany plików.
+- Doprecyzowania w kodzie:
+  - werdykt: `verification.md` ma `PASS / FAIL` (skill `verify`), plan używa słownika subagentów
+    `PASS / WARN / BLOCK` — mapa przyjmuje oba (`FAIL` jak `BLOCK`). Nieznany werdykt → oczekuje
+    (do weryfikacji); Status spoza Draft/Approved/Rejected albo brak `proposal.md` → czeka na
+    Ciebie; `Status: Abandoned` w aktywnej zmianie → porzucone;
+  - właściciel zmiany wynika ze stanu: czeka na Ciebie → `me`, oczekuje i w toku → `agent`; taski
+    z importu mają `agent`;
+  - archiwum: sync zamyka tylko zmiany znane bazie, historii sprzed pierwszego sync nie odtwarza.
+    Katalog archiwum przetwarza raz (`refs.archive`). Przy zamknięciu zmiany robi ostatni import
+    jej `tasks.md`, a otwarte taski porzuca z powodem;
+  - `Status: Abandoned` z zarchiwizowanego `proposal.md` czyta odpowiednik `meta_field` w TS, bo
+    `sdd-check.sh` nie ma trybu dla archiwum. Stan aktywnych zmian liczy zawsze `sdd-check.sh status`;
+  - `file_sig` zmiany to hash treści `proposal.md`, `tasks.md` i `verification.md`; bez zmian
+    skrypt nie jest wołany. Import tasków po zmianie hasha `tasks.md` (`refs.tasksSig`), a wygrana
+    pliku liczy się per linia (`file_sig` taska);
+  - migracja 2: tabela `syncs` z czasem ostatniego sync. `list` pokazuje go stopką „Ostatni sync:”
+    (przed pierwszym — „nigdy”); Uwaga dostała „bez artefaktów” i „rozjazd z artefaktami”;
+  - zmiana SDD w toku bez sesji nie jest utknięta — jej stan wynika z artefaktów, pracę niosą taski;
+  - `sync --session-id --transcript-path --source` (pod hooki T8) dopina transkrypt do zadań w toku
+    tej sesji; zagnieżdżone transakcje w `db.ts` przez SAVEPOINT;
+  - parser: ID taska jak w awk (pierwsze `T-NN` w linii), NOBOX pomijany (skrypt go nie liczy),
+    powtórzone `T-NN` dostaje `#<n>`. Klucz `#<n>` `list` pokazuje jako `<n>.`, żeby nie mylił się
+    z id zadania;
+  - `next`: gotowe to oczekuje, przekazane i w toku (przerwane), bez „czeka na Ciebie” i zablokowanych.
+    Zależność, której nie ma w pliku, blokuje. `next` robi sync przed odczytem, a `--json` daje paczkę
+    każdego gotowego taska;
+  - paczka: bloki REQ w całości (Given/When/Then i wszystkie AC) z nazwą sekcji delty, INVARIANTS ze
+    wszystkich plików delty, bez komentarzy HTML. Brakujące sekcje i REQ są wypisane na końcu paczki
+    („Brak w design.md: …”, „Brak w delcie: …”). `packet` czyta też zmianę z archiwum (pod T11);
+  - `done` taska zmiany: samo `--commit` wystarcza (powód `commit: <hash>`). Każde zamknięcie daje
+    `[x]` w linii, ślad tylko z `--commit`/`--tests`. Kolejność: najpierw plik, potem baza — gdy zapis
+    do bazy padnie, zmieniona linia wygra przy sync. Brak linii → zamknięcie tylko w bazie
+    i komunikat na stderr;
+  - fixture'y: `tools/regent/test/fixtures/ai/changes/` (nowy format, starszy, szkic, archiwum).
+    Test zgodności z `sdd-check.sh status` obejmuje przypadki brzegowe: bloki ``` i ~~~, CRLF, `[✓]`,
+    NOBOX.
+- Dla sesji 3: hook woła `regent task sync --source hook --session-id … --transcript-path …`.
+  `next` zwraca też taski w toku — `apply` wznawia je bez `take` (`take` na zadaniu w toku to kod 1).
+- Luka do decyzji: `drop` taska zmiany nie zmienia `tasks.md`. Linia zostaje `[ ]`, więc
+  `sdd-check.sh status` liczy task jako niezrobiony i zmiana nie dojdzie do „wszystkie taski”.
+  Plan nie przewiduje lustra porzucenia.
+- Sesja 3 (T8–T9) może ruszać.
