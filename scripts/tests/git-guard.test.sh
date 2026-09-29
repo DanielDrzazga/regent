@@ -52,6 +52,26 @@ expect 0 'git commit -m \"drop -a flag\"'
 expect 0 'git add \"src/a b.ts\" src/c.ts'
 expect 0 'git commit -m \"x\" --no-edit'
 
+# wiele linii: każda linia to osobne polecenie; treść heredoca, cudzysłowów i komentarzy to dane
+expect 0 'git commit -q -m init\ntmux new-session -d -s s -n lead'
+expect 0 "cat > plik <<'EOF'\nNie używaj git add . ani git commit -n\nEOF"
+expect 0 'cat > plik <<\"EOF\"\ngit add -A\nEOF'
+expect 0 'cat <<EOF > plik\ngit commit -a\nEOF\ngit status'
+expect 0 'cat <<-EOF\n\tgit add .\n\tEOF\ngit status'
+expect 0 'git commit -m \"feat: x\n\nopis -n i -a\"'
+expect 0 'git commit -m \"cytat \\\" -n\"'
+expect 0 "# don't stage everything\ngit status"
+expect 0 'git commit -F - <<< \"msg -n\"'
+expect 2 'cat > f <<EOF\ntekst\nEOF\ngit add .'
+expect 2 'git commit -n -F - <<EOF\nmsg\nEOF'
+expect 2 'cat <<EOF && git add .\nx\nEOF'
+expect 2 "# don't\ngit add .\necho 'x'"
+expect 2 'git commit \\\n-n -m x'
+expect 2 'cat <<< \"x\"\ngit add .'
+expect 2 'echo $((1<<2))\ngit add .'
+expect 2 'cat <<EOF\ngit add .'
+expect 2 'git commit -m \"x -n'
+
 # zakres: poza projektem SDD przepuszcza, GIT_GUARD_FORCE=1 wymusza
 PROJECT="$T/plain"
 expect 0 'git add .' 'projekt bez ai/docs'
