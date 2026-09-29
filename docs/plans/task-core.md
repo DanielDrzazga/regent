@@ -44,7 +44,7 @@
   z `node:sqlite`); testy na bazie w katalogu tymczasowym
 - [x] T2: model zadań — dwa poziomy, stany, tabela przejść, właściciel, log tylko do dopisywania,
   powód przy zamknięciu; testy dozwolonych i odrzuconych przejść
-- [ ] T3: polecenia `add`, `take`, `handoff`, `done`, `drop`, `list`, `show` (tekst i `--json`; kody:
+- [x] T3: polecenia `add`, `take`, `handoff`, `done`, `drop`, `list`, `show` (tekst i `--json`; kody:
   0 — ok, 1 — odrzucone przejście, 2 — błędne użycie); testy
 - [ ] T4: utknięcie przy odczycie i sekcja Uwaga w `list`; testy z podmienionym zegarem
 - [ ] T5: `sync` poziomu zmiany — mapa SDD → stan, sygnatura plików, ostrzeżenie o zniknięciu;

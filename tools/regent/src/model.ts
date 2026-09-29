@@ -59,8 +59,9 @@ export class TransitionError extends Error {
     readonly taskId: number,
     readonly from: State,
     readonly to: State,
+    message = `#${taskId}: przejście „${STATE_LABEL[from]}” → „${STATE_LABEL[to]}” niedozwolone`,
   ) {
-    super(`#${taskId}: przejście „${STATE_LABEL[from]}” → „${STATE_LABEL[to]}” niedozwolone`);
+    super(message);
     this.allowed = allowedFrom(from);
   }
 }
