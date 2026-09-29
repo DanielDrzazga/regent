@@ -50,7 +50,7 @@
 - [x] T5: `sync` poziomu zmiany — mapa SDD → stan, sygnatura plików, ostrzeżenie o zniknięciu;
   w skillu `archive` przy `--abandon` zapis `Status: Abandoned` w `proposal.md`; testy na
   fixture'ach `ai/changes/`
-- [ ] T6: import tasków z `tasks.md` (grupy, `T-NN`, tag, REQ/AC, pliki, weryfikacja, zależności,
+- [x] T6: import tasków z `tasks.md` (grupy, `T-NN`, tag, REQ/AC, pliki, weryfikacja, zależności,
   starszy format), ponowny import po zmianie pliku, wygrana pliku przy ręcznej zmianie; testy
 - [ ] T7: `next` i `packet` (gotowość wg zależności, reguły paczki, `--stats`), `done --commit
   --tests` przepisuje linię taska w `tasks.md` w formacie z `apply` Krok 4c; testy na fixture'ach

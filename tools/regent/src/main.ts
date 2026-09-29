@@ -50,8 +50,9 @@ Polecenia:
   regent task show <id>                          zadanie i historia przejść
   regent task sync [--session-id <id> --transcript-path <plik>] [--source <źródło>]
                                                  zmiany SDD z ai/changes/ jako zadania: stan
-                                                 z artefaktów (sdd-check.sh status, archiwum);
-                                                 sesja dopina transkrypt do jej zadań w toku
+                                                 z artefaktów (sdd-check.sh status, archiwum),
+                                                 po Approved taski z tasks.md — zmieniona linia
+                                                 wygrywa z bazą; sesja dopina transkrypt
 
 Opcje: --json — wynik jako JSON; -h, --help — ta pomoc.
 Wykonawca: w sesji Claude Code (CLAUDECODE) agent, poza nią me.

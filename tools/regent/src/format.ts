@@ -16,9 +16,14 @@ export function fmtTime(iso: string): string {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
+/** Klucz starszego formatu `#<n>` jako `<n>.` — żeby nie mylił się z id zadania. */
+const shownKey = (key: string | null): string | null => (key?.startsWith('#') ? `${key.slice(1)}.` : key);
+
 /** Klucz, tag i tytuł: `T-03 [BE] endpoint`; zmiana SDD — sam klucz `sdd:<zmiana>`, tytuł to jej nazwa. */
 export const label = (t: Task): string =>
-  t.kind === 'change' && t.key === `sdd:${t.title}` ? t.key : [t.key, t.tag && `[${t.tag}]`, t.title].filter(Boolean).join(' ');
+  t.kind === 'change' && t.key === `sdd:${t.title}`
+    ? t.key
+    : [shownKey(t.key), t.tag && `[${t.tag}]`, t.title].filter(Boolean).join(' ');
 
 /** Jedna linia po zmianie stanu: `#3 T-03 [BE] endpoint — w toku (agent)`. */
 export const taskLine = (t: Task): string => `#${t.id} ${label(t)} — ${STATE_LABEL[t.state]} (${t.owner})`;

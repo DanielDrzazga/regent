@@ -41,11 +41,18 @@ export function findMissing(root: string, tasks: Task[]): Missing[] {
   });
 }
 
+/** Stan wynikający z plików: zmiana — `refs.implied` z mapy SDD; task — checkbox jego linii w tasks.md. */
+function impliedOf(t: Task): State | undefined {
+  if (t.kind === 'change') return typeof t.refs.implied === 'string' && isState(t.refs.implied) ? t.refs.implied : undefined;
+  if (t.kind !== 'task' || t.refs.removed === true || typeof t.refs.box !== 'string') return undefined;
+  if (t.refs.box === 'DONE') return t.state === 'done' ? undefined : 'done';
+  return t.state === 'done' ? 'pending' : undefined;
+}
+
 export function findMismatch(tasks: Task[]): Mismatch[] {
   return tasks.flatMap((t) => {
-    const implied = t.refs.implied;
-    if (t.kind !== 'change' || typeof implied !== 'string' || !isState(implied) || implied === t.state) return [];
-    return [{ taskId: t.id, state: t.state, implied }];
+    const implied = impliedOf(t);
+    return implied === undefined || implied === t.state ? [] : [{ taskId: t.id, state: t.state, implied }];
   });
 }
 

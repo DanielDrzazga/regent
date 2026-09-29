@@ -83,16 +83,17 @@ describe('regent task sync — poziom zmiany', () => {
     const regent = cli({ cwd: sddProject() });
     const r = regent('task', 'sync');
     expect(r.code).toBe(0);
-    expect(r.out.split('\n').slice(1)).toEqual([
-      '  #1  sdd:draft-search   nowe: czeka na Ciebie  Status: Draft',
-      '  #2  sdd:legacy-export  nowe: w toku           Approved, taski 1/4',
-      '  #3  sdd:note-tags      nowe: w toku           Approved, taski 1/6',
+    const changes = r.out.split('\n').filter((l) => / sdd:[a-z-]+ /.test(l));
+    expect(changes.map((l) => l.trim().replace(/ {2,}/g, ' | '))).toEqual([
+      '#1 | sdd:draft-search | nowe: czeka na Ciebie | Status: Draft',
+      '#2 | sdd:legacy-export | nowe: w toku | Approved, taski 1/4',
+      '#7 | sdd:note-tags | nowe: w toku | Approved, taski 1/6',
     ]);
     expect(change(regent, 'draft-search')!.task).toMatchObject({ kind: 'change', owner: 'me', state: 'waiting', title: 'draft-search' });
     expect(change(regent, 'note-tags')!.history).toMatchObject([{ state: 'in_progress', owner: 'agent', actor: 'sync', source: 'cli' }]);
     expect(change(regent, 'note-titles')).toBeUndefined();
     expect(change(regent, 'cloud-sync')).toBeUndefined();
-    expect(regent('task', 'list').out.split('\n')[2]).toBe('  #1  czeka na Ciebie  me     sdd:draft-search');
+    expect(regent('task', 'list').out.split('\n')[2]).toMatch(/^ {2}#1 +czeka na Ciebie +me +sdd:draft-search$/);
   });
 
   it('bez zmian w plikach stanu nie woła skryptu i nic nie zmienia', () => {
@@ -179,11 +180,12 @@ describe('regent task sync — poziom zmiany', () => {
     const project = sddProject();
     const regent = cli({ cwd: project });
     regent('task', 'sync');
-    regent('task', 'handoff', '3', 'agent');
+    const id = String(change(regent, 'note-tags')!.task.id);
+    regent('task', 'handoff', id, 'agent');
     renameSync(join(project, 'ai/changes/note-tags'), join(project, 'ai/changes/archive/2026-09-29-note-tags'));
     regent('task', 'sync');
     expect(change(regent, 'note-tags')!.task.state).toBe('handed_off');
-    expect(regent('task', 'list').out).toMatch(/#3 {2}rozjazd z artefaktami — wynika z nich „zakończone”, zadanie jest „przekazane”/);
+    expect(regent('task', 'list').out).toMatch(new RegExp(`#${id} {2}rozjazd z artefaktami — wynika z nich „zakończone”, zadanie jest „przekazane”`));
   });
 
   it('zmiana wyjęta z archiwum otwiera się ponownie, z powodem', () => {
