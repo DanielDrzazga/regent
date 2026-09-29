@@ -31,7 +31,7 @@
 - [x] T2: `regent-apply-tokens` — `firstturn.ts` z testami na syntetycznym transkrypcie, polecenie
   z `--project`, `--since`, `--until`, `--json`, testy na syntetycznym katalogu `projects/`;
   dokumentacja (`docs/tasks.md` — sprawdzenie etapu, `docs/README.md` — Narzędzia)
-- [ ] T3: bramka (`framework-lint.sh`, `claude plugin validate .`, `npm test` i `npm run typecheck`
+- [x] T3: bramka (`framework-lint.sh`, `claude plugin validate .`, `npm test` i `npm run typecheck`
   w `tools/regent/` i `tools/watch/`) i smoke: `regent-apply-tokens --project ~/_Private/Projects
   --until 2026-09-28` odtwarza punkt odniesienia z Przebiegu sesji 4; `packet` na zmianie
   prywatnej z „Kontrakt API↔UI” ma kontrakt; merge do `main`
@@ -41,3 +41,23 @@
 Zmiana reguły paczki poza aliasem kontraktu (np. „Odstępstwa od zasad” w starszych designach —
 to prawdziwy brak sekcji), zapis wyników pomiaru gdziekolwiek poza terminalem, pomiar sesji
 głównej `apply`.
+
+## Przebieg (2026-09-29)
+
+- T1: `SECTION_ALIASES` w `tools/regent/src/packet.ts` — „API / Interface Contract” → „Kontrakt API”
+  (prefiks nagłówka), nazwa z szablonu ma pierwszeństwo. Checklista `architect`: „Kontrakt API↔UI
+  w sekcji „API / Interface Contract” kompletny”; `require` w `framework-lint.sh` sekcja 7,
+  sprawdzony na chwilowo zepsutej checkliście. 2 nowe testy paczki (93 w `tools/regent`).
+- T2: `regent-apply-tokens` w `tools/watch` (bin obok `regent-watch`), 10 nowych testów (71
+  w `tools/watch`). Drobne zmiany w istniejącym kodzie: eksport `TURN_END` z `transcript.ts`,
+  `defaultClaudeDir(env)` z parametrem (domyślnie `process.env`). Subagenci tylko z
+  `<sesja>/subagents/` — zagnieżdżone katalogi mają wyłącznie workflow, nie `apply`.
+- T3: bramka zielona (lint bez uwag, validate tylko `version`, testy i typecheck obu pakietów, testy
+  skryptów w `/bin/bash` 3.2). Smoke na danych prywatnych, tylko odczyt, `git status` czysty:
+  - `regent-apply-tokens --project ~/_Private/Projects --until 2026-09-28` odtwarza punkt odniesienia
+    z Przebiegu sesji 4 co do tokena: 28 subagentów, suma pierwszej tury 5 008 062, 51 wywołań,
+    przy pierwszej edycji 80 186, odczyt plików zmiany 22 362;
+  - zmiana z T11 (22 taski) ma sekcję „Kontrakt API↔UI”: paczka zawiera teraz kontrakt, braki na
+    task 2 → 1 („Odstępstwa od zasad”), mediana paczki ~3,5 tys. tokenów (było ~3,4 tys.) wobec
+    ~15 tys. w plikach. Starsza zmiana z aliasem (18 tasków) ma design sprzed szablonu — paczka
+    bierze kontrakt i Affected Files, reszta sekcji to prawdziwe braki (mediana 5 na task).

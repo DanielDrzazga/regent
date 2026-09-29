@@ -95,7 +95,8 @@ Tydzień realnej pracy z pluginem na jednej maszynie:
 - żadne zadanie w toku nie wisi bez właściciela ani bez wyjaśnionego utknięcia;
 - tokeny wejścia pierwszej tury subagenta `apply` są niższe niż przed zmianą (punkt odniesienia:
   transkrypty `apply` z projektów prywatnych sprzed zmiany), a raporty `BRAK W PACZCE` nie
-  powtarzają się dla tej samej sekcji.
+  powtarzają się dla tej samej sekcji. Oba liczy `regent-apply-tokens` (`docs/tasks.md`,
+  plan `docs/plans/task-core-check.md`).
 
 ## Przebieg (2026-09-29) — sesja 1
 
