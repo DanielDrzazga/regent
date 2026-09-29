@@ -2,7 +2,8 @@
 
 > Etap 1 planu produktu (poza repo): rdzeń zadań warstwy runtime Regenta. Lekka ścieżka: gałąź
 > `feat/task-core`, ten plan, bramka i smoke. Wzór: kolejka OpenRig 0.5.17 (`queue_items` +
-> `queue_transitions`), przycięta do jednego agenta i Ciebie.
+> `queue_transitions`), przycięta do jednego agenta i Ciebie. Podział na sesje i prompty:
+> `docs/plans/task-core-sessions.md`.
 
 ## Cel
 
