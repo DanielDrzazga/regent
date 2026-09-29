@@ -158,6 +158,7 @@ forbid  templates/user-story-template.md '^## Acceptance Criteria'              
 forbid  skills/propose/SKILL.md        'rozwiązanie, AC \(Given-When-Then\)'   "AC żyją tylko w delcie (jedno źródło AC)"
 forbid  agents/qa-engineer.md          'REQ-XXX-1'                              "jeden format ID: REQ-NNN/AC-n"
 forbid  skills/propose/SKILL.md        '^## Tests$'                             "testy należą do swojego taska (horizontal slicing)"
+require agents/architect.md            'Kontrakt API↔UI w sekcji „API / Interface Contract'  "kontrakt pod nazwą z szablonu — tej szuka paczka apply"
 require agents/spec-writer.md          'weryfikacja'                            "każdy task mówi, jak sprawdzić ukończenie"
 require skills/propose/SKILL.md        'resume tego samego .regent:spec-writer.'       "tasks.md powstaje po design.md"
 require templates/proposal-template.md '^## Decyzje i założenia'                "odpowiedzi z Challenge przeżywają sesję"

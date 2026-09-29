@@ -2,6 +2,7 @@
 // czytania całych tasks.md, design.md i delty. Reguły (plan task-core, tabela Decyzje):
 // zawsze linie tasków, wskazane bloki REQ z delty, INVARIANTS i stałe sekcje designu;
 // [BE]/[FE] (brak tagu = [BE]) dokładają kontrakt API i obsługę błędów, [DB] — zmiany bazy;
+// sekcji spoza szablonu szukamy pod nazwami z SECTION_ALIASES;
 // `— design: <sekcja>` w linii taska dokłada sekcję.
 
 import { readdirSync } from 'node:fs';
@@ -11,6 +12,11 @@ import { archiveDir, archivedChanges, changeDir, isDir, readText } from './sdd.j
 import { layerOf, parseTasks, type ParsedTask } from './tasksmd.js';
 
 export const BASE_SECTIONS = ['Overview', 'Affected Files', 'Decyzje techniczne', 'Odstępstwa od zasad', 'Testing Strategy'];
+/** Inne nazwy sekcji w designach — sięgamy po nie, gdy nazwy z szablonu nie ma. „Kontrakt API↔UI”
+ * pochodzi z checklisty architekta sprzed 2026-09-29. */
+export const SECTION_ALIASES: Readonly<Record<string, readonly string[]>> = {
+  'API / Interface Contract': ['Kontrakt API'],
+};
 export const LAYER_SECTIONS: Readonly<Record<string, readonly string[]>> = {
   BE: ['API / Interface Contract', 'Error Handling'],
   FE: ['API / Interface Contract', 'Error Handling'],
@@ -136,7 +142,9 @@ function designPart(text: string | undefined, wanted: string[], missing: string[
   const o = outline(text);
   const picked = new Map<number, Heading>();
   for (const want of wanted) {
-    const h = o.headings.find((x) => x.level >= 2 && matches(x.title, want));
+    const h = [want, ...(SECTION_ALIASES[want] ?? [])]
+      .map((name) => o.headings.find((x) => x.level >= 2 && matches(x.title, name)))
+      .find(Boolean);
     if (h) picked.set(h.at, h);
     else missing.push(`design.md: ${want}`);
   }

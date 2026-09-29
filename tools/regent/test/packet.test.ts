@@ -2,7 +2,7 @@ import { renameSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { buildPacket, tokens } from '../src/packet.js';
-import { cli, sddProject } from './helpers.js';
+import { cli, read, sddProject, write } from './helpers.js';
 
 const json = <T = any>(text: string): T => JSON.parse(text) as T;
 
@@ -62,6 +62,25 @@ describe('paczka — reguły z planu', () => {
     expect(s).toEqual(expect.arrayContaining(['## Design: Database Changes', '## Design: API / Interface Contract', '## Design: Observability / Logging']));
     expect(new Set(s).size).toBe(s.length);
     expect(text.match(/### REQ-004/g)).toHaveLength(1);
+  });
+
+  it('kontrakt pod nazwą „Kontrakt API…” (checklista architekta) trafia do paczki jako API', () => {
+    const project = sddProject();
+    const design = 'ai/changes/note-tags/design.md';
+    write(project, design, read(project, design).replace('## API / Interface Contract', '## Kontrakt API↔UI (kontrakt-first)'));
+    const p = buildPacket(project, 'note-tags', ['T-02']);
+    expect(sections(p.text)).toContain('## Design: Kontrakt API↔UI (kontrakt-first)');
+    expect(p.text).toContain('### GET /notes?tag=x');
+    expect(p.missing).not.toContain('design.md: API / Interface Contract');
+  });
+
+  it('nazwa z szablonu wygrywa z aliasem kontraktu', () => {
+    const project = sddProject();
+    const design = 'ai/changes/note-tags/design.md';
+    write(project, design, read(project, design).replace('## Overview', '## Kontrakt API — notatki robocze\n\nszkic sprzed decyzji\n\n## Overview'));
+    const text = buildPacket(project, 'note-tags', ['T-02']).text;
+    expect(sections(text)).toContain('## Design: API / Interface Contract');
+    expect(text).not.toContain('szkic sprzed decyzji');
   });
 
   it('brakujące sekcje i REQ są nazwane w paczce', () => {

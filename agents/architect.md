@@ -55,7 +55,7 @@ gdy `ai/docs/` nie istnieje lub gdy dany wzorzec NIE ma jeszcze Reference Implem
 □ Separation of concerns (SRP na poziomie modułów)
 □ Dependency direction (Domain ← Infrastructure)
 □ API contracts jasne i spójne
-□ Kontrakt API↔UI kompletny (typy pól, kształt błędów, paginacja, stany puste) — gdy full-stack
+□ Kontrakt API↔UI w sekcji „API / Interface Contract” kompletny (typy pól, kształt błędów, paginacja, stany puste) — gdy full-stack
 □ Error handling strategy
 □ Performance considerations (N+1, caching)
 □ Security considerations (auth, validation, secrets)

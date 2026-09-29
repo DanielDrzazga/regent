@@ -162,9 +162,10 @@ z archiwum):
 | `[DB]` | + Database Changes |
 | `— design: <sekcja>` w linii | + ta sekcja |
 
-Sekcje designu paczka znajduje po nazwie z szablonu (początek nagłówka, bez wielkości liter), więc
-sekcja pod inną nazwą — np. „Kontrakt API↔UI” zamiast „API / Interface Contract” — do paczki nie
-trafia. Komentarze HTML (instrukcje szablonów) paczka pomija. Sekcje i REQ, których pliki nie mają,
+Sekcje designu paczka znajduje po nazwie z szablonu (początek nagłówka, bez wielkości liter); sekcja
+pod inną nazwą do paczki nie trafia. Wyjątek to kontrakt: gdy designu bez „API / Interface Contract”,
+paczka bierze sekcję zaczynającą się od „Kontrakt API” (tak nazywała ją dawniej checklista
+`architect`). Komentarze HTML (instrukcje szablonów) paczka pomija. Sekcje i REQ, których pliki nie mają,
 są wypisane na końcu („Brak w design.md: …”, „Brak w delcie: …”). `--stats` porównuje rozmiar paczki
 z plikami, które zastępuje; tokeny szacuje jako bajty / 3,5:
 
