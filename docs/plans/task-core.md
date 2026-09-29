@@ -61,7 +61,7 @@
 - [x] T10: dokumentacja — `docs/tasks.md` (instalacja jak `regent-watch`, polecenia, mapa stanów,
   paczka, utknięcie), wpis w README; bramka: `framework-lint.sh`, `claude plugin validate .`,
   `npm test` i `npm run typecheck` w `tools/regent/`
-- [ ] T11: smoke bez tokenów — projekt testowy: zmiana przechodzi Draft → Approved → taski →
+- [x] T11: smoke bez tokenów — projekt testowy: zmiana przechodzi Draft → Approved → taski →
   weryfikacja → archiwum przez edycje plików i JSON hooków, każdy krok widać w `show`; porzucenie
   przez `Status: Abandoned`; `packet --stats` na zarchiwizowanej zmianie z projektu prywatnego
   (tylko odczyt, wynik poza repo); pomiar czasu hooka `Stop`
@@ -224,3 +224,47 @@ Tydzień realnej pracy z pluginem na jednej maszynie:
   ~170 ms, po zmianie `tasks.md` ~250 ms (dochodzi `sdd-check.sh`), poza projektem SDD ~10 ms.
   Właściwy pomiar i decyzja z Ryzyk — T11.
 - Sesja 4 (T10–T12) może ruszać.
+
+## Przebieg (2026-09-29) — sesja 4
+
+- T10: `docs/tasks.md` (instalacja jak `regent-watch`, polecenia, stany, mapa SDD, import i lustro
+  `tasks.md`, paczka, utknięcie, hooki, baza, ograniczenia — w tym luka `drop` z sesji 2). Wpisy
+  w README: spis treści, zdanie o hookach (dotąd bez sync zadań), drzewo repo, sekcja „Zadania
+  i regent task”, miejsce bazy w „Bezpieczeństwie danych”, dokumentacja rozszerzona; w `docs/README.md`
+  wiersze w Przewodnikach i Narzędziach. Bramka: lint bez uwag, validate tylko `version`, 91 testów,
+  typecheck czysty.
+- T11 smoke bez tokenów — projekt testowy w scratchpadzie (`git init`, `ai/docs/`, baza przez
+  `REGENT_DB`), po każdej edycji JSON na stdin `scripts/hooks/task-sync.sh` z `CLAUDE_PLUGIN_ROOT`
+  = repo. 16 asercji stanu zielonych, 14 wywołań hooka z kodem 0 i pustym stdout, `hook.log` pusty:
+  - zmiana przez cały cykl: Draft → czeka na Ciebie; Approved → oczekuje, import T-01 i T-02;
+    T-01 odhaczony w pliku → zmiana w toku; T-02 przez `take` w sesji i `done --commit --tests`
+    (linia dostaje `[x]` i ślad, reszta pliku bez zmian) → oczekuje (do weryfikacji); `Verdict: FAIL`
+    → w toku; `PASS` → czeka na Ciebie; przeniesienie do archiwum → zakończone. `show` zmiany
+    pokazuje wszystkie 7 przejść z powodami;
+  - porzucenie: `Status: Abandoned` → porzucone; po przeniesieniu do archiwum stan bez zmian,
+    otwarty task porzucony z powodem;
+  - katalog usunięty bez archiwum → Uwaga „bez artefaktów”. Hook dopina transkrypt do taska w toku
+    (`show`: sesja z transkryptem), a `list --stuck 0.02` po 2 s pokazuje go jako utknięty;
+  - `packet --stats` na zarchiwizowanej zmianie z projektu prywatnego (22 taski `T-NN`: 12 `[BE]`,
+    10 bez tagu), tylko odczyt: baza w scratchpadzie, `git status` projektu czysty przed i po. Paczka
+    na task: mediana ~3,4 tys. tokenów (3,3–5,2 tys.) wobec ~15 tys. w trzech plikach, czyli 22%;
+  - braki w paczce: każda z 22 paczek zgłasza dwa — „Odstępstwa od zasad” (sekcji nie ma w żadnym
+    z 29 designów tego projektu; szablon dostał ją później) i „API / Interface Contract”. Kontrakt ma
+    nazwę z szablonu w 13 designach, a w 5 — „Kontrakt API↔UI”, bo tak nazywa go checklista
+    w `agents/architect.md`. Kandydat do poprawki (alias w regule paczki albo jedna nazwa w agencie),
+    do decyzji po tygodniu sprawdzenia: tam wyjdzie w `BRAK W PACZCE`;
+  - czas hooka `Stop` (15 uruchomień, mediana): projekt testowy bez zmian 177 ms, po zmianie
+    `tasks.md` 208 ms, poza projektem SDD 14 ms; projekt prywatny: pierwszy sync 257 ms, bez zmian
+    182 ms. Nie jest wyraźnie ponad 200 ms, więc warunek mtime z Ryzyk zostaje niewdrożony; ~120 ms
+    z tego to sam start Node;
+  - punkt odniesienia (transkrypty sprzed zmiany): 28 subagentów implementujących z promptem
+    o `ai/changes/` (20 `frontend-dev`, 6 `backend-dev`, 2 `dba`) z dwóch projektów prywatnych
+    (20 i 8), 2026-09-14…26. Definicja: tura jak w `tools/watch/src/parse/` (do `end_turn` albo
+    `turn_duration`), tokeny wejścia = wejście + zapis i odczyt cache z `usageFromRecord`,
+    deduplikacja po `message.id`. Mediany: **suma tokenów wejścia pierwszej tury ~5,0 mln**
+    (51 wywołań API); kontekst pierwszego wywołania ~18 tys., przy pierwszej edycji ~80 tys.,
+    maksymalny ~125 tys.; wyniki `Read` plików zmiany (`tasks.md`, `design.md`, `specs/`) ~22 tys.
+    tokenów (bajty / 3,5) — czytało je 28 z 28. W tygodniu sprawdzenia porównać tę samą sumę,
+    a pomocniczo kontekst przy pierwszej edycji i odczyt plików zmiany (z paczką powinien spaść
+    prawie do zera). Skrypt pomiaru został w scratchpadzie sesji, poza repo.
+- Odstępstwa: w `docs/tasks.md` dodałem akapit o dopasowaniu sekcji designu po nazwie (fakt z T11).

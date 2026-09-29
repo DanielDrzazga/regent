@@ -162,8 +162,10 @@ z archiwum):
 | `[DB]` | + Database Changes |
 | `— design: <sekcja>` w linii | + ta sekcja |
 
-Komentarze HTML (instrukcje szablonów) paczka pomija. Sekcje i REQ, których pliki nie mają, są
-wypisane na końcu („Brak w design.md: …”, „Brak w delcie: …”). `--stats` porównuje rozmiar paczki
+Sekcje designu paczka znajduje po nazwie z szablonu (początek nagłówka, bez wielkości liter), więc
+sekcja pod inną nazwą — np. „Kontrakt API↔UI” zamiast „API / Interface Contract” — do paczki nie
+trafia. Komentarze HTML (instrukcje szablonów) paczka pomija. Sekcje i REQ, których pliki nie mają,
+są wypisane na końcu („Brak w design.md: …”, „Brak w delcie: …”). `--stats` porównuje rozmiar paczki
 z plikami, które zastępuje; tokeny szacuje jako bajty / 3,5:
 
 ```
@@ -216,8 +218,8 @@ repo ani na inne maszyny.
 - `drop` taska zmiany nie zmienia `tasks.md`: linia zostaje `[ ]`, więc `sdd-check.sh status`
   liczy task jako niezrobiony i zmiana nie dojdzie do „wszystkie taski”. Usuń linię albo odhacz ją
   ręcznie.
-- Koszt hooka `Stop` to głównie start Node: ok. 170 ms bez zmian w plikach, ok. 250 ms po zmianie
-  `tasks.md` (dochodzi `sdd-check.sh`), ok. 10 ms poza projektem SDD.
+- Koszt hooka `Stop` to głównie start Node (ok. 120 ms): ok. 180 ms bez zmian w plikach, ok. 210 ms
+  po zmianie `tasks.md` (dochodzi `sdd-check.sh`), ok. 15 ms poza projektem SDD.
 - Paczki są tylko dla `apply`; `verify` i `archive` czytają całe pliki (recenzent potrzebuje całych
   AC i diffu).
 - Seaty, wstrzykiwanie paczki po `/clear`, priorytety, limit i proces w tle — kolejne etapy planu.
