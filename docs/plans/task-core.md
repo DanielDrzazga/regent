@@ -42,7 +42,7 @@
 - [x] T1: pakiet `tools/regent/` (Node 24, TS, Vitest, bin `regent`), warstwa bazy w jednym pliku
   (ścieżka, WAL, `busy_timeout`, migracje przez `user_version`, wyciszone `ExperimentalWarning`
   z `node:sqlite`); testy na bazie w katalogu tymczasowym
-- [ ] T2: model zadań — dwa poziomy, stany, tabela przejść, właściciel, log tylko do dopisywania,
+- [x] T2: model zadań — dwa poziomy, stany, tabela przejść, właściciel, log tylko do dopisywania,
   powód przy zamknięciu; testy dozwolonych i odrzuconych przejść
 - [ ] T3: polecenia `add`, `take`, `handoff`, `done`, `drop`, `list`, `show` (tekst i `--json`; kody:
   0 — ok, 1 — odrzucone przejście, 2 — błędne użycie); testy
