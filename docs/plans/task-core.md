@@ -47,7 +47,7 @@
 - [x] T3: polecenia `add`, `take`, `handoff`, `done`, `drop`, `list`, `show` (tekst i `--json`; kody:
   0 — ok, 1 — odrzucone przejście, 2 — błędne użycie); testy
 - [x] T4: utknięcie przy odczycie i sekcja Uwaga w `list`; testy z podmienionym zegarem
-- [ ] T5: `sync` poziomu zmiany — mapa SDD → stan, sygnatura plików, ostrzeżenie o zniknięciu;
+- [x] T5: `sync` poziomu zmiany — mapa SDD → stan, sygnatura plików, ostrzeżenie o zniknięciu;
   w skillu `archive` przy `--abandon` zapis `Status: Abandoned` w `proposal.md`; testy na
   fixture'ach `ai/changes/`
 - [ ] T6: import tasków z `tasks.md` (grupy, `T-NN`, tag, REQ/AC, pliki, weryfikacja, zależności,

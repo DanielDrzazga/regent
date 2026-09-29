@@ -147,6 +147,10 @@ Pokaż użytkownikowi `diff -ru "${TMPDIR:-/tmp}/specs-before-{nazwa}" ai/specs`
 
 ## Krok 3: Przenieś do archiwum
 
+`--abandon` → **przed** `mv` ustaw w `proposal.md` `Status: Abandoned`. Katalog porzuconej
+zmiany w `archive/` wygląda tak samo jak zakończonej; po tym polu zadania Regenta zamykają ją
+jako porzuconą.
+
 ```bash
 mv ai/changes/{nazwa}/ ai/changes/archive/{YYYY-MM-DD}-{nazwa}/
 ```
@@ -263,7 +267,8 @@ i podaj powód oraz stan tasków (`{N/M} zrobione`).
   (wyjątki: `--force` → oznacz UNVERIFIED; `--abandon` → zmiana porzucona)
 - Merge delta → main specs: ADDED dopisane, MODIFIED podmienione całym blokiem, REMOVED usunięte;
   każde AC z main spec kończy w bloku albo w „Usunięte AC" (main specs opisują kod, który istnieje)
-- Przy `--abandon`: katalog trafia do `archive/` z zapisem decyzji, delta zostaje niezmergowana —
+- Przy `--abandon`: katalog trafia do `archive/` z zapisem decyzji (`Status: Abandoned`
+  w `proposal.md`), delta zostaje niezmergowana —
   ślad porzucenia jest tak samo wartościowy jak ślad wdrożenia
 - Retrospektywa (Krok 3.5) — werdykt `BEZ WNIOSKÓW` albo wniosek z konkretnym działaniem;
   `BEZ WNIOSKÓW` to poprawny i najczęstszy wynik

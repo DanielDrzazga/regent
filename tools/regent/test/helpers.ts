@@ -1,7 +1,10 @@
-import { mkdirSync, mkdtempSync, realpathSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { main, type Io } from '../src/main.js';
+
+export const FIXTURES = fileURLToPath(new URL('./fixtures', import.meta.url));
 
 /** Świeży katalog tymczasowy — każda baza w teście jest izolowana. */
 export const tempDir = (): string => realpathSync(mkdtempSync(join(tmpdir(), 'regent-')));
@@ -11,6 +14,24 @@ export function gitProject(): string {
   const dir = tempDir();
   mkdirSync(join(dir, '.git'));
   return dir;
+}
+
+/** Projekt z syntetycznymi artefaktami SDD — kopia `fixtures/ai/` w katalogu z `.git`. */
+export function sddProject(): string {
+  const dir = gitProject();
+  cpSync(join(FIXTURES, 'ai'), join(dir, 'ai'), { recursive: true });
+  return dir;
+}
+
+export function write(root: string, path: string, text: string): void {
+  mkdirSync(dirname(join(root, path)), { recursive: true });
+  writeFileSync(join(root, path), text);
+}
+
+export const read = (root: string, path: string): string => readFileSync(join(root, path), 'utf8');
+
+export function edit(root: string, path: string, fn: (text: string) => string): void {
+  writeFileSync(join(root, path), fn(read(root, path)));
 }
 
 export interface Run {

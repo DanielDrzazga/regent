@@ -15,13 +15,15 @@ export const STATE_LABEL: Readonly<Record<State, string>> = {
   dropped: 'porzucone',
 };
 
-/** Zamknięcie jest jawne i ma powód; ze stanu końcowego nie ma wyjścia. */
+/** Zamknięcie jest jawne i ma powód; jedyne wyjście ze stanu końcowego to ponowne otwarcie. */
 export const CLOSED: readonly State[] = ['done', 'dropped'];
 
 /**
- * Dozwolone przejścia (z → do). Poza tabelą: wejście w ten sam stan, wyjście ze stanu końcowego,
- * zakończenie zadania przekazanego albo zablokowanego — najpierw ktoś musi je wziąć.
+ * Dozwolone przejścia (z → do). Poza tabelą: wejście w ten sam stan, zakończenie zadania
+ * przekazanego albo zablokowanego — najpierw ktoś musi je wziąć.
  * Przejścia bez polecenia CLI (np. w toku → oczekuje) zostawiamy dla sync z artefaktów SDD.
+ * Ponowne otwarcie (zamknięte → oczekuje) też woła tylko sync — gdy plik cofa zamknięcie
+ * (odznaczony task, zmiana wyjęta z archiwum) — i zawsze z powodem.
  */
 export const TRANSITIONS: Readonly<Record<State, readonly State[]>> = {
   pending: ['in_progress', 'waiting', 'handed_off', 'blocked', 'done', 'dropped'],
@@ -29,8 +31,8 @@ export const TRANSITIONS: Readonly<Record<State, readonly State[]>> = {
   waiting: ['pending', 'in_progress', 'handed_off', 'done', 'dropped'],
   blocked: ['pending', 'in_progress', 'waiting', 'handed_off', 'dropped'],
   handed_off: ['in_progress', 'waiting', 'dropped'],
-  done: [],
-  dropped: [],
+  done: ['pending'],
+  dropped: ['pending'],
 };
 
 /** Właściciel w etapie 1; od etapu 2 dochodzi adres seatu. */
@@ -47,6 +49,7 @@ export const isOwner = (value: string): value is Owner => (OWNERS as readonly st
 export const allowedFrom = (from: State): readonly State[] => TRANSITIONS[from];
 export const canTransition = (from: State, to: State): boolean => TRANSITIONS[from].includes(to);
 export const requiresReason = (state: State): boolean => CLOSED.includes(state);
+export const isReopen = (from: State, to: State): boolean => CLOSED.includes(from) && !CLOSED.includes(to);
 
 /** Przekazanie do mnie to „czeka na Ciebie”; do agenta — „przekazane”, aż je weźmie. */
 export const handoffState = (owner: Owner): State => (owner === 'me' ? 'waiting' : 'handed_off');

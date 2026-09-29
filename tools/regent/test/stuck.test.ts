@@ -97,6 +97,9 @@ describe('regent task list — sekcja Uwaga', () => {
     expect(regent('task', 'list', '--stuck', '60').out).not.toMatch(/Uwaga/);
     expect(json(regent('task', 'list', '--json').out).attention).toEqual({
       stuck: [{ id: 1, why: 'no-session', idleMinutes: 45, since: new Date(T0).toISOString() }],
+      missing: [],
+      mismatch: [],
+      lastSync: null,
     });
 
     clock.now = T0 + 150 * MIN;

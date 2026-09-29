@@ -42,6 +42,12 @@ export const MIGRATIONS: readonly Migration[] = [
      BEGIN SELECT RAISE(ABORT, 'transitions: log tylko do dopisywania'); END;
    CREATE TRIGGER transitions_no_delete BEFORE DELETE ON transitions
      BEGIN SELECT RAISE(ABORT, 'transitions: log tylko do dopisywania'); END;`,
+  // Czas ostatniego sync projektu — `list` pokazuje go także wtedy, gdy sync niczego nie zmienił.
+  `CREATE TABLE syncs (
+     project TEXT PRIMARY KEY,
+     at TEXT NOT NULL,
+     source TEXT NOT NULL
+   );`,
 ];
 
 export const openTaskDb = (path: string): Db => openDb(path, MIGRATIONS);

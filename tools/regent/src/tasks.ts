@@ -11,6 +11,7 @@ import {
   canTransition,
   handoffState,
   isOwner,
+  isReopen,
   requiresReason,
   type Kind,
   type Owner,
@@ -74,6 +75,20 @@ export interface NewTask {
   /** Stan początkowy (domyślnie „oczekuje”) — sync zakłada np. szkic zmiany od razu jako „czeka na Ciebie”. */
   state?: State;
   reason?: string;
+  fileSig?: string;
+}
+
+/** Treść z plików (tytuł, tag, refs, sygnatura) — zmienia ją sync, bez wpisu w logu przejść. */
+export interface Revision {
+  title?: string;
+  tag?: string | null;
+  refs?: Record<string, unknown>;
+  fileSig?: string | null;
+}
+
+export interface SyncMark {
+  at: string;
+  source: string;
 }
 
 export interface TransitionOptions extends Ctx {
@@ -171,8 +186,8 @@ export class TaskStore {
       this.checkLevel(kind, input);
       const at = this.stamp();
       const { lastInsertRowid: id } = this.db.run(
-        `INSERT INTO tasks (project, parent_id, key, kind, tag, title, owner, state, refs, closure_reason, claimed_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO tasks (project, parent_id, key, kind, tag, title, owner, state, refs, closure_reason, file_sig, claimed_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         input.project,
         input.parentId ?? null,
         input.key ?? null,
@@ -183,6 +198,7 @@ export class TaskStore {
         state,
         JSON.stringify(input.refs ?? {}),
         CLOSED.includes(state) ? reason : null,
+        input.fileSig ?? null,
         state === 'in_progress' ? at : null,
         at,
         at,
@@ -210,6 +226,7 @@ export class TaskStore {
       if (!canTransition(task.state, to)) throw new TransitionError(id, task.state, to);
       const reason = clean(opts.reason);
       if (requiresReason(to) && !reason) throw reasonMissing(to);
+      if (isReopen(task.state, to) && !reason) throw new UsageError(`ponowne otwarcie #${id} wymaga powodu`);
       const owner = opts.owner ?? task.owner;
       const at = this.stamp();
       const entering = to === 'in_progress';
@@ -265,6 +282,81 @@ export class TaskStore {
 
   history(id: number): Transition[] {
     return this.db.all<TransitionRow>('SELECT * FROM transitions WHERE task_id = ? ORDER BY id', id).map(toTransition);
+  }
+
+  /** Zadanie po kluczu w danym miejscu: zmiana SDD (`sdd:<zmiana>`, bez rodzica) albo task zmiany. */
+  findByKey(project: string, parentId: number | null, key: string): Task | undefined {
+    const row = this.db.get<TaskRow>(
+      'SELECT * FROM tasks WHERE project = ? AND ifnull(parent_id, 0) = ? AND key = ?',
+      project,
+      parentId ?? 0,
+      key,
+    );
+    return row && toTask(row);
+  }
+
+  /** Zmiany SDD projektu — także zamknięte. */
+  changes(project: string): Task[] {
+    return this.db.all<TaskRow>("SELECT * FROM tasks WHERE project = ? AND kind = 'change' ORDER BY id", project).map(toTask);
+  }
+
+  children(parentId: number): Task[] {
+    return this.db.all<TaskRow>('SELECT * FROM tasks WHERE parent_id = ? ORDER BY id', parentId).map(toTask);
+  }
+
+  /** Aktualizuje treść z plików; zapis tylko, gdy coś się zmieniło. `updated_at` zostaje — to czas zmiany stanu. */
+  revise(id: number, fields: Revision): Task {
+    return this.db.transaction(() => {
+      const task = this.mustGet(id);
+      const next = {
+        title: fields.title?.trim() || task.title,
+        tag: fields.tag === undefined ? task.tag : fields.tag,
+        refs: fields.refs ?? task.refs,
+        fileSig: fields.fileSig === undefined ? task.fileSig : fields.fileSig,
+      };
+      const same =
+        next.title === task.title && next.tag === task.tag && next.fileSig === task.fileSig && JSON.stringify(next.refs) === JSON.stringify(task.refs);
+      if (same) return task;
+      this.db.run(
+        'UPDATE tasks SET title = ?, tag = ?, refs = ?, file_sig = ? WHERE id = ?',
+        next.title,
+        next.tag,
+        JSON.stringify(next.refs),
+        next.fileSig,
+        id,
+      );
+      return this.mustGet(id);
+    });
+  }
+
+  /** Hook zna ścieżkę transkryptu sesji, `take` tylko jej id — łączymy po id sesji. */
+  attachTranscript(project: string, sessionId: string, transcriptPath: string): number {
+    return this.db.run(
+      `UPDATE tasks SET transcript_path = ?
+       WHERE project = ? AND session_id = ? AND state = 'in_progress' AND ifnull(transcript_path, '') <> ?`,
+      transcriptPath,
+      project,
+      sessionId,
+      transcriptPath,
+    ).changes;
+  }
+
+  recordSync(project: string, source: string): void {
+    this.db.run(
+      'INSERT INTO syncs (project, at, source) VALUES (?, ?, ?) ON CONFLICT (project) DO UPDATE SET at = excluded.at, source = excluded.source',
+      project,
+      this.stamp(),
+      source,
+    );
+  }
+
+  lastSync(project: string): SyncMark | undefined {
+    return this.db.get<SyncMark>('SELECT at, source FROM syncs WHERE project = ?', project);
+  }
+
+  /** Kilka zmian w jednej transakcji — równoległe hooki nie przeplatają się w połowie sync. */
+  batch<T>(fn: () => T): T {
+    return this.db.transaction(fn);
   }
 
   private checkLevel(kind: Kind, input: NewTask): void {

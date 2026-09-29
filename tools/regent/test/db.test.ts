@@ -75,6 +75,29 @@ describe('openDb', () => {
     db.close();
   });
 
+  it('zagnieżdżona transaction to punkt zapisu: wycofuje tylko siebie, całość dopiero zewnętrzna', () => {
+    const db = openDb(join(tempDir(), 'regent.db'), [M1]);
+    db.transaction(() => {
+      db.run('INSERT INTO a (v) VALUES (?)', 'zewnętrzne');
+      expect(() =>
+        db.transaction(() => {
+          db.run('INSERT INTO a (v) VALUES (?)', 'wewnętrzne');
+          throw new Error('stop');
+        }),
+      ).toThrow('stop');
+      db.transaction(() => db.run('INSERT INTO a (v) VALUES (?)', 'drugie'));
+    });
+    expect(db.all('SELECT v FROM a ORDER BY id')).toEqual([{ v: 'zewnętrzne' }, { v: 'drugie' }]);
+    expect(() =>
+      db.transaction(() => {
+        db.transaction(() => db.run('INSERT INTO a (v) VALUES (?)', 'x'));
+        throw new Error('całość');
+      }),
+    ).toThrow('całość');
+    expect(db.all('SELECT v FROM a ORDER BY id')).toHaveLength(2);
+    db.close();
+  });
+
   it('ExperimentalWarning z node:sqlite wyciszone, inne ostrzeżenia zostają', () => {
     const path = join(tempDir(), 'regent.db');
     const script = `const { openDb } = await import(${JSON.stringify(DB_SRC)});

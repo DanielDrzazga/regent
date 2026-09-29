@@ -20,7 +20,10 @@ export interface Db {
   run(sql: string, ...params: Param[]): { changes: number; lastInsertRowid: number };
   get<T = Row>(sql: string, ...params: Param[]): T | undefined;
   all<T = Row>(sql: string, ...params: Param[]): T[];
-  /** Zapis z blokadą od początku (BEGIN IMMEDIATE); wyjątek wycofuje całość. */
+  /**
+   * Zapis z blokadą od początku (BEGIN IMMEDIATE); wyjątek wycofuje całość. Zagnieżdżona
+   * transakcja to punkt zapisu (SAVEPOINT) — sync składa wiele przejść w jedną transakcję.
+   */
   transaction<T>(fn: () => T): T;
   close(): void;
 }
@@ -96,7 +99,21 @@ function inTransaction<T>(raw: DatabaseSync, fn: () => T): T {
   }
 }
 
+function inSavepoint<T>(raw: DatabaseSync, name: string, fn: () => T): T {
+  raw.exec(`SAVEPOINT ${name}`);
+  try {
+    const result = fn();
+    raw.exec(`RELEASE ${name}`);
+    return result;
+  } catch (e) {
+    raw.exec(`ROLLBACK TO ${name}`);
+    raw.exec(`RELEASE ${name}`);
+    throw e;
+  }
+}
+
 function wrap(raw: DatabaseSync, path: string): Db {
+  let depth = 0;
   return {
     path,
     run: (sql, ...params) => {
@@ -108,7 +125,14 @@ function wrap(raw: DatabaseSync, path: string): Db {
       return row === undefined ? undefined : ({ ...row } as T);
     },
     all: <T>(sql: string, ...params: Param[]) => raw.prepare(sql).all(...params).map((row) => ({ ...row }) as T),
-    transaction: (fn) => inTransaction(raw, fn),
+    transaction: (fn) => {
+      depth++;
+      try {
+        return depth === 1 ? inTransaction(raw, fn) : inSavepoint(raw, `sp${depth}`, fn);
+      } finally {
+        depth--;
+      }
+    },
     close: () => raw.close(),
   };
 }

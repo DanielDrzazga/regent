@@ -3,13 +3,15 @@
 
 import { existsSync } from 'node:fs';
 import { parseArgs, type ParseArgsOptionsConfig } from 'node:util';
+import { attentionJson, findMismatch, findMissing, hasSdd, type Attention } from './attention.js';
 import type { Db } from './db.js';
 import { defaultDbPath } from './db.js';
-import { renderList, renderShow, taskLine } from './format.js';
+import { renderList, renderShow, renderSync, taskLine } from './format.js';
 import { STATE_LABEL, TransitionError, UsageError, isOwner, type Owner, type State } from './model.js';
 import { projectRoot } from './project.js';
 import { openTaskDb } from './schema.js';
-import { DEFAULT_STUCK_MIN, findStuck, type Stuck } from './stuck.js';
+import { DEFAULT_STUCK_MIN, findStuck } from './stuck.js';
+import { syncProject } from './sync.js';
 import { TaskStore, type Ctx, type Task } from './tasks.js';
 
 export interface Io {
@@ -43,8 +45,13 @@ Polecenia:
   regent task list [--all] [--stuck <min>]       otwarte zadania; --all także zamknięte.
                                                  Uwaga: w toku, a transkrypt sesji stoi od
                                                  progu (domyślnie ${DEFAULT_STUCK_MIN} min) albo bez
-                                                 sesji dłużej niż próg od wzięcia
+                                                 sesji dłużej niż próg od wzięcia; zmiany
+                                                 SDD bez artefaktów albo w rozjeździe z nimi
   regent task show <id>                          zadanie i historia przejść
+  regent task sync [--session-id <id> --transcript-path <plik>] [--source <źródło>]
+                                                 zmiany SDD z ai/changes/ jako zadania: stan
+                                                 z artefaktów (sdd-check.sh status, archiwum);
+                                                 sesja dopina transkrypt do jej zadań w toku
 
 Opcje: --json — wynik jako JSON; -h, --help — ta pomoc.
 Wykonawca: w sesji Claude Code (CLAUDECODE) agent, poza nią me.
@@ -103,9 +110,8 @@ function stuckMinutes(value: string | boolean | undefined): number {
   return minutes;
 }
 
-const attentionJson = (stuck: Stuck[]) => ({
-  stuck: stuck.map((s) => ({ id: s.taskId, why: s.why, idleMinutes: Math.floor(s.idleMs / 60_000), since: s.since })),
-});
+const text = (value: string | boolean | undefined): string | undefined =>
+  typeof value === 'string' && value.trim() ? value.trim() : undefined;
 
 function reason(call: Call, command: string): string {
   const text = typeof call.values.reason === 'string' ? call.values.reason.trim() : '';
@@ -182,20 +188,29 @@ const COMMANDS: Record<string, Command> = {
       if (c.positionals.length) throw new UsageError(`list nie przyjmuje argumentów: ${c.positionals.join(' ')}`);
       const all = Boolean(c.values.all);
       const thresholdMs = stuckMinutes(c.values.stuck) * 60_000;
+      const sdd = hasSdd(c.project);
       if (!existsSync(c.dbPath)) {
+        const none: Attention = { stuck: [], missing: [], mismatch: [], sdd, lastSync: null };
         c.io.out(
           c.values.json
-            ? JSON.stringify({ project: c.project, db: null, tasks: [], attention: attentionJson([]) }, null, 2)
+            ? JSON.stringify({ project: c.project, db: null, tasks: [], attention: attentionJson(none) }, null, 2)
             : `Brak bazy zadań (${c.dbPath}) — nic jeszcze nie zapisano.`,
         );
         return 0;
       }
-      const tasks = c.store().list(c.project, { all });
-      const stuck = findStuck(tasks, { now: c.io.now(), thresholdMs });
+      const store = c.store();
+      const tasks = store.list(c.project, { all });
+      const attention: Attention = {
+        stuck: findStuck(tasks, { now: c.io.now(), thresholdMs }),
+        missing: sdd ? findMissing(c.project, tasks) : [],
+        mismatch: findMismatch(tasks),
+        sdd,
+        lastSync: store.lastSync(c.project) ?? null,
+      };
       c.io.out(
         c.values.json
-          ? JSON.stringify({ project: c.project, db: c.dbPath, tasks, attention: attentionJson(stuck) }, null, 2)
-          : renderList(c.project, tasks, all, stuck),
+          ? JSON.stringify({ project: c.project, db: c.dbPath, tasks, attention: attentionJson(attention) }, null, 2)
+          : renderList(c.project, tasks, all, attention),
       );
       return 0;
     },
@@ -210,6 +225,21 @@ const COMMANDS: Record<string, Command> = {
       const history = store.history(id);
       const parent = task.parentId === null ? undefined : store.get(task.parentId);
       c.io.out(c.values.json ? JSON.stringify({ task, history }, null, 2) : renderShow(task, history, parent));
+      return 0;
+    },
+  },
+  sync: {
+    options: { ...JSON_OPT, 'session-id': { type: 'string' }, 'transcript-path': { type: 'string' }, source: { type: 'string' } },
+    run: (c) => {
+      if (c.positionals.length) throw new UsageError(`sync nie przyjmuje argumentów: ${c.positionals.join(' ')}`);
+      const sessionId = text(c.values['session-id']);
+      const transcriptPath = text(c.values['transcript-path']);
+      if (transcriptPath && !sessionId) throw new UsageError('--transcript-path wymaga --session-id');
+      const report = syncProject(c.store(), c.project, {
+        ctx: { actor: 'sync', source: text(c.values.source) ?? 'cli' },
+        ...(sessionId ? { session: { id: sessionId, transcriptPath } } : {}),
+      });
+      c.io.out(c.values.json ? JSON.stringify(report, null, 2) : renderSync(report));
       return 0;
     },
   },

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CLOSED, STATES, TRANSITIONS, allowedFrom, canTransition, handoffState, requiresReason } from '../src/model.js';
+import { CLOSED, STATES, TRANSITIONS, allowedFrom, canTransition, handoffState, isReopen, requiresReason } from '../src/model.js';
 
 describe('tabela przejść', () => {
   it('opisuje każdy stan, prowadzi tylko do znanych stanów i bez pętli w miejscu', () => {
@@ -12,12 +12,15 @@ describe('tabela przejść', () => {
     }
   });
 
-  it('zakończone i porzucone są końcowe i wymagają powodu', () => {
+  it('zakończone i porzucone wymagają powodu, a wyjść z nich można tylko ponownym otwarciem', () => {
     expect([...CLOSED].sort()).toEqual(['done', 'dropped']);
     for (const s of CLOSED) {
-      expect(allowedFrom(s)).toEqual([]);
+      expect(allowedFrom(s)).toEqual(['pending']);
+      expect(isReopen(s, 'pending')).toBe(true);
       expect(requiresReason(s)).toBe(true);
     }
+    expect(isReopen('done', 'dropped')).toBe(false);
+    expect(isReopen('pending', 'in_progress')).toBe(false);
     for (const s of STATES.filter((x) => !CLOSED.includes(x))) expect(requiresReason(s)).toBe(false);
   });
 

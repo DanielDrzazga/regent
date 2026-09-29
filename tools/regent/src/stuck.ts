@@ -1,5 +1,6 @@
 // Utknięcie liczone przy odczycie, bez procesu w tle: zadanie w toku, którego sesja nie zmieniła
 // transkryptu od progu, albo zadanie w toku bez transkryptu sesji dłużej niż próg od wzięcia.
+// Zmiana SDD bez sesji się nie liczy: jej stan wynika z artefaktów, pracę niosą jej taski.
 
 import { statSync } from 'node:fs';
 import type { Task } from './tasks.js';
@@ -37,6 +38,8 @@ export interface StuckOptions {
 export function findStuck(tasks: Task[], { now, thresholdMs, mtime = fileMtime }: StuckOptions): Stuck[] {
   return tasks.flatMap((t) => {
     if (t.state !== 'in_progress') return [];
+    // Zmianę SDD w toku przestawia sync z artefaktów, nie sesja — trwa dniami i nie utyka.
+    if (t.kind === 'change' && !t.sessionId) return [];
     const claimed = Date.parse(t.claimedAt ?? t.updatedAt);
     const modified = t.transcriptPath ? mtime(t.transcriptPath) : undefined;
     const why: StuckWhy = !t.transcriptPath ? 'no-session' : modified === undefined ? 'no-transcript' : 'idle';
