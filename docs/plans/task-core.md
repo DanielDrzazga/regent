@@ -65,7 +65,7 @@
   weryfikacja → archiwum przez edycje plików i JSON hooków, każdy krok widać w `show`; porzucenie
   przez `Status: Abandoned`; `packet --stats` na zarchiwizowanej zmianie z projektu prywatnego
   (tylko odczyt, wynik poza repo); pomiar czasu hooka `Stop`
-- [ ] T12: merge `feat/task-core` → `main`, push; start tygodnia sprawdzenia (data w Przebiegu)
+- [x] T12: merge `feat/task-core` → `main`, push; start tygodnia sprawdzenia (data w Przebiegu)
 
 ## Ryzyka
 
@@ -268,3 +268,8 @@ Tydzień realnej pracy z pluginem na jednej maszynie:
     a pomocniczo kontekst przy pierwszej edycji i odczyt plików zmiany (z paczką powinien spaść
     prawie do zera). Skrypt pomiaru został w scratchpadzie sesji, poza repo.
 - Odstępstwa: w `docs/tasks.md` dodałem akapit o dopasowaniu sekcji designu po nazwie (fakt z T11).
+- T12: fast-forward `feat/task-core` → `main` po zielonej bramce, push. **Tydzień sprawdzenia
+  etapu 1: od 2026-09-29 do 2026-10-06** — kryteria w sekcji „Sprawdzenie etapu”, punkt odniesienia
+  powyżej. W `.claude/rules/project.md` „Następny krok” → tydzień sprawdzenia, potem plan etapu 2.
+- Etap 1 zamknięty w repo. Do decyzji po tygodniu sprawdzenia: nazwa sekcji kontraktu (T11), lustro
+  `drop` w `tasks.md` (sesja 2), warunek mtime dla hooka `Stop`, jeśli koszt zacznie przeszkadzać.
