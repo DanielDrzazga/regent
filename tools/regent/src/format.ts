@@ -2,6 +2,8 @@
 
 import type { Attention } from './attention.js';
 import { CLOSED, STATE_LABEL, type Kind } from './model.js';
+import type { Next } from './next.js';
+import type { Packet } from './packet.js';
 import type { Stuck } from './stuck.js';
 import type { SyncReport } from './sync.js';
 import type { Task, Transition } from './tasks.js';
@@ -98,6 +100,30 @@ export function renderSync(r: SyncReport): string {
     e.reason,
   ]);
   return [`Sync ${r.project}:`, ...columns(rows)].join('\n');
+}
+
+export function renderNext(name: string, n: Next, layer: string | undefined): string {
+  const scope = layer ? ` (warstwa ${layer})` : '';
+  if (!n.ready.length && !n.blocked.length) {
+    return `${n.change.key}${scope}: brak otwartych tasków gotowych do pracy (otwarte: ${n.open}).`;
+  }
+  const lines = [`${n.change.key} — gotowe${scope}: ${n.ready.length}`];
+  if (n.ready.length) lines.push('', ...columns(n.ready.map((t) => [`#${t.id}`, label(t), STATE_LABEL[t.state]])));
+  if (n.blocked.length) {
+    lines.push('', 'Czekają na zależności:', ...columns(n.blocked.map((b) => [`#${b.task.id}`, label(b.task), `po ${b.after.join(', ')}`])));
+  }
+  if (n.ready.length) lines.push('', `Paczka: regent task packet ${name} ${n.ready.map((t) => t.key).join(' ')}`);
+  return lines.join('\n');
+}
+
+export function renderStats(p: Packet): string {
+  const s = p.stats;
+  const share = s.filesBytes ? Math.round((100 * s.packetBytes) / s.filesBytes) : 0;
+  return [
+    `Paczka ${p.change} ${p.keys.join(' ')}: ${s.packetBytes} B (~${s.packetTokens} tok.)`,
+    `Pliki, które zastępuje (${s.files.join(', ')}): ${s.filesBytes} B (~${s.filesTokens} tok.)`,
+    `Paczka to ${share}% plików.`,
+  ].join('\n');
 }
 
 export function renderShow(task: Task, history: Transition[], parent: Task | undefined): string {

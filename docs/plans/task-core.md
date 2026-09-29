@@ -52,7 +52,7 @@
   fixture'ach `ai/changes/`
 - [x] T6: import tasków z `tasks.md` (grupy, `T-NN`, tag, REQ/AC, pliki, weryfikacja, zależności,
   starszy format), ponowny import po zmianie pliku, wygrana pliku przy ręcznej zmianie; testy
-- [ ] T7: `next` i `packet` (gotowość wg zależności, reguły paczki, `--stats`), `done --commit
+- [x] T7: `next` i `packet` (gotowość wg zależności, reguły paczki, `--stats`), `done --commit
   --tests` przepisuje linię taska w `tasks.md` w formacie z `apply` Krok 4c; testy na fixture'ach
 - [ ] T8: `scripts/regent.sh` + hooki `SessionStart` i `Stop` (`scripts/hooks/task-sync.sh`, zakres
   `ai/docs/`, cisza na stdout, kod 0, log błędów, brak CLI → cisza); testy w bashu 3.2 i z PATH

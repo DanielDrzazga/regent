@@ -1,4 +1,5 @@
-// tasks.md — parser linii tasków (semantyka TASK_AWK z scripts/sdd-check.sh) i rozbiór linii na refs.
+// tasks.md — parser linii tasków (semantyka TASK_AWK z scripts/sdd-check.sh), rozbiór linii na refs
+// i przepisanie jednej linii po zamknięciu taska (format śladu z `apply` Krok 4c).
 
 import { createHash } from 'node:crypto';
 
@@ -177,3 +178,36 @@ export function parseTasks(text: string): ParsedTask[] {
 
 /** Warstwa taska do `next --layer`: brak tagu = `[BE]` (konwencja `propose` 2d). */
 export const layerOf = (tag: string | null): string => tag ?? 'BE';
+
+export interface Closure {
+  commit?: string | undefined;
+  tests?: string | undefined;
+}
+
+const oneLine = (text: string): string => text.replace(/\s*[\r\n]+\s*/g, '; ').trim();
+
+/**
+ * Linia po zamknięciu taska w formacie z `apply` Krok 4c:
+ * `- [x] T-01: … ✅ (commit: abc1234 · testy: AC-1 → plik › test)`. Nowy ślad zastępuje istniejący;
+ * bez `commit`/`tests` zmienia się tylko pole checkboxa.
+ */
+export function closeLine(raw: string, closure: Closure): string {
+  const cr = raw.endsWith('\r') ? '\r' : '';
+  let line = (cr ? raw.slice(0, -1) : raw).replace(/^([ \t]*- )\[[^\]]?\]/, '$1[x]');
+  const trace = [closure.commit && `commit: ${oneLine(closure.commit)}`, closure.tests && `testy: ${oneLine(closure.tests)}`].filter(Boolean);
+  if (!trace.length) return `${line}${cr}`;
+  const at = line.indexOf(TRACE);
+  if (at >= 0) line = line.slice(0, at);
+  return `${line.replace(/[ \t]+$/, '')}${TRACE}${trace.join(' · ')})${cr}`;
+}
+
+/** Przepisuje w pliku wyłącznie linię taska o danym kluczu; reszta bajt w bajt bez zmian. */
+export function rewriteTask(text: string, key: string, closure: Closure): { text: string; task: ParsedTask } | undefined {
+  const lines = text.split('\n');
+  const found = parseTasks(text).find((t) => t.key === key);
+  if (!found) return undefined;
+  const index = found.refs.line - 1;
+  lines[index] = closeLine(lines[index]!, closure);
+  const next = lines.join('\n');
+  return { text: next, task: parseTasks(next).find((t) => t.key === key)! };
+}

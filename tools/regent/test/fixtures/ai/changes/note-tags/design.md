@@ -14,7 +14,6 @@ Tabela `note_tags` (notatka, tag), serwis tagów w domenie notatek, filtr w `GET
 
 ```
 NoteList ──GET /notes?tag──▶ NotesController ──▶ TagService ──▶ note_tags
-## to nie jest nagłówek — linia w bloku kodu
 ```
 
 ### Affected Files
@@ -37,6 +36,10 @@ NoteList ──GET /notes?tag──▶ NotesController ──▶ TagService ─�
 ### GET /notes?tag=x
 
 **Response (200):** lista notatek z polem `tags: string[]`.
+
+```markdown
+## to nie jest nagłówek — linia w bloku kodu
+```
 
 ## Database Changes
 

@@ -6,8 +6,11 @@ import { parseArgs, type ParseArgsOptionsConfig } from 'node:util';
 import { attentionJson, findMismatch, findMissing, hasSdd, type Attention } from './attention.js';
 import type { Db } from './db.js';
 import { defaultDbPath } from './db.js';
-import { renderList, renderShow, renderSync, taskLine } from './format.js';
+import { renderList, renderNext, renderShow, renderStats, renderSync, taskLine } from './format.js';
+import { closeTask } from './mirror.js';
 import { STATE_LABEL, TransitionError, UsageError, isOwner, type Owner, type State } from './model.js';
+import { LAYERS, nextTasks } from './next.js';
+import { buildPacket } from './packet.js';
 import { projectRoot } from './project.js';
 import { openTaskDb } from './schema.js';
 import { DEFAULT_STUCK_MIN, findStuck } from './stuck.js';
@@ -41,6 +44,9 @@ Polecenia:
                                                  przekazanie: do me — czeka na Ciebie,
                                                  do agenta — przekazane, aż je weźmie
   regent task done <id> --reason <powód>         zakończone
+  regent task done <id> --commit <hash> [--tests <mapa>] [--reason <powód>]
+                                                 task zmiany (T-NN): zakończone, a jego linia
+                                                 w tasks.md dostaje [x] i ślad z apply 4c
   regent task drop <id> --reason <powód>         porzucone
   regent task list [--all] [--stuck <min>]       otwarte zadania; --all także zamknięte.
                                                  Uwaga: w toku, a transkrypt sesji stoi od
@@ -48,6 +54,11 @@ Polecenia:
                                                  sesji dłużej niż próg od wzięcia; zmiany
                                                  SDD bez artefaktów albo w rozjeździe z nimi
   regent task show <id>                          zadanie i historia przejść
+  regent task next <zmiana> [--layer BE|FE|DB]   gotowe taski zmiany: niezrobione, zależności
+                                                 (po T-XX) zamknięte; --json z paczką każdego
+  regent task packet <zmiana> <T-NN>… [--stats]  paczka: linie tasków, ich REQ z delty,
+                                                 INVARIANTS i sekcje design.md wg tagów;
+                                                 --stats — rozmiar wobec plików, które zastępuje
   regent task sync [--session-id <id> --transcript-path <plik>] [--source <źródło>]
                                                  zmiany SDD z ai/changes/ jako zadania: stan
                                                  z artefaktów (sdd-check.sh status, archiwum),
@@ -166,11 +177,24 @@ const COMMANDS: Record<string, Command> = {
     },
   },
   done: {
-    options: { ...JSON_OPT, ...REASON_OPT },
+    options: { ...JSON_OPT, ...REASON_OPT, commit: { type: 'string' }, tests: { type: 'string' } },
     run: (c) => {
       const id = taskId(c.positionals);
-      const why = reason(c, 'done');
-      c.print(attempt('done', () => c.store().done(id, why, c.ctx)));
+      const commit = text(c.values.commit);
+      const tests = text(c.values.tests);
+      if (commit !== undefined && !/^[0-9a-f]{4,40}$/i.test(commit)) throw new UsageError(`--commit wymaga hasha commitu, podano: ${commit}`);
+      const given = text(c.values.reason);
+      if (!given && !commit) throw new UsageError('done wymaga --reason <powód> (task zmiany: albo --commit <hash>)');
+      const store = c.store();
+      const task = store.mustGet(id);
+      if (task.kind !== 'task') {
+        if (commit || tests) throw new UsageError('--commit i --tests są tylko dla taska zmiany SDD (T-NN)');
+        c.print(attempt('done', () => store.done(id, given!, c.ctx)));
+        return 0;
+      }
+      const closed = attempt('done', () => closeTask(store, task, { commit, tests }, given ?? `commit: ${commit}`, c.ctx));
+      if (!closed.mirrored) c.io.err(`regent: ${task.key} nie ma w ${closed.file ?? 'tasks.md zmiany'} — plik bez zmian`);
+      c.print(closed.task);
       return 0;
     },
   },
@@ -226,6 +250,38 @@ const COMMANDS: Record<string, Command> = {
       const history = store.history(id);
       const parent = task.parentId === null ? undefined : store.get(task.parentId);
       c.io.out(c.values.json ? JSON.stringify({ task, history }, null, 2) : renderShow(task, history, parent));
+      return 0;
+    },
+  },
+  next: {
+    options: { ...JSON_OPT, layer: { type: 'string' } },
+    run: (c) => {
+      if (c.positionals.length !== 1) throw new UsageError('next wymaga nazwy zmiany: next <zmiana> [--layer BE|FE|DB]');
+      const name = c.positionals[0]!.replace(/^sdd:/, '');
+      const layer = text(c.values.layer)?.toUpperCase();
+      if (layer !== undefined && !(LAYERS as readonly string[]).includes(layer)) {
+        throw new UsageError(`--layer przyjmuje ${LAYERS.join(', ')}, podano: ${layer}`);
+      }
+      const store = c.store();
+      syncProject(store, c.project, { ctx: { actor: 'sync', source: 'next' } });
+      const next = nextTasks(store, c.project, name, layer);
+      if (!c.values.json) {
+        c.io.out(renderNext(name, next, layer));
+        return 0;
+      }
+      const ready = next.ready.map((t) => ({ ...t, packet: buildPacket(c.project, name, [t.key!]).text }));
+      const blocked = next.blocked.map((b) => ({ id: b.task.id, key: b.task.key, after: b.after }));
+      c.io.out(JSON.stringify({ change: next.change.key, layer: layer ?? null, ready, blocked, open: next.open }, null, 2));
+      return 0;
+    },
+  },
+  packet: {
+    options: { ...JSON_OPT, stats: { type: 'boolean' } },
+    run: (c) => {
+      const [name, ...keys] = c.positionals;
+      if (!name || !keys.length) throw new UsageError('packet wymaga zmiany i kluczy tasków: packet <zmiana> <T-NN>…');
+      const packet = buildPacket(c.project, name.replace(/^sdd:/, ''), keys.map((k) => k.replace(/^t-/, 'T-')));
+      c.io.out(c.values.json ? JSON.stringify(packet, null, 2) : c.values.stats ? renderStats(packet) : packet.text.trimEnd());
       return 0;
     },
   },

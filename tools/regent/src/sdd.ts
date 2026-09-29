@@ -59,7 +59,7 @@ export function sddStatus(root: string, script: string = SDD_CHECK): ChangeStatu
   return parseStatus(r.stdout);
 }
 
-const isDir = (path: string): boolean => {
+export const isDir = (path: string): boolean => {
   try {
     return statSync(path).isDirectory();
   } catch {
