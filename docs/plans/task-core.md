@@ -184,3 +184,43 @@ Tydzień realnej pracy z pluginem na jednej maszynie:
   `sdd-check.sh status` liczy task jako niezrobiony i zmiana nie dojdzie do „wszystkie taski”.
   Plan nie przewiduje lustra porzucenia.
 - Sesja 3 (T8–T9) może ruszać.
+
+## Przebieg (2026-09-29) — sesja 3
+
+- T8–T9 na `feat/task-core`. `framework-lint.sh` bez uwag: składnia i testy skryptów w `/bin/bash`
+  3.2.57 i w bashu z PATH 5.3.9; nowe `regent.test.sh` (9) i `task-sync.test.sh` (36) zielone
+  w obu. `claude plugin validate .` tylko z ostrzeżeniem o `version`; 91 testów Vitest bez zmian.
+  Pluginu nigdzie nie włączałem — hooki testowane JSON-em na stdin.
+- T8:
+  - `scripts/regent.sh`: `${CLAUDE_PLUGIN_ROOT}/tools/regent/dist/cli.js` przez `node`, potem
+    `regent` w PATH. `dist/cli.js` bez `node` w PATH też przechodzi do PATH. Brak obu → kod 3
+    i jedna linia na stderr; kod CLI przechodzi bez zmian;
+  - `scripts/hooks/task-sync.sh` w `SessionStart` (po `sync-bin.sh`) i w nowym `Stop`. Korzeń
+    projektu: pierwszy katalog z `.git` w górę od `cwd` z JSON-a (jak w CLI). Fallback przy braku
+    `cwd`: `CLAUDE_PROJECT_DIR`, potem `PWD`. Bez `ai/docs/` w korzeniu Node nie startuje.
+    Woła `task sync --source hook --session-id … --transcript-path …` (bez `session_id` — sam sync);
+  - log błędów: `hook.log` w katalogu bazy (`REGENT_DB` albo `${XDG_STATE_HOME:-~/.local/state}/regent/`),
+    jedna linia na błąd. Powyżej 256 KB poprzedni log przechodzi do `hook.log.1`. Kod 3 (brak CLI)
+    nie trafia do logu;
+  - pola JSON-a czyta `awk` na wzór `extract` z `git-guard.sh`, z parametrem klucza; test obejmuje
+    JSON wielolinijkowy i escaping w ścieżce;
+  - `docs/README.md`: wiersze `regent.sh` i `task-sync.sh` w tabeli Skrypty (wymaga tego lint).
+    Wpis w README i `docs/tasks.md` zostają na T10 — README nadal wymienia hooki bez sync zadań.
+- T9:
+  - `skills/apply/SKILL.md`: wyłącznie dopisane bloki (diff: 0 linii usuniętych, 4 wstawki),
+    więc ścieżka bez CLI jest słowo w słowo dzisiejsza. Wybór ścieżki raz, na początku Kroku 1:
+    `regent.sh task next {nazwa} --json` — kod 0 → bloki „Z CLI” w Krokach 1, 3, 4a, 4c; kod 3
+    albo inny błąd → bez CLI. Routing po tagach, budżet i commit per task bez zmian;
+  - Z CLI: taski z `next` (`--tasks`/`--group` filtrują gotowe; task w toku wznawiany bez `take`),
+    `take` przed delegacją, jedna paczka (`packet`) na uruchomienie agenta, a w prompcie polecenie:
+    nie czytać `tasks.md`/`design.md`/`specs/*.md` i zgłaszać `BRAK W PACZCE: <plik> › <sekcja> —
+    <po co>`. Braki trafiają do raportu końcowego, a `done --commit --tests` zastępuje ręczną edycję;
+  - odstępstwo: `agents/dba.md` dostał jedną wstawkę — przy paczce z `apply` czyta paczkę zamiast
+    trzech plików zmiany. Bez niej agent miałby w definicji polecenie sprzeczne z promptem.
+    `backend-dev` i `frontend-dev` nie wymieniają plików zmiany, więc zostały bez zmian;
+  - `framework-lint.sh` sekcja 2: skill wołający `regent.sh` ma `Bash` (albo wzorzec `regent.sh`)
+    w `allowed-tools` — sprawdzone na chwilowo zepsutym `apply`.
+- Pomiar orientacyjny (hook z prawdziwym CLI na kopii fixture'ów): `Stop` bez zmian w plikach
+  ~170 ms, po zmianie `tasks.md` ~250 ms (dochodzi `sdd-check.sh`), poza projektem SDD ~10 ms.
+  Właściwy pomiar i decyzja z Ryzyk — T11.
+- Sesja 4 (T10–T12) może ruszać.
