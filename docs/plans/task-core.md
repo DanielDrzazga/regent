@@ -54,7 +54,7 @@
   starszy format), ponowny import po zmianie pliku, wygrana pliku przy ręcznej zmianie; testy
 - [x] T7: `next` i `packet` (gotowość wg zależności, reguły paczki, `--stats`), `done --commit
   --tests` przepisuje linię taska w `tasks.md` w formacie z `apply` Krok 4c; testy na fixture'ach
-- [ ] T8: `scripts/regent.sh` + hooki `SessionStart` i `Stop` (`scripts/hooks/task-sync.sh`, zakres
+- [x] T8: `scripts/regent.sh` + hooki `SessionStart` i `Stop` (`scripts/hooks/task-sync.sh`, zakres
   `ai/docs/`, cisza na stdout, kod 0, log błędów, brak CLI → cisza); testy w bashu 3.2 i z PATH
 - [ ] T9: skill `apply` — ścieżka z CLI (Krok 1, 3, 4a, 4c) i bez CLI (jak dziś), `BRAK W PACZCE`
   w raporcie subagenta; reguły w `framework-lint.sh` (skill wołający `regent.sh` ma `Bash`)
