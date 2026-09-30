@@ -18,15 +18,17 @@ Plugin nie jest publikowany w żadnym marketplace ani instalowany globalnie — 
 
 1. Klon repo `regent` i adres autora commitów:
    `git config user.email 40364469+DanielDrzazga@users.noreply.github.com`.
-2. Sesja z pluginem: `claude --plugin-dir <klon repo regent>`. Stary framework w `~/.claude` zostaje
-   (reguły i komendy `-sdd` dublują się wtedy z `regent:`).
+2. Sesja z pluginem: `claude --plugin-dir <klon repo regent>`, a na stałe — alias w konfiguracji
+   powłoki: `alias claude='claude --plugin-dir "<klon repo regent>"'`. Stary framework w `~/.claude`
+   (`CLAUDE.md`, `commands/*-sdd.md`, `agents/`) odłóż do osobnego katalogu w `~/.claude/`
+   (np. `sdd-wylaczone-<data>/`), inaczej reguły i komendy `-sdd` dublują się z `regent:`.
 3. W `~/.claude/settings.json` bez atrybucji AI: `"attribution": { "commit": "", "pr": "" }`.
 4. Statusline z pluginu (opcjonalnie; przy `--plugin-dir` dane pluginu są w
    `~/.claude/plugins/data/regent-inline/`) — zob. [statusline.md](statusline.md).
 5. Nowa sesja z `--plugin-dir`: `/regent:` + Tab pokazuje skille, w projekcie z `ai/docs/` działa `/regent:status`.
 
 Po ukończeniu (poza zakresem dziś): publikacja w marketplace, instalacja w zakresie `user`,
-usunięcie starego frameworka z `~/.claude` i wpisów git-guard wskazujących `$HOME/.claude/…`.
+usunięcie odłożonego starego frameworka z `~/.claude` i wpisów git-guard wskazujących `$HOME/.claude/…`.
 
 ## 1. `/regent:init` — skonfiguruj projekt
 

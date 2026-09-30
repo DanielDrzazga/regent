@@ -90,3 +90,21 @@ W trakcie T5 użytkownik zdecydował: **„nic nie usuwaj repo z SDD"**. Nowy st
   i `gitlab`) — nieusuwany.
 - Źródło prawdy dla dalszych zmian frameworka: **`regent`** (decyzja użytkownika). `~/.claude`
   zostaje bez zmian i nie dostaje nowych poprawek.
+
+## Przebieg (2026-09-30) — Regent we wszystkich projektach na Macu
+
+Użytkownik chce testować Regenta wszędzie, nie w jednym projekcie. T8 wraca w wersji odwracalnej:
+przeniesienie zamiast usunięcia, bez marketplace.
+
+- Kopia zapasowa: `~/_Private/regent-notes/claude-home-sdd-2026-09-30.tar.gz` (jak T4).
+- `~/.claude/CLAUDE.md`, `commands/` (18 komend `-sdd`) i `agents/` (9 agentów) przeniesione do
+  `~/.claude/sdd-wylaczone-2026-09-30/`. Zostają `scripts/` (statusline i wpis git-guard
+  w `external-communication-service`), `templates/`, `docs/`, `.git` i `skills/` spoza SDD.
+- Plugin we wszystkich sesjach z terminala: alias `claude --plugin-dir "$HOME/_Private/regent"`
+  w `~/.zshrc`. Sesje spoza zsh (aplikacja desktopowa, IDE bez terminala) nie mają frameworka.
+- Weryfikacja nowej sesji (`claude -p`, Haiku) w projekcie SDD: `-sdd` nie ma, widać `/regent:*`,
+  „Twoja rola” raz, „Kontrakt `make`” z prefiksem `regent:`, bez `~/.claude/CLAUDE.md`; hook
+  pluginu zapisał sync zadań (źródło `hook`).
+- Do poprawy poza repo: projektowy `.claude/CLAUDE.md` w jednym projekcie prywatnym opisuje cykl
+  starymi nazwami `/…-sdd`. Komendy i agenci projektowi nie wołają agentów po starych nazwach.
+- Cofnięcie: przenieść trzy pozycje z powrotem do `~/.claude/` i usunąć alias.

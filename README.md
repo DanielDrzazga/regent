@@ -70,9 +70,13 @@ marketplace (repo nie ma `marketplace.json`). Ładuje się wprost z klonu repo, 
 claude --plugin-dir <klon repo regent>
 ```
 
-Skille i agenci dostają prefiks `regent:` (`/regent:propose`, `regent:architect`). Stary framework
-w `~/.claude` działa równolegle, więc w sesji z pluginem reguły i komendy są podwójnie (`-sdd`
-i `regent:`) — świadomy stan przejściowy.
+Żeby plugin działał w każdej sesji z terminala, dodaj alias do konfiguracji powłoki:
+`alias claude='claude --plugin-dir "<klon repo regent>"'`.
+
+Skille i agenci dostają prefiks `regent:` (`/regent:propose`, `regent:architect`). Jeśli na maszynie
+jest stary framework w `~/.claude` (`CLAUDE.md`, `commands/*-sdd.md`, `agents/`), reguły i komendy
+są w sesji z pluginem podwójnie (`-sdd` i `regent:`). Odłóż go wtedy do osobnego katalogu
+w `~/.claude/` — Claude Code go nie wczyta, a powrót to przeniesienie z powrotem.
 Skille wołają skrypty przez `${CLAUDE_PLUGIN_ROOT}/scripts/…` — Claude Code podstawia katalog
 pluginu w treści skilli i agentów.
 
