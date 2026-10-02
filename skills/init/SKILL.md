@@ -228,8 +228,9 @@ Jeśli `Makefile` już istnieje → NIE nadpisuj: zaproponuj brakujące cele jak
 
 Reguły „`git add` wyłącznie z listą plików" i „bez `--no-verify`" żyją w promptach, a egzekwuje je
 deterministycznie hook `scripts/hooks/git-guard.sh`, **rejestrowany przez plugin** (`hooks/hooks.json`):
-blokuje `git add .` / `-A` / `--all` / `-u`, `git commit -a` i `--no-verify`, a agentowi mówi, co
-zrobić zamiast tego. Działa w każdym projekcie z `ai/docs/`, więc od zapisu plików w Kroku 4 chroni
+blokuje `git add .` / `-A` / `--all` / `-u`, `git commit -a`, `--no-verify` i `-c core.hooksPath`
+oraz atrybucję AI w treści commita i PR (`Co-Authored-By` z Claude, „Generated with Claude…”),
+a agentowi mówi, co zrobić zamiast tego. Działa w każdym projekcie z `ai/docs/`, więc od zapisu plików w Kroku 4 chroni
 także ten projekt — bez wpisu w jego `.claude/settings*.json` i bez pytania o zgodę.
 
 Sprawdź tylko, czy projekt nie ma starego wpisu hooka wskazującego `$HOME/.claude/scripts/hooks/`

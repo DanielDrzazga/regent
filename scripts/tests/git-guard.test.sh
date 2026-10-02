@@ -38,6 +38,13 @@ expect 2 'git add ./'
 expect 2 'git add :/'
 expect 2 'git add -Av'
 expect 2 'git -c core.autocrlf=false add .'
+expect 2 'git -c core.hooksPath=/dev/null commit -m x'
+expect 2 'git -c core.hookspath=/dev/null commit -m x'
+expect 2 'git -c CORE.HOOKSPATH=x push'
+expect 2 'git -c core.hooksPath commit -m x'
+expect 2 'git -C repo -c core.hooksPath=/dev/null commit -m x'
+expect 2 'git --config-env=core.hooksPath=HP commit -m x'
+expect 2 'git status && git -c core.hooksPath=/tmp/h push'
 
 # przepuszczane
 expect 0 'git add src/a.ts tests/a.test.ts'
@@ -51,6 +58,23 @@ expect 0 'echo \"--no-verify to zly pomysl\"'
 expect 0 'git commit -m \"drop -a flag\"'
 expect 0 'git add \"src/a b.ts\" src/c.ts'
 expect 0 'git commit -m \"x\" --no-edit'
+expect 0 'git -c core.autocrlf=false commit -m x'
+expect 0 'git config --get core.hooksPath'
+
+# atrybucja AI w treści commita lub PR — sprawdzana w danych (cudzysłowy, heredoc)
+expect 2 'git commit -m \"feat: x\n\nCo-Authored-By: Claude <noreply@anthropic.com>\"'
+expect 2 'git commit -m \"feat: x\n\nco-authored-by: claude opus\"'
+expect 2 "git commit -F - <<'EOF'\nfeat: x\n\nCo-Authored-By: Claude Opus <noreply@anthropic.com>\nEOF"
+expect 2 "git commit -m \\\"\$(cat <<'EOF'\nfeat: x\n\nGenerated with [Claude Code](https://claude.com/claude-code)\nEOF\n)\\\""
+expect 2 'git commit -m \"fix: y\n\nhttps://claude.ai/code/session_abc\"'
+expect 2 'git -C repo commit -m \"x\n\nnoreply@anthropic.com\"'
+expect 2 'gh pr create --title x --body \"opis\n\nGenerated with Claude Code\"'
+expect 2 'git merge --no-ff -m \"merge\n\nCo-Authored-By: Claude\" feat/x'
+expect 0 'git commit -m \"feat: x\n\nCo-Authored-By: Jan Kowalski <jan@example.com>\"'
+expect 0 'git commit -m \"docs: opisz zakaz stopki Co-Authored-By\"'
+expect 0 'echo \"Co-Authored-By: Claude\"'
+expect 0 'git log --grep \"Co-Authored-By: Claude\"'
+expect 0 'gh pr view 12'
 
 # wiele linii: każda linia to osobne polecenie; treść heredoca, cudzysłowów i komentarzy to dane
 expect 0 'git commit -q -m init\ntmux new-session -d -s s -n lead'

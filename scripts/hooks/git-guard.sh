@@ -5,6 +5,10 @@
 #   git add . | ./ | :/ | -A | --all | -u   — stage całości wciąga cudze zmiany do commitu zmiany
 #   git commit -a | --all                   — to samo, tylnymi drzwiami
 #   --no-verify, git commit -n              — pomija hooki pre-commit, czyli bramkę testów
+#   git -c core.hooksPath… | --config-env=core.hooksPath=…  — podmienia katalog hooków: to samo co --no-verify
+#   atrybucja AI w git commit | merge, gh pr create | edit | merge — Co-Authored-By z Claude/Anthropic,
+#                                           „Generated with [Claude”, noreply@anthropic.com, link
+#                                           claude.ai/code/session (objaw dryfu; repo nie oznacza pracy AI)
 #
 # Rejestracja: hooks/hooks.json pluginu. Zakres: projekt SDD (ai/docs/ w korzeniu projektu,
 # ${CLAUDE_PROJECT_DIR} albo bieżący katalog) — poza nim hook przepuszcza wszystko.
@@ -15,7 +19,10 @@
 # i nie są sprawdzane: treść w cudzysłowach (także wielolinijkowa), komentarz od `#` na początku
 # słowa, treść heredoca (<<SŁOWO, <<'SŁOWO', <<"SŁOWO", <<-SŁOWO) do linii zamykającej; `<<<`
 # to nie heredoc. Niezamknięty cudzysłów lub heredoc zostaje w tekście — wolimy fałszywą
-# blokadę niż przepuszczenie.
+# blokadę niż przepuszczenie. Wyjątek: atrybucję AI sprawdza się w całym tekście, z danymi, bo
+# komunikat commita i opis PR to właśnie dane; samo polecenie (commit, merge, gh pr) — bez nich.
+# Hook łapie dryf, nie celowe obejście: klucz w cudzysłowie (-c "core.hooksPath=…") i komunikat
+# z pliku (git commit -F plik) przechodzą.
 
 set -u
 
@@ -96,7 +103,8 @@ commands_only() {
     }'
 }
 
-cmd=$(extract | commands_only)
+raw=$(extract)
+cmd=$(printf '%s\n' "$raw" | commands_only)
 
 [ -n "$cmd" ] || exit 0
 
@@ -124,5 +132,17 @@ fi
 if printf '%s\n' "$cmd" | grep -qE "${GIT}[^;&|]*--no-verify"; then
   block "--no-verify pomija hooki pre-commit (bramkę testów i lint)." \
         "napraw przyczynę, przez którą hook nie przechodzi; commit bez testów łamie regułę SDD."
+fi
+# Klucz konfiguracji git nie rozróżnia wielkości liter (core.hookspath działa tak samo).
+HOOKS_PATH='(^|[;&|(`[:space:]])git[[:space:]]([^;&|]*[[:space:]])?(-c[[:space:]]*|--config-env[=[:space:]][[:space:]]*)core\.hookspath'
+if printf '%s\n' "$cmd" | grep -qiE "$HOOKS_PATH"; then
+  block "-c core.hooksPath / --config-env=core.hooksPath podmienia katalog hooków, czyli pomija pre-commit jak --no-verify." \
+        "napraw przyczynę, przez którą hook nie przechodzi; commit bez testów łamie regułę SDD."
+fi
+WRITES="${GIT}(commit|merge)([[:space:];&|)]|\$)|(^|[;&|(\`[:space:]])gh[[:space:]]+pr[[:space:]]+(create|edit|merge)([[:space:];&|)]|\$)"
+ATTRIBUTION='co-authored-by:.*(claude|anthropic)|generated (with|by) \[?claude|noreply@anthropic\.com|claude\.ai/code/session'
+if printf '%s\n' "$cmd" | grep -qE "$WRITES" && printf '%s\n' "$raw" | grep -qiE "$ATTRIBUTION"; then
+  block "atrybucja AI w treści commita lub PR (Co-Authored-By z Claude, „Generated with Claude…”, noreply@anthropic.com, link do sesji)." \
+        "usuń te linie z komunikatu; commity i PR-y nie oznaczają pracy jako napisanej przez AI."
 fi
 exit 0
