@@ -24,10 +24,11 @@ Użycie:
   regent-apply-tokens [--project <katalog>]… [--since RRRR-MM-DD] [--until RRRR-MM-DD] [--json]
 
 Próbka: subagenci backend-dev, frontend-dev i dba (także regent:…) z promptem o ai/changes/,
-podzieleni na uruchomienia bez paczki i z paczką (# Paczka: w prompcie). Mediany: suma tokenów
-wejścia pierwszej tury (wejście + zapis i odczyt cache każdego wywołania API), liczba wywołań,
-kontekst pierwszego wywołania, przy pierwszej edycji i maksymalny, odczyt tasks.md, design.md
-i specs/ zmiany (bajty / 3,5). Na końcu zgłoszenia BRAK W PACZCE wg pliku i sekcji.
+podzieleni na uruchomienia bez paczki i z paczką (# Paczka: w prompcie albo w wyniku narzędzia
+w pierwszej turze — paczka z pliku). Mediany: suma tokenów wejścia pierwszej tury (wejście + zapis
+i odczyt cache każdego wywołania API), liczba wywołań, kontekst pierwszego wywołania, przy pierwszej
+edycji (także zapis w Bash) i maksymalny, odczyt tasks.md, design.md i specs/ zmiany przez Read
+i Bash (bajty / 3,5). Na końcu zgłoszenia BRAK W PACZCE wg pliku i sekcji, z odpowiedzi i raportu.
 
 Opcje:
   --project <katalog>   tylko sesje z cwd w tym katalogu albo niżej (worktree); można powtórzyć
@@ -39,7 +40,6 @@ Transkrypty: \${CLAUDE_CONFIG_DIR:-~/.claude}/projects/*/<sesja>/subagents/.
 Kody wyjścia: 0 — ok, 2 — błędne użycie.`;
 
 const TYPES = /^(regent:)?(backend-dev|frontend-dev|dba)$/;
-const PACKET = /^# Paczka: /m;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 interface Row {
@@ -57,6 +57,8 @@ interface Summary {
   median: Record<'sumFirstTurn' | 'calls' | 'firstCall' | 'atFirstEdit' | 'maxCtx' | 'changeReadTokens', number | null>;
   /** Ilu czytało pliki zmiany. */
   readers: number;
+  /** Ilu dostało paczkę z pliku (wynik narzędzia), a nie w prompcie. */
+  packetFromFile: number;
 }
 
 class UsageError extends Error {}
@@ -113,7 +115,7 @@ function readRow(meta: string): Row | undefined {
   }
   const turn = firstTurn(text.split('\n'));
   if (!turn || !turn.prompt.includes('ai/changes/') || turn.startedAt === undefined) return undefined;
-  return { type, packet: PACKET.test(turn.prompt), date: localDate(turn.startedAt), turn };
+  return { type, packet: turn.packet !== undefined, date: localDate(turn.startedAt), turn };
 }
 
 function median(values: (number | undefined)[]): number | null {
@@ -141,6 +143,7 @@ function summarize(rows: Row[]): Summary {
       changeReadTokens: median(rows.map((r) => Math.round(r.turn.changeReadBytes / 3.5))),
     },
     readers: rows.filter((r) => r.turn.changeReadBytes > 0).length,
+    packetFromFile: rows.filter((r) => r.turn.packet === 'tool').length,
   };
 }
 
@@ -165,6 +168,7 @@ function render(plain: Summary, packet: Summary, missing: Record<string, number>
     ['kontekst: maksymalny', (s) => tok(s.median.maxCtx, s)],
     ['odczyt plików zmiany', (s) => tok(s.median.changeReadTokens, s)],
     ['czytało pliki zmiany', (s) => (s.n ? `${s.readers}/${s.n}` : '–')],
+    ['paczka z pliku', (s) => (s.n && s !== plain ? `${s.packetFromFile}/${s.n}` : '–')],
   ];
   const w = Math.max(...rows.map(([l]) => l.length));
   const line = (label: string, a: string, b: string) => `  ${label.padEnd(w)}  ${a.padStart(10)}  ${b.padStart(8)}`;

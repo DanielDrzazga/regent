@@ -208,7 +208,8 @@ i rozjazd stanu z artefaktami. Pod listą stoi czas ostatniego sync; przed pierw
 Czy paczka zmniejsza koszt agenta, pokazują transkrypty. `regent-apply-tokens` (pakiet
 [`tools/watch/`](../tools/watch/), instalacja jak `regent-watch` — `npm link` dodaje oba polecenia)
 bierze subagentów `backend-dev`, `frontend-dev` i `dba` z promptem o `ai/changes/` i dzieli ich
-na uruchomienia bez paczki i z paczką (`# Paczka:` w prompcie):
+na uruchomienia bez paczki i z paczką — `# Paczka:` w prompcie albo w wyniku narzędzia w pierwszej
+turze, gdy sesja główna zapisała paczkę do pliku i kazała ją przeczytać (wiersz „paczka z pliku”):
 
 ```bash
 regent-apply-tokens --project ~/projekty --until 2026-09-28   # punkt odniesienia sprzed paczki
@@ -218,8 +219,12 @@ regent-apply-tokens --project ~/projekty --since 2026-09-29   # tydzień z paczk
 Mediany pierwszej tury (do `end_turn`, jak w parserze `regent-watch`): suma tokenów wejścia
 wszystkich wywołań API (wejście + zapis i odczyt cache), liczba wywołań, kontekst pierwszego
 wywołania, przy pierwszej edycji i maksymalny, odczyt `tasks.md`, `design.md` i `specs/` zmiany.
-Pod tabelą zgłoszenia `BRAK W PACZCE` z raportów subagentów, zliczone wg pliku i sekcji — sekcja,
-która wraca, to kandydat do reguły paczki. `--project` zawęża po katalogu sesji (z podkatalogami,
+Edycja to `Edit`/`Write` albo zapis w Bash (przekierowanie do pliku, `tee`, `sed -i`, `perl -i`;
+zapis ze skryptu, np. Pythona w heredoku, jest niewidoczny). Odczyt to `Read` albo Bash, którego
+polecenie wskazuje plik zmiany — wtedy liczy się cały wynik polecenia. Pod tabelą zgłoszenia
+`BRAK W PACZCE` z odpowiedzi i raportów subagentów (`SubagentHandback`) — linie z szablonu albo
+punkty pod nagłówkiem `BRAK W PACZCE`, bez „Brak.” — zliczone wg pliku i sekcji. Sekcja, która
+wraca, to kandydat do reguły paczki. `--project` zawęża po katalogu sesji (z podkatalogami,
 więc także worktree) i można go powtórzyć; `--json` daje dokładne liczby. Polecenie tylko czyta
 transkrypty i wypisuje liczby — bez `--project` liczy wszystkie projekty na maszynie.
 
