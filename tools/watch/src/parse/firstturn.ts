@@ -1,6 +1,7 @@
-// Pierwsza tura subagenta — pomiar paczki apply (docs/plans/task-core-check.md,
-// docs/plans/apply-tokens-detekcja.md). Tura i tokeny jak w transcript.ts: koniec na end_turn/…
-// albo turn_duration, wejście wywołania = input + zapis i odczyt cache, deduplikacja po message.id.
+// Pierwsza tura subagenta i cały agent — pomiar paczki apply (docs/plans/task-core-check.md,
+// docs/plans/apply-tokens-detekcja.md, docs/plans/apply-kontynuacje.md). Tura i tokeny jak
+// w transcript.ts: koniec na end_turn/… albo turn_duration, a także na pierwszej wiadomości do agenta
+// (SendMessage); wejście wywołania = input + zapis i odczyt cache, deduplikacja po message.id.
 // Czysta funkcja: linie JSONL na wejściu.
 
 import { usageFromRecord } from './pricing.js';
@@ -22,6 +23,10 @@ export interface FirstTurn {
   changeReadBytes: number;
   /** `BRAK W PACZCE: <plik> › <sekcja>` z odpowiedzi i raportu (SubagentHandback) całego transkryptu, bez powtórzeń. */
   missing: string[];
+  /** Tokeny wejścia każdego wywołania API całego agenta (wszystkie tury), po kolei. */
+  allCalls: number[];
+  /** Wiadomości do agenta po prompcie (SendMessage, resume) — każda zaczyna nową turę. */
+  messages: number;
 }
 
 const EDITS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit']);
@@ -33,6 +38,10 @@ const MISSING = /BRAK W PACZCE:\s*(.+)$/;
 const MISSING_HEADING = /^\s*#+\s*BRAK W PACZCE\b/;
 const BULLET = /^\s*(?:[-*]|\d+\.)\s+(.+)$/;
 const NOTHING = /^(brak|nic|nie|none)\b/i;
+// Wiadomość do agenta po prompcie: tak Claude Code wstawia SendMessage (rekord isMeta) albo nowy
+// prompt (nie-meta). Inne meta-rekordy — obrazy, przypomnienia, przerwania — wiadomościami nie są.
+const MESSAGE = /^(?:The coordinator sent a message|The user sent a new message)\b/;
+const NOT_MESSAGE = /^\s*[[<]/;
 const HEREDOC = /<<-?\s*(['"]?)(\w+)\1/;
 const BASH_WRITE = [
   /(?:^|[^\d&<>])>>?(?!&)\s*(?!\/dev\/null\b)[^\s|&;<>()]/,
@@ -84,11 +93,17 @@ export function bashWrites(command: string): boolean {
 const bashReadsChange = (command: string): boolean =>
   command.includes('ai/changes/') && /\btasks\.md\b|\bdesign\.md\b|\bspecs\//.test(command);
 
+/** Rekord `user` z tekstem to wiadomość do agenta: prefiks SendMessage albo nie-meta, który nie jest `[…]`/`<…>`. */
+const isMessage = (rec: Rec, text: string): boolean =>
+  MESSAGE.test(text) || (rec.isMeta !== true && text.trim() !== '' && !NOT_MESSAGE.test(text));
+
 export function firstTurn(lines: Iterable<string>): FirstTurn | undefined {
-  let t: FirstTurn | undefined;
+  let t: Omit<FirstTurn, 'allCalls' | 'messages'> | undefined;
   let cwd: string | undefined;
   let startedAt: number | undefined;
   let ended = false;
+  let messages = 0;
+  const allCalls: number[] = [];
   const seen = new Set<string>();
   const changeReads = new Set<string>();
   const missing = new Set<string>();
@@ -118,7 +133,6 @@ export function firstTurn(lines: Iterable<string>): FirstTurn | undefined {
         if (text) for (const key of missingKeys(text)) missing.add(key);
       }
     }
-    if (ended) continue;
 
     if (rec.type === 'user' && msg) {
       if (!t) {
@@ -126,21 +140,34 @@ export function firstTurn(lines: Iterable<string>): FirstTurn | undefined {
         if (prompt) t = { prompt, ...(PACKET.test(prompt) ? { packet: 'prompt' as const } : {}), calls: [], changeReadBytes: 0, missing: [] };
         continue;
       }
-      for (const b of blocks(msg.content)) {
+      const content = blocks(msg.content);
+      if (!content.some((b) => b.type === 'tool_result')) {
+        // Wiadomość po pierwszym wywołaniu zaczyna nową turę — także gdy raport nie skończył tury end_turn.
+        if (allCalls.length && isMessage(rec, resultText(msg.content))) {
+          messages += 1;
+          ended = true;
+        }
+        continue;
+      }
+      if (ended) continue;
+      for (const b of content) {
         if (b.type !== 'tool_result') continue;
         const text = resultText(b.content);
         if (typeof b.tool_use_id === 'string' && changeReads.has(b.tool_use_id)) t.changeReadBytes += Buffer.byteLength(text);
         if (!t.packet && PACKET.test(text)) t.packet = 'tool';
       }
     } else if (rec.type === 'system' && rec.subtype === 'turn_duration') {
-      ended = t !== undefined;
+      ended ||= t !== undefined;
     } else if (rec.type === 'assistant' && msg && t) {
       const id = typeof msg.id === 'string' ? msg.id : undefined;
       if (id && !seen.has(id) && msg.usage) {
         seen.add(id);
         const u = usageFromRecord(msg.usage);
-        t.calls.push(u.input + u.cacheWrite5m + u.cacheWrite1h + u.cacheRead);
+        const input = u.input + u.cacheWrite5m + u.cacheWrite1h + u.cacheRead;
+        allCalls.push(input);
+        if (!ended) t.calls.push(input);
       }
+      if (ended) continue;
       for (const b of blocks(msg.content)) {
         if (b.type !== 'tool_use' || typeof b.name !== 'string') continue;
         const input = isObj(b.input) ? b.input : {};
@@ -156,5 +183,5 @@ export function firstTurn(lines: Iterable<string>): FirstTurn | undefined {
   }
 
   if (!t || !t.calls.length) return undefined;
-  return { ...t, ...(cwd ? { cwd } : {}), ...(startedAt !== undefined ? { startedAt } : {}), missing: [...missing] };
+  return { ...t, ...(cwd ? { cwd } : {}), ...(startedAt !== undefined ? { startedAt } : {}), missing: [...missing], allCalls, messages };
 }

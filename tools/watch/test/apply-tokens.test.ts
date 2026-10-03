@@ -17,6 +17,8 @@ interface Sub {
   report?: string;
   /** Pierwszy Read to paczka z pliku (`1\t# Paczka: …`), nie design.md. */
   packetFile?: boolean;
+  /** Wywołania API po wiadomości koordynatora (kontynuacja przez SendMessage). */
+  more?: number[];
 }
 
 function transcript(s: Sub): string {
@@ -35,6 +37,14 @@ function transcript(s: Sub): string {
     const output = !i && s.packetFile ? '1\t# Paczka: x — T-02\n2\t' : 'x'.repeat(i ? 10 : 3500);
     if (!last) recs.push({ type: 'user', timestamp: ts, message: { content: [{ type: 'tool_result', tool_use_id: `t${i}`, content: output }] } });
   });
+  if (s.more) {
+    recs.push({ type: 'user', timestamp: ts, isMeta: true, message: { role: 'user', content: 'The coordinator sent a message while you were working: kontynuuj T-02.' } });
+    s.more.forEach((n, i) => {
+      const content = [{ type: 'text', text: 'Dalej.' }];
+      const stop = i === s.more!.length - 1 ? 'end_turn' : 'tool_use';
+      recs.push({ type: 'assistant', timestamp: ts, message: { id: `${s.id}-m${i}`, content, usage: { input_tokens: 0, cache_read_input_tokens: n, output_tokens: 10 }, stop_reason: stop } });
+    });
+  }
   return recs.map((r) => JSON.stringify(r)).join('\n');
 }
 
@@ -64,7 +74,7 @@ const SUBS: Sub[] = [
     calls: [2000, 2500],
     report: 'Gotowe.\nBRAK W PACZCE: design.md › Error Handling — kody błędów',
   },
-  { project: '-tmp-demo', id: 'a6', type: 'frontend-dev', cwd: '/tmp/demo', date: '2026-10-01', prompt: APPLY, calls: [1500, 2500], packetFile: true },
+  { project: '-tmp-demo', id: 'a6', type: 'frontend-dev', cwd: '/tmp/demo', date: '2026-10-01', prompt: APPLY, calls: [1500, 2500], packetFile: true, more: [4000, 6000] },
   { project: '-tmp-demo', id: 'a3', type: 'architect', cwd: '/tmp/demo', date: '2026-09-20', prompt: APPLY, calls: [9] },
   { project: '-tmp-demo', id: 'a4', type: 'backend-dev', cwd: '/tmp/demo', date: '2026-09-20', prompt: 'Napraw błąd w logowaniu.', calls: [9] },
   { project: '-tmp-demo-2', id: 'c1', type: 'dba', cwd: '/tmp/demo-2', date: '2026-09-21', prompt: APPLY, calls: [3000, 4000, 8000] },
@@ -96,15 +106,26 @@ describe('regent-apply-tokens — pierwsza tura subagentów apply', () => {
       atFirstEdit: 5000,
       maxCtx: 8000,
       changeReadTokens: 1000,
+      sumAll: 15000,
+      maxCtxAll: 8000,
     });
     expect(r.groups.plain.readers).toBe(3);
     expect(r.groups.plain.packetFromFile).toBe(0);
+    expect([r.groups.plain.continued, r.groups.plain.messages]).toEqual([0, 0]);
     expect(r.groups.packet.n).toBe(2);
     expect(r.groups.packet.byType).toEqual({ 'backend-dev': 1, 'frontend-dev': 1 });
     expect(r.groups.packet.median.sumFirstTurn).toBe(4250);
     expect(r.groups.packet.readers).toBe(1);
     expect(r.groups.packet.packetFromFile).toBe(1);
     expect(r.missing).toEqual({ 'design.md › Error Handling': 1 });
+  });
+
+  it('cały agent: kontynuacja po wiadomości koordynatora poza pierwszą turą, w sumie i kontekście całego agenta', () => {
+    const packet = json(dir).groups.packet;
+    expect(packet.median.maxCtx).toBe(2500);
+    expect([packet.continued, packet.messages]).toEqual([1, 1]);
+    expect(packet.median.sumAll).toBe(9250);
+    expect(packet.median.maxCtxAll).toBe(4250);
   });
 
   it('--project zawęża po cwd: katalog i podkatalogi (worktree), bez sąsiada o wspólnym prefiksie', () => {
@@ -129,6 +150,10 @@ describe('regent-apply-tokens — pierwsza tura subagentów apply', () => {
     expect(r.out).toMatch(/\n {2}suma wejścia pierwszej tury +15k +4k\n/);
     expect(r.out).toMatch(/\n {2}czytało pliki zmiany +3\/3 +1\/2\n/);
     expect(r.out).toMatch(/\n {2}paczka z pliku +– +1\/2\n/);
+    expect(r.out).toMatch(/\n {2}kontynuowani \(SendMessage\) +0\/3 +1\/2\n/);
+    expect(r.out).toMatch(/\n {2}wiadomości do agenta +0 +1\n/);
+    expect(r.out).toMatch(/\n {2}suma wejścia całego agenta +15k +9k\n/);
+    expect(r.out).toMatch(/\n {2}kontekst: maksymalny \(cały agent\) +8k +4k\n/);
     expect(r.out).toMatch(/BRAK W PACZCE:\n {2}1 {2}design\.md › Error Handling$/);
   });
 

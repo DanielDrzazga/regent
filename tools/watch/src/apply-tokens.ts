@@ -1,6 +1,7 @@
-// regent-apply-tokens — pierwsza tura subagentów apply z transkryptów (docs/plans/task-core-check.md):
-// punkt odniesienia i porównanie tygodnia sprawdzenia etapu 1 (docs/plans/task-core.md). Tylko odczyt,
-// na wyjściu same liczby. Wejście i wyjście przez Io, żeby testy wołały main w procesie.
+// regent-apply-tokens — pierwsza tura i cały subagent apply z transkryptów (docs/plans/task-core-check.md,
+// docs/plans/apply-kontynuacje.md): punkt odniesienia i porównanie tygodnia sprawdzenia etapu 1
+// (docs/plans/task-core.md). Tylko odczyt, na wyjściu same liczby. Wejście i wyjście przez Io, żeby
+// testy wołały main w procesie.
 
 import { readFileSync, readdirSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -18,7 +19,7 @@ export interface Io {
   err: (text: string) => void;
 }
 
-const HELP = `regent-apply-tokens — pierwsza tura subagentów apply z transkryptów Claude Code (tylko odczyt).
+const HELP = `regent-apply-tokens — pierwsza tura i cały subagent apply z transkryptów Claude Code (tylko odczyt).
 
 Użycie:
   regent-apply-tokens [--project <katalog>]… [--since RRRR-MM-DD] [--until RRRR-MM-DD] [--json]
@@ -28,7 +29,9 @@ podzieleni na uruchomienia bez paczki i z paczką (# Paczka: w prompcie albo w w
 w pierwszej turze — paczka z pliku). Mediany: suma tokenów wejścia pierwszej tury (wejście + zapis
 i odczyt cache każdego wywołania API), liczba wywołań, kontekst pierwszego wywołania, przy pierwszej
 edycji (także zapis w Bash) i maksymalny, odczyt tasks.md, design.md i specs/ zmiany przez Read
-i Bash (bajty / 3,5). Na końcu zgłoszenia BRAK W PACZCE wg pliku i sekcji, z odpowiedzi i raportu.
+i Bash (bajty / 3,5). Pierwsza tura kończy się też na wiadomości do agenta (SendMessage). Cały agent:
+ilu dostało wiadomości po prompcie, ile ich było, mediany sumy wejścia wszystkich tur i największego
+kontekstu. Na końcu zgłoszenia BRAK W PACZCE wg pliku i sekcji, z odpowiedzi i raportu.
 
 Opcje:
   --project <katalog>   tylko sesje z cwd w tym katalogu albo niżej (worktree); można powtórzyć
@@ -54,11 +57,18 @@ interface Summary {
   byType: Record<string, number>;
   from: string | null;
   to: string | null;
-  median: Record<'sumFirstTurn' | 'calls' | 'firstCall' | 'atFirstEdit' | 'maxCtx' | 'changeReadTokens', number | null>;
+  median: Record<
+    'sumFirstTurn' | 'calls' | 'firstCall' | 'atFirstEdit' | 'maxCtx' | 'changeReadTokens' | 'sumAll' | 'maxCtxAll',
+    number | null
+  >;
   /** Ilu czytało pliki zmiany. */
   readers: number;
   /** Ilu dostało paczkę z pliku (wynik narzędzia), a nie w prompcie. */
   packetFromFile: number;
+  /** Ilu dostało wiadomości po prompcie (kontynuacja przez SendMessage). */
+  continued: number;
+  /** Wiadomości do agentów po prompcie, razem. */
+  messages: number;
 }
 
 class UsageError extends Error {}
@@ -141,9 +151,13 @@ function summarize(rows: Row[]): Summary {
       atFirstEdit: median(rows.map((r) => r.turn.atFirstEdit)),
       maxCtx: median(rows.map((r) => Math.max(...r.turn.calls))),
       changeReadTokens: median(rows.map((r) => Math.round(r.turn.changeReadBytes / 3.5))),
+      sumAll: median(rows.map((r) => r.turn.allCalls.reduce((a, b) => a + b, 0))),
+      maxCtxAll: median(rows.map((r) => Math.max(...r.turn.allCalls))),
     },
     readers: rows.filter((r) => r.turn.changeReadBytes > 0).length,
     packetFromFile: rows.filter((r) => r.turn.packet === 'tool').length,
+    continued: rows.filter((r) => r.turn.messages > 0).length,
+    messages: rows.reduce((a, r) => a + r.turn.messages, 0),
   };
 }
 
@@ -169,6 +183,10 @@ function render(plain: Summary, packet: Summary, missing: Record<string, number>
     ['odczyt plików zmiany', (s) => tok(s.median.changeReadTokens, s)],
     ['czytało pliki zmiany', (s) => (s.n ? `${s.readers}/${s.n}` : '–')],
     ['paczka z pliku', (s) => (s.n && s !== plain ? `${s.packetFromFile}/${s.n}` : '–')],
+    ['kontynuowani (SendMessage)', (s) => (s.n ? `${s.continued}/${s.n}` : '–')],
+    ['wiadomości do agenta', (s) => (s.n ? String(s.messages) : '–')],
+    ['suma wejścia całego agenta', (s) => tok(s.median.sumAll, s)],
+    ['kontekst: maksymalny (cały agent)', (s) => tok(s.median.maxCtxAll, s)],
   ];
   const w = Math.max(...rows.map(([l]) => l.length));
   const line = (label: string, a: string, b: string) => `  ${label.padEnd(w)}  ${a.padStart(10)}  ${b.padStart(8)}`;
@@ -176,7 +194,7 @@ function render(plain: Summary, packet: Summary, missing: Record<string, number>
   const reports = byCount(missing);
   const cw = Math.max(1, ...reports.map(([, n]) => String(n).length));
   return [
-    'regent-apply-tokens — pierwsza tura subagentów apply, mediany tokenów wejścia',
+    'regent-apply-tokens — subagenci apply: pierwsza tura i cały agent, mediany tokenów wejścia',
     `Próbka: ${plain.n + packet.n} subagentów (${types}), ${dates} … ${until}`,
     `Projekty: ${scope}`,
     '',

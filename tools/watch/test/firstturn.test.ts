@@ -76,6 +76,11 @@ describe('firstTurn — pierwsza tura subagenta', () => {
     expect(firstTurn(['nie json', ...TRANSCRIPT.slice(0, 3)])?.calls).toEqual([1010]);
   });
 
+  it('cały agent: wywołania wszystkich tur i wiadomość po prompcie', () => {
+    expect(t.allCalls).toEqual([1010, 1215, 2715, 3015, 3115, 9105]);
+    expect(t.messages).toBe(1);
+  });
+
   it('bez nagłówka paczki — bez paczki; nagłówek w prompcie — paczka z promptu', () => {
     expect(t.packet).toBeUndefined();
     const inPrompt = firstTurn([JSON.stringify(user(0, `${PROMPT}\n\n# Paczka: note-tags — T-02`)), ...TRANSCRIPT.slice(1, 3)]);
@@ -124,6 +129,57 @@ describe('firstTurn — paczka z pliku, Bash i raport przez SubagentHandback', (
 
   it('BRAK W PACZCE spod nagłówka w SubagentHandback, bez „Brak” i bez innych sekcji', () => {
     expect(t.missing).toEqual(['design.md › Struktura modułów']);
+  });
+});
+
+// Agent prowadzony przez SendMessage: raport przez SubagentHandback bez end_turn, kolejne taski jako
+// meta-rekordy „The coordinator sent a message…”, po drodze meta-rekordy, które wiadomościami nie są.
+const meta = (s: number, text: string) => ({ ...user(s, text), isMeta: true });
+const CONTINUED = lines([
+  user(0, PROMPT),
+  meta(0, '<system-reminder> Your final report is delivered through SubagentHandback.</system-reminder>'),
+  assistant(1, 'msg_1', [tool('t1', 'Read', { file_path: '/tmp/demo/ai/changes/note-tags/tasks.md' })], usage(10, 1000, 0)),
+  user(2, [result('t1', 'x'.repeat(70))]),
+  meta(2, '[Image: original 1440x2400, displayed at 1200x2000.]'),
+  assistant(3, 'msg_2', [tool('t2', 'Write', { file_path: '/tmp/demo/src/tags/tag.ts' })], usage(5, 500, 1010)),
+  user(4, [result('t2', 'ok')]),
+  assistant(5, 'msg_3', [tool('t3', HANDBACK, { message: 'T-02 gotowe.' })], usage(5, 100, 1515), null),
+  user(6, [result('t3', 'Raport przekazany.')]),
+  meta(30, 'The coordinator sent a message while you were working: T-02 przyjęty — kontynuuj taskiem T-03.'),
+  assistant(31, 'msg_4', [tool('t4', 'Read', { file_path: '/tmp/demo/ai/changes/note-tags/design.md' })], usage(5, 3000, 0)),
+  user(32, [result('t4', 'y'.repeat(700))]),
+  meta(33, 'Your response above was cut off mid-stream and has been discarded.'),
+  assistant(34, 'msg_5', [tool('t5', HANDBACK, { message: 'T-03 gotowe.\nBRAK W PACZCE: design.md › Testing Strategy — nazwy' })], usage(5, 200, 3005), null),
+  meta(60, 'The coordinator sent a message while you were working: T-03 przyjęty — kontynuuj taskiem T-04.'),
+  assistant(61, 'msg_6', [{ type: 'text', text: 'Gotowe.' }], usage(5, 300, 3210), 'end_turn'),
+]);
+
+describe('firstTurn — agent kontynuowany przez SendMessage', () => {
+  const t = firstTurn(CONTINUED)!;
+
+  it('wiadomość koordynatora kończy pierwszą turę, choć raport nie skończył jej end_turn', () => {
+    expect(t.calls).toEqual([1010, 1515, 1620]);
+    expect(t.atFirstEdit).toBe(1515);
+    expect(t.changeReadBytes).toBe(70);
+  });
+
+  it('cały agent: wszystkie wywołania i wiadomości — bez przypomnień, obrazów i uciętej odpowiedzi', () => {
+    expect(t.allCalls).toEqual([1010, 1515, 1620, 3005, 3210, 3515]);
+    expect(t.messages).toBe(2);
+  });
+
+  it('BRAK W PACZCE także z raportu kontynuacji', () => {
+    expect(t.missing).toEqual(['design.md › Testing Strategy']);
+  });
+
+  it('meta-rekord przed pierwszym wywołaniem i przerwanie przez użytkownika nie są wiadomościami', () => {
+    const interrupted = firstTurn([
+      ...CONTINUED.slice(0, 4),
+      JSON.stringify(user(5, [{ type: 'text', text: '[Request interrupted by user]' }])),
+      ...CONTINUED.slice(5, 7),
+    ])!;
+    expect(interrupted.messages).toBe(0);
+    expect(interrupted.calls).toEqual([1010, 1515]);
   });
 });
 
