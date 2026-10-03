@@ -176,10 +176,13 @@ Pliki, które zastępuje (tasks.md, design.md, specs/notes.md): 4819 B (~1377 to
 Paczka to 46% plików.
 ```
 
-W `/regent:apply` z CLI subagent dostaje paczkę w prompcie i nie czyta `tasks.md`, `design.md` ani
-delty (dalej czyta `technology.md`, `code-style.md` i pliki kodu). Gdy czegoś mu brakuje, doczytuje
-plik i zgłasza w raporcie `BRAK W PACZCE: <plik> › <sekcja> — <po co>`. Powtarzający się brak tej
-samej sekcji to sygnał do poprawy reguły paczki.
+W `/regent:apply` z CLI sesja główna zapisuje paczkę do pliku w scratchpadzie, a subagent czyta ją
+jako pierwszą i nie czyta `tasks.md`, `design.md` ani delty (dalej czyta `technology.md`,
+`code-style.md` i pliki kodu). Plik zamiast promptu trzyma paczkę poza kontekstem sesji głównej —
+w prompcie weszłaby do niego dwa razy (wynik `packet` i treść wywołania agenta). Gdy czegoś mu
+brakuje, doczytuje plik i zgłasza w raporcie `BRAK W PACZCE: <plik> › <sekcja> — <po co>`.
+Powtarzający się brak tej samej sekcji to sygnał do poprawy reguły paczki. Każda paczka idzie do
+nowego subagenta: kontynuowany przez `SendMessage` niesie historię poprzednich tasków.
 
 ## Utknięcie i Uwaga
 
@@ -199,7 +202,8 @@ i rozjazd stanu z artefaktami. Pod listą stoi czas ostatniego sync; przed pierw
   Nic na stdout (stdout `SessionStart` trafia do kontekstu), zawsze kod 0; błąd CLI to jedna linia
   w `hook.log` obok bazy, brak CLI — cisza.
 - **`/regent:apply`** wybiera ścieżkę raz, na początku: `regent.sh task next <zmiana> --json`
-  z kodem 0 → ścieżka z CLI (`next` → `take` → paczka w prompcie → `done --commit --tests`),
+  z kodem 0 → ścieżka z CLI (`next` → `take` → paczka w pliku dla nowego subagenta →
+  `done --commit --tests`),
   kod 3 albo inny błąd → dotychczasowa praca na plikach. Routing po tagach, budżet subagentów
   i commit per task są w obu ścieżkach te same.
 
@@ -216,9 +220,14 @@ regent-apply-tokens --project ~/projekty --until 2026-09-28   # punkt odniesieni
 regent-apply-tokens --project ~/projekty --since 2026-09-29   # tydzień z paczką
 ```
 
-Mediany pierwszej tury (do `end_turn`, jak w parserze `regent-watch`): suma tokenów wejścia
-wszystkich wywołań API (wejście + zapis i odczyt cache), liczba wywołań, kontekst pierwszego
-wywołania, przy pierwszej edycji i maksymalny, odczyt `tasks.md`, `design.md` i `specs/` zmiany.
+Mediany pierwszej tury (do `end_turn`, jak w parserze `regent-watch`, albo do pierwszej wiadomości
+do agenta): suma tokenów wejścia wszystkich wywołań API (wejście + zapis i odczyt cache), liczba
+wywołań, kontekst pierwszego wywołania, przy pierwszej edycji i maksymalny, odczyt `tasks.md`,
+`design.md` i `specs/` zmiany. Pod nimi cały agent: ilu dostało wiadomości po prompcie (kontynuacja
+przez `SendMessage`), ile ich było razem i mediany sumy wejścia wszystkich tur oraz największego
+kontekstu — kontynuowany agent niesie całą historię, więc pierwsza tura go nie opisuje. Wiadomość
+to rekord, którym Claude Code wstawia `SendMessage` („The coordinator sent a message…”), albo nowy
+prompt; przypomnienia, obrazy i przerwania nie są wiadomościami.
 Edycja to `Edit`/`Write` albo zapis w Bash (przekierowanie do pliku, `tee`, `sed -i`, `perl -i`;
 zapis ze skryptu, np. Pythona w heredoku, jest niewidoczny). Odczyt to `Read` albo Bash, którego
 polecenie wskazuje plik zmiany — wtedy liczy się cały wynik polecenia. Pod tabelą zgłoszenia

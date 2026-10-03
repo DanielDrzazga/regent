@@ -44,9 +44,18 @@ Inaczej modele z `agents/*.md` nie zostaną użyte.
 **Budżet:** S: 1 uruchomienie, M: 1-3, L: 3-6 (tabela w CLAUDE.md). Kilka tasków tej samej
 warstwy → **jedno uruchomienie agenta z listą tasków**, nie jedno na task.
 
+**Uruchomienie = nowy subagent.** Każda paczka idzie do nowego subagenta. Kolejnego taska ani
+rundy — także napraw po `/regent:verify` — nie wysyłaj przez `SendMessage` agentowi, który już
+raportował: kontynuowany agent niesie całą historię, jego kontekst rośnie z każdym taskiem
+(zmierzone: 17k → 494k przy 13 taskach), a po przerwie cache zapisuje się od nowa. Kontynuacja
+(resume po agentId) tylko z odpowiedziami na `OPEN QUESTIONS` albo z poprawką tych samych tasków
+przed commitem.
+
 **Podział ról:** agent implementujący SAM uruchamia testy w pętli TDD (wąsko — tylko testy
 zmienianego modułu/komponentu). Commituje SESJA GŁÓWNA po każdym tasku, na podstawie
-raportu subagenta. Jeśli raport zawiera `OPEN QUESTIONS` → zapytaj użytkownika i
+raportu subagenta (pliki per task). Taski z listy zmieniają te same pliki, więc commitów nie da
+się rozdzielić → jeden task na uruchomienie (nowy subagent), nie task po tasku w jednym agencie.
+Jeśli raport zawiera `OPEN QUESTIONS` → zapytaj użytkownika i
 kontynuuj tego samego subagenta (resume po agentId) z odpowiedziami. Odpowiedź dopisz jako
 `DECYZJA` w `proposal.md` → `## Decyzje i założenia`.
 
@@ -79,8 +88,8 @@ artefakt (drobny błąd — sam, koncepcyjny — resume `regent:spec-writer`), b
 zachowaj do Kroku 3. Kod 3 (brak zbudowanego CLI) albo inny błąd → **ścieżka bez CLI**: bloki „Z CLI”
 pomijasz, reszta bez zmian; przy innym błędzie pokaż użytkownikowi jedną linię stderr.
 
-**Z CLI:** subagent nie czyta `tasks.md`, `design.md` ani `specs/*.md` — dostaje w prompcie paczkę
-(Krok 4a): linie swoich tasków, ich bloki REQ z AC z delty, INVARIANTS i sekcje `design.md` dobrane do
+**Z CLI:** subagent nie czyta `tasks.md`, `design.md` ani `specs/*.md` — czyta paczkę z pliku
+wskazanego w prompcie (Krok 4a): linie swoich tasków, ich bloki REQ z AC z delty, INVARIANTS i sekcje `design.md` dobrane do
 tagu, w tym „Affected Files”. Punkty 4–5 i czytanie KONTEKSTOWO z listy poniżej zostają bez zmian. Czego
 w paczce brakuje, subagent doczytuje z pliku i zgłasza w raporcie: `BRAK W PACZCE: <plik> › <sekcja> — <po co>`.
 
@@ -167,10 +176,14 @@ Zgoda tutaj obejmuje per-taskowe commity (jawny wyjątek od bramki `/regent:comm
 **Z CLI — przed delegacją (SESJA GŁÓWNA):**
 1. `regent.sh task take <id>` dla każdego taska uruchomienia (id z `next`; task w toku — bez `take`).
    Kod 1 → task ma innego właściciela albo stan: pokaż komunikat i pomiń go w tej rundzie.
-2. `regent.sh task packet {nazwa} T-02 T-05` — jedna paczka na uruchomienie agenta, z taskami tej
-   warstwy (`next --layer BE|FE|DB` filtruje po tagu, brak tagu = `BE`).
-3. Prompt subagenta: paczka w całości i polecenie: „Paczka zastępuje tasks.md, design.md i specs/*.md —
-   nie czytaj ich. Czego brakuje, doczytaj z pliku i zgłoś w raporcie: `BRAK W PACZCE: <plik> › <sekcja> — <po co>`.”
+2. `regent.sh task packet {nazwa} T-02 T-05 > <katalog>/paczka-T-02-T-05.md` — jedna paczka na
+   uruchomienie (nowego) agenta, z taskami tej warstwy (`next --layer BE|FE|DB` filtruje po tagu, brak
+   tagu = `BE`). `<katalog>` to scratchpad sesji (bez niego `mktemp -d`). Paczka idzie do pliku, nie na
+   ekran: nie wchodzi do kontekstu sesji głównej i nie przepisujesz jej w prompcie — pokaż najwyżej
+   rozmiar (`wc -c`).
+3. Prompt subagenta: ścieżka paczki i polecenie: „Najpierw przeczytaj w całości (Read) paczkę
+   `<ścieżka>`. Paczka zastępuje tasks.md, design.md i specs/*.md — nie czytaj ich. Czego brakuje,
+   doczytaj z pliku i zgłoś w raporcie: `BRAK W PACZCE: <plik> › <sekcja> — <po co>`.”
 
 Każde `BRAK W PACZCE` z raportu przepisz do raportu końcowego (Krok 5), jedna linia na brak — to
 sygnał do poprawy reguły paczki. Pętla TDD poniżej jest wspólna dla obu ścieżek.
@@ -291,3 +304,6 @@ Commits: abc1234, def5678, ghi9012
 
 ❌ **Barierka:** `git add` wyłącznie z listą plików — `git add .` i `git add -A` wciągają cudze
 zmiany do commitu zmiany.
+
+❌ **Barierka:** kolejny task ani runda przez `SendMessage` do agenta, który już raportował — nowa
+paczka idzie do nowego subagenta (Agenci → „Uruchomienie = nowy subagent”).

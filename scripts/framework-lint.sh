@@ -171,6 +171,8 @@ require agents/code-reviewer.md        'unrequested'                            
 forbid  agents/code-reviewer.md        '^\| .partial. \|'                        "typ luki incomplete ≠ status ⚠️ PARTIAL"
 require agents/spec-writer.md          'pierwsza specyfikacja istniejącego'      "brownfield: nieopisane zachowanie trafia do ADDED"
 require skills/apply/SKILL.md          '^## Krok 4\.5: Zmiana kursu'            "odkrycie w trakcie apply aktualizuje plan za zgodą"
+require skills/apply/SKILL.md          'Uruchomienie = nowy subagent'           "kolejny task nie idzie przez SendMessage do agenta po raporcie — kontekst rośnie z każdym taskiem"
+forbid  skills/apply/SKILL.md          'Prompt subagenta: paczka w całości'     "paczka z pliku — w prompcie wchodzi do kontekstu sesji głównej dwa razy"
 require agents/backend-dev.md          'ZAKRES:'                                "dev nie zawęża AC po cichu"
 require agents/frontend-dev.md         'ZAKRES:'                                "dev nie zawęża AC po cichu"
 require templates/design-template.md   '^## Odstępstwa od zasad'                "odstępstwo od MUST ma uzasadnienie"

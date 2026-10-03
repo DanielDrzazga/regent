@@ -94,9 +94,12 @@ Tydzień realnej pracy z pluginem na jednej maszynie:
 - każda zmiana z `ai/changes/` z tego tygodnia ma zadanie, a każde zamknięte zadanie ma powód;
 - żadne zadanie w toku nie wisi bez właściciela ani bez wyjaśnionego utknięcia;
 - tokeny wejścia pierwszej tury subagenta `apply` są niższe niż przed zmianą (punkt odniesienia:
-  transkrypty `apply` z projektów prywatnych sprzed zmiany), a raporty `BRAK W PACZCE` nie
-  powtarzają się dla tej samej sekcji. Oba liczy `regent-apply-tokens` (`docs/tasks.md`,
-  plany `docs/plans/task-core-check.md` i `docs/plans/apply-tokens-detekcja.md`).
+  transkrypty `apply` z projektów prywatnych sprzed zmiany), suma i największy kontekst całego
+  agenta nie rosną przez kontynuacje (`SendMessage`), a raporty `BRAK W PACZCE` nie powtarzają się
+  dla tej samej sekcji. Wszystko liczy `regent-apply-tokens` (`docs/tasks.md`, plany
+  `docs/plans/task-core-check.md`, `docs/plans/apply-tokens-detekcja.md`
+  i `docs/plans/apply-kontynuacje.md`). Transkrypty sesji usuniętych w aplikacji desktop znikają
+  z pomiaru — sesji `apply` nie usuwaj do końca tygodnia.
 
 ## Przebieg (2026-09-29) — sesja 1
 
