@@ -108,3 +108,20 @@ przeniesienie zamiast usunięcia, bez marketplace.
 - Do poprawy poza repo: projektowy `.claude/CLAUDE.md` w jednym projekcie prywatnym opisuje cykl
   starymi nazwami `/…-sdd`. Komendy i agenci projektowi nie wołają agentów po starych nazwach.
 - Cofnięcie: przenieść trzy pozycje z powrotem do `~/.claude/` i usunąć alias.
+
+## Przebieg (2026-10-03) — aplikacja desktop z lokalnego marketplace
+
+Wieczorem 2026-09-30 plugin trafił też do aplikacji desktop: lokalny marketplace `regent` z katalogu
+klonu (nieśledzony `.claude-plugin/marketplace.json`, plugin `source: "./"`), `regent@regent`
+w zakresie `user`. Wyszło przy `apply-kontynuacje`: sesje desktop pracowały na kopii z `7bf627c`,
+bez poprawki git-guard (`9b095d3`) i nowej reguły skilla `apply`.
+
+- Decyzja użytkownika: lokalny marketplace zostaje, `marketplace.json` nie trafia do repo (publikacja
+  dalej dopiero po ukończeniu). Reguła w `.claude/rules/project.md` i krok 6 w
+  `docs/getting-started.md`: po merge'u do `main` `claude plugin marketplace update regent`
+  i `claude plugin update regent@regent`.
+- Wykonane: aktualizacja `7bf627c` → `e2ddcf7` (cache z `tools/regent/dist`). Nowa sesja desktop
+  wzięła skill z `cache/regent/regent/e2ddcf72cc38`.
+- Terminal: obie kopie są widoczne (`claude plugin list`: `regent@regent` i `regent@inline`), ale
+  skille idą z klonu — sesja `cli` z 2026-10-03 wzięła je z `~/_Private/regent`. Hook „Twoja rola”
+  w sesji terminalowej raz.

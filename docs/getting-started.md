@@ -14,7 +14,7 @@ Sprawdź, że Claude Code go widzi: wpisz `/regent:` i Tab — lista powinna pok
 
 ### Nowa maszyna — checklista (do czasu publikacji pluginu)
 
-Plugin nie jest publikowany w żadnym marketplace ani instalowany globalnie — ładuje się z klonu repo:
+Plugin nie jest publikowany w żadnym marketplace — ładuje się z klonu repo:
 
 1. Klon repo `regent` i adres autora commitów:
    `git config user.email 40364469+DanielDrzazga@users.noreply.github.com`.
@@ -26,8 +26,15 @@ Plugin nie jest publikowany w żadnym marketplace ani instalowany globalnie — 
 4. Statusline z pluginu (opcjonalnie; przy `--plugin-dir` dane pluginu są w
    `~/.claude/plugins/data/regent-inline/`) — zob. [statusline.md](statusline.md).
 5. Nowa sesja z `--plugin-dir`: `/regent:` + Tab pokazuje skille, w projekcie z `ai/docs/` działa `/regent:status`.
+6. Aplikacja desktop (opcjonalnie) nie czyta aliasu — tam plugin idzie z lokalnego marketplace
+   z katalogu klonu. W klonie `.claude-plugin/marketplace.json` (plik lokalny, nie commituj):
+   marketplace `regent` z jednym pluginem `regent`, `source: "./"`. Potem
+   `claude plugin marketplace add <klon repo regent>` i `claude plugin install regent@regent --scope user`.
+   Instalacja to kopia z commita: po każdym merge'u do `main`
+   `claude plugin marketplace update regent && claude plugin update regent@regent` i nowa sesja
+   w aplikacji. W terminalu `--plugin-dir` wygrywa z instalacją — skille idą z klonu, raz.
 
-Po ukończeniu (poza zakresem dziś): publikacja w marketplace, instalacja w zakresie `user`,
+Po ukończeniu (poza zakresem dziś): publikacja w marketplace (`marketplace.json` w repo),
 usunięcie odłożonego starego frameworka z `~/.claude` i wpisów git-guard wskazujących `$HOME/.claude/…`.
 
 ## 1. `/regent:init` — skonfiguruj projekt
