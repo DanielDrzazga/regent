@@ -174,7 +174,8 @@ Zgoda tutaj obejmuje per-taskowe commity (jawny wyjątek od bramki `/regent:comm
 ### 4a. TDD Workflow (subagent wg tagu taska: `regent:backend-dev` / `regent:frontend-dev`)
 
 **Z CLI — przed delegacją (SESJA GŁÓWNA):**
-1. `regent.sh task take <id>` dla każdego taska uruchomienia (id z `next`; task w toku — bez `take`).
+1. `regent.sh task take <id>` dla każdego taska uruchomienia: `<id>` to liczba z pola `id` w `next --json`,
+   nie klucz `T-NN` (task w toku — bez `take`). Punkty 1 i 2 robisz jednym wywołaniem Bash.
    Kod 1 → task ma innego właściciela albo stan: pokaż komunikat i pomiń go w tej rundzie.
 2. `regent.sh task packet {nazwa} T-02 T-05 > <katalog>/paczka-T-02-T-05.md` — jedna paczka na
    uruchomienie (nowego) agenta, z taskami tej warstwy (`next --layer BE|FE|DB` filtruje po tagu, brak
@@ -225,6 +226,9 @@ git add tests/modules/users/domain/user.entity.test.ts
 
 git commit -m "feat: (KEY) create user entity with validation"
 ```
+
+Komunikat to jedna linia wg `git-workflow.md`, bez body i stopek — git-guard odrzuca atrybucję AI.
+Commit i krok 4c robisz jednym wywołaniem Bash (hash z `git rev-parse --short HEAD`).
 
 ### 4c. Aktualizuj tasks.md (SESJA GŁÓWNA, po commicie taska)
 
