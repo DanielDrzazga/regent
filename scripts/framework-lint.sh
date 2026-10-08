@@ -193,6 +193,9 @@ forbid  skills/explore/SKILL.md        'ai/product'                             
 require skills/optimize/SKILL.md       'git worktree add'                       "pętla pracuje w worktree — plugin działa na żywo z klonu"
 require skills/optimize/SKILL.md       'holdout'                                "wynik sprawdza zestaw kontrolny, którego pętla nie widzi w trakcie"
 require skills/optimize/SKILL.md       'score decide'                           "o keep/discard decyduje skrypt, nie model"
+require context/sdd.md                 'bez body i stopek'                      "commit bez stopki — git-guard odrzuca atrybucję, każde odbicie to tura"
+require hooks/hooks.json               'subagent sdd subagent\.md'               "subagent dostaje kontrakt subagenta"
+forbid  hooks/hooks.json               'subagent sdd sdd-map\.md'                "mapa skilli tylko w sesji głównej — subagent jej nie potrzebuje"
 
 require docs/roadmap.md                 'git checkout 39445f1 --'                "rejestr decyzji podaje drogę przywrócenia usuniętych elementów"
 forbid  skills/init/SKILL.md           '"command": "f=.*git-guard\.sh'            "git-guard rejestruje plugin (hooks/hooks.json), nie wpis w projekcie"

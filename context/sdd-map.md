@@ -42,20 +42,7 @@ uruchomi go jako subagenta (narzędzie Task). Gdy komenda wskazuje agenta —
 **deleguj do subagenta po pełnej nazwie `regent:<agent>`**, nie wykonuj jego pracy „w miejscu"
 w głównej sesji (wtedy leci na modelu sesji, a nie na modelu agenta).
 
-**Kontrakt subagenta:** subagent NIE może zablokować się w trakcie pracy i czekać
-na odpowiedź użytkownika — działa do końca tury i zwraca raport. Bramki akceptacji
-(pytania, zatwierdzenia) prowadzi sesja główna. Pętla pytań wygląda tak:
-
-1. Subagent kończy turę raportem — niejasności w sekcji `OPEN QUESTIONS`.
-2. Sesja główna zadaje pytania użytkownikowi.
-3. Sesja główna **kontynuuje TEGO SAMEGO subagenta** (SendMessage / resume po
-   `agentId`), przekazując odpowiedzi — agent zachowuje swój kontekst, bez
-   re-delegacji od zera. Gdy kontynuacja niedostępna → re-delegacja z odpowiedziami
-   w prompcie.
-
-Subagent, który tworzy artefakty wymagające akceptacji, **zwraca ich treść w raporcie
-końcowym** — pliki zapisuje sesja główna po akceptacji (lub kontynuowany subagent po
-przekazaniu „zaakceptowano — zapisz").
+**Kontrakt subagenta** (pętla pytań, artefakty do akceptacji): `context/subagent.md`.
 
 | Komenda | Subagent(y) — pełna nazwa |
 |---------|-------------------------------|

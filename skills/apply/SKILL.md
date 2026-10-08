@@ -224,8 +224,7 @@ git add tests/modules/users/domain/user.entity.test.ts
 git commit -m "feat: (KEY) create user entity with validation"
 ```
 
-Komunikat to jedna linia wg `git-workflow.md`, bez body i stopek — git-guard odrzuca atrybucję AI.
-Commit i krok 4c robisz jednym wywołaniem Bash (hash z `git rev-parse --short HEAD`).
+Commit (format: `context/sdd.md` → Commit) i krok 4c robisz jednym wywołaniem Bash (hash z `git rev-parse --short HEAD`).
 
 ### 4c. Aktualizuj tasks.md (SESJA GŁÓWNA, po commicie taska)
 

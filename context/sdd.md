@@ -78,6 +78,11 @@ wymuszać świadomość kosztu, nie blokować pracę.
 - odpalanie agenta warunkowego „na wszelki wypadek" (np. `regent:security-auditor` przy zmianie
   bez nowych wejść — to opus, kosztuje)
 
+## Commit
+
+Komunikat commita to jedna linia wg `ai/docs/conventions/git-workflow.md` — bez body i stopek
+(`Co-Authored-By` i podobnych). git-guard odrzuca atrybucję AI, a odrzucony commit to zmarnowana tura.
+
 ## Kontrakt `make` (jedno źródło — nie powtarzaj w komendach)
 
 Komendy SDD wołają cele `make` (`check`, `test`, `lint`, `type-check`, `test-coverage`,

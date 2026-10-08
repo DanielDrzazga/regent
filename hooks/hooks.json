@@ -17,6 +17,10 @@
           },
           {
             "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/session-context.sh\" session sdd subagent.md"
+          },
+          {
+            "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/sync-bin.sh\""
           },
           {
@@ -49,7 +53,7 @@
           },
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/session-context.sh\" subagent sdd sdd-map.md"
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/session-context.sh\" subagent sdd subagent.md"
           }
         ]
       }

@@ -11,7 +11,7 @@ kodu aplikacyjnego, więc „testem” jest spójność, przenośność i zgodno
   testy w pętli TDD uruchamiają wąsko (moduł/pattern), pełny `make check` tylko w bramkach.
 - **Kontrakt subagenta** — subagent nie rozmawia z użytkownikiem w trakcie pracy: bramki
   akceptacji prowadzi sesja główna, artefakty do akceptacji agent zwraca w raporcie
-  (szczegóły w `context/sdd-map.md`).
+  (szczegóły w `context/subagent.md`).
 - **Zwięzłość** — komendy i agenci mają być krótkie i konkretne; bez rozwlekłych opisów.
 - **Język** — dokumentacja i treść: polski; `action`/kod/identyfikatory: angielski.
 

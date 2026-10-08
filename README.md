@@ -95,7 +95,7 @@ oraz — gdy CLI `regent` jest zbudowane — sync zadań na starcie sesji i na k
 ```
 regent/
 ├── .claude-plugin/        # plugin.json (manifest)
-├── context/               # role.md (rola partnera), sdd.md (reguły SDD), sdd-map.md (mapa skilli i agentów)
+├── context/               # role.md (rola partnera), sdd.md (reguły SDD), sdd-map.md (mapa skilli i agentów), subagent.md (kontrakt subagenta)
 ├── agents/                # 9 subagentów (każdy z polem model:)
 │   ├── architect.md              (opus)
 │   ├── spec-writer.md            (sonnet)
@@ -118,8 +118,9 @@ regent/
 └── README.md · CONTRIBUTING.md
 ```
 
-`context/` wstrzykują hooki pluginu (plugin nie wczytuje `CLAUDE.md`): `role.md` zawsze,
-`sdd.md` i `sdd-map.md` tylko w projektach z `ai/docs/` — w sesji i w subagentach. Każdy plik
+`context/` wstrzykują hooki pluginu (plugin nie wczytuje `CLAUDE.md`): `role.md` zawsze, a w projektach
+z `ai/docs/` `sdd.md` i `subagent.md` w sesji i w subagentach, `sdd-map.md` tylko w sesji (subagent
+nie potrzebuje mapy skilli — to ok. 4 KB mniej w kontekście każdego subagenta). Każdy plik
 idzie osobnym hookiem, bo wyjście jednego hooka Claude Code obcina do 10 000 znaków; lint
 pilnuje limitu 9000 bajtów na plik.
 
