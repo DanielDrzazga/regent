@@ -297,3 +297,18 @@ w klonie zmieniałyby `apply` we wszystkich sesjach z terminala.
   - holdout 4,76.
 - Pętla `--agent dba` nie ruszała: to 2 z 28 subagentów, a ścieżkę `[DB]` sprawdza
   `holdout-db-be` (1,00).
+
+## Przebieg (2026-10-08) — poprawki poza pętlą (budżet 10 USD)
+
+- **Commit bez stopki w całym frameworku.** Reguła jest raz, w `context/sdd.md` → Commit: jedna
+  linia, bez body i stopek. Dotyczy wszystkich skilli, które commitują (`apply`, `bugfix`, `hotfix`,
+  `refactor`, `commit`, `dependency-update`, `logging`, `init`). `apply` odsyła do niej, regresja
+  w lincie.
+- **Kontekst subagentów.** Kontrakt subagenta przeniesiony z `sdd-map.md` do `context/subagent.md`
+  (sesja i subagent); `sdd-map.md` tylko w sesji głównej. Wstrzykiwany kontekst subagenta w projekcie
+  SDD: ok. 12,3 → 8,6 KB (ok. 1,05 tys. tokenów mniej na każdego subagenta, także na opusie
+  w `verify` i `propose`). Sesja główna: +0,5 KB. Regresje w lincie: `subagent sdd subagent.md`
+  wymagane, `subagent sdd sdd-map.md` zabronione.
+- Sprawdzenie: lint OK, `claude plugin validate .` tylko `version`. Przebieg `apply-fe-train` ×1:
+  oba przypadki 1,00, pierwszy kontekst subagenta 15,7 tys. tokenów (wcześniej 17,9 tys.), mapa
+  skilli w śladzie tylko raz (sesja główna). Koszt 0,90 USD.
