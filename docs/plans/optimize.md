@@ -70,7 +70,7 @@ w klonie zmieniałyby `apply` we wszystkich sesjach z terminala.
 
 ## Taski
 
-- [ ] T1: spike na jednym tanim przypadku `claude plugin eval` (`status`). Sprawdzić:
+- [x] T1: spike na jednym tanim przypadku `claude plugin eval` (`status`). Sprawdzić:
   - czy prompt `/regent:<skill>` działa przy `disable-model-invocation: true`;
   - co jest w `--json` (koszt, tokeny, czas);
   - czy `--keep-temp` zostawia transkrypty (zapas: tokeny przez `usageFromRecord`);
@@ -81,19 +81,19 @@ w klonie zmieniałyby `apply` we wszystkich sesjach z terminala.
   - wersję CLI na maszynie pilota.
 
   Wyniki do Przebiegu.
-- [ ] T2: wyrocznia `apply`: projekt testowy, 7 przypadków, oceniacze; `evals/results/` w `.gitignore`
-- [ ] T3: `scripts/optimize-score.sh` (bash 3.2 + jq), test `scripts/tests/optimize-score.test.sh` na
+- [x] T2: wyrocznia `apply`: projekt testowy, 7 przypadków, oceniacze; `evals/results/` w `.gitignore`
+- [x] T3: `scripts/optimize-score.sh` (bash 3.2 + jq), test `scripts/tests/optimize-score.test.sh` na
   fixture JSON, wiersz w tabeli Skrypty w `docs/README.md`
-- [ ] T4: baseline na `main`: train ×3, holdout ×1 → próg szumu, koszt i czas eksperymentu, domyślny
+- [x] T4: baseline na `main`: train ×3, holdout ×1 → próg szumu, koszt i czas eksperymentu, domyślny
   `--budget`. Do Przebiegu trafiają same liczby
-- [ ] T5: skill `skills/optimize/SKILL.md`:
+- [x] T5: skill `skills/optimize/SKILL.md`:
   - frontmatter: `disable-model-invocation: true`, `argument-hint`, `allowed-tools: Read, Edit, Write,
     Grep, Glob, Bash`;
   - wiersze w `README.md` (Komendy, Która komenda kiedy) i `context/sdd-map.md`;
   - regresje w lincie, np. `require` „worktree” i „holdout”
-- [ ] T6: `docs/optimize.md`: jak używać i jak dopisać zestaw evali dla innego skilla; wpis w `docs/README.md`
-- [ ] T7: bramka (`framework-lint.sh`, `claude plugin validate .`) i smoke: `/regent:optimize apply --limit 2`
-- [ ] T8: pilot:
+- [x] T6: `docs/optimize.md`: jak używać i jak dopisać zestaw evali dla innego skilla; wpis w `docs/README.md`
+- [x] T7: bramka (`framework-lint.sh`, `claude plugin validate .`) i smoke: `/regent:optimize apply --limit 2`
+- [ ] T8 (pilot wykonany 2026-10-08, czeka merge do `main`): pilot:
   - `/regent:optimize apply --agent backend-dev`, 10–20 eksperymentów;
   - przegląd tsv i diffu, holdout zielony;
   - bramka + smoke, merge, potem `claude plugin marketplace update regent && claude plugin update regent@regent`
@@ -211,3 +211,47 @@ w klonie zmieniałyby `apply` we wszystkich sesjach z terminala.
   mieszczący się w szumie, dlatego `optimize-score.sh` liczy teraz `tspread`, a `decide` ma osobny
   `--tnoise`. Pomiary się nie zmieniają, więc 8 rozstrzygam od nowa nową regułą, a 4 testuję ponownie
   na nowej bazie.
+- Eksperymenty 9–10 (próg kosztu 9%, czasu 21%):
+  - 9: 4 na nowej bazie → `discard` (koszt +5%, czas +22%);
+  - 10: spójna reguła liczby subagentów w `apply` ("Budżet" i "Podział ról" mówiły co innego) →
+    **keep** (prostszy prompt, koszt −6%, czas +9%).
+- Holdout na najlepszym commicie (×3) wobec baseline'u (×3): **PASS**:
+  - `quality=1`, wszystkie 4 przypadki 1,00 w 12 przebiegach;
+  - koszt −12% (1,866 → 1,635 USD), tokeny −22% (8,78 → 6,87 mln), czas +15% (w progu).
+- Smoke (T7) na przebiegu pilota:
+  - worktree i gałąź `perf/optimize-apply-2026-10-08` założone;
+  - tsv: baseline + 10 eksperymentów;
+  - na gałęzi tylko commity `keep`;
+  - klon główny na swojej gałęzi z czystym `git status`.
+- Raport pilota:
+
+  | nr | status | zmiana | koszt | tokeny | czas |
+  |---|---|---|---|---|---|
+  | 0 | baseline | wyrocznia `25aa88d` | 1,249 | 5,13 mln | 238 s |
+  | 3 | keep | `take` z `id`, `take`+`packet` i commit+`done` razem, commit bez stopki | 1,135 | 2,62 mln | 209 s |
+  | 4 | discard | jedna checklista w `backend-dev` | 1,095 | 3,05 mln | 236 s |
+  | 5 | discard | kroki 0–2 jednym wywołaniem Bash | 1,045 | 2,76 mln | 229 s |
+  | 6 | discard | subagenci na pierwszym planie | 1,054 | 1,53 mln | 283 s |
+  | 7 | discard | krótszy raport `backend-dev`, Edit | 1,171 | 3,22 mln | 244 s |
+  | 8 | keep | `apply` bez powtórzonych reguł | 1,128 | 3,08 mln | 238 s |
+  | 9 | discard | 4 na nowej bazie | 1,184 | 3,52 mln | 290 s |
+  | 10 | keep | spójna reguła liczby subagentów | 1,063 | 2,56 mln | 260 s |
+
+  Wynik train wobec baseline'u: koszt −15%, tokeny −50%, czas +9% (w progu), prompt −430 B, jakość
+  1,0. Zmiany obejmują tylko `skills/apply/SKILL.md` (+9/−17); żadna zmiana `backend-dev` nie
+  przeszła. Koszt pilota według cennika API: ~48 USD, z czego ~25 USD to baseline'y i dwie
+  poprawki wyroczni. Eksperyment kosztował ~2,2 USD i ~5 min.
+- Wnioski dla kolejnych pętli:
+  - najpierw przebieg pilota zestawu z przejrzeniem oblanych oceniaczy (tu dwa błędy oceniaczy
+    wyszły dopiero w pętli);
+  - próg czasu osobno od kosztu;
+  - zyski 4–8% leżą w szumie przy 2 przebiegach; mniejsze zmiany wymagają więcej przebiegów albo
+    ponownego pomiaru najlepszego commita;
+  - subagenci na pierwszym planie oszczędzają tokeny kosztem czasu. To decyzja użytkownika, nie
+    reguły `keep`.
+- Rekomendacja poza zakresem pętli: `SubagentStart` wstrzykuje każdemu subagentowi `sdd.md`
+  i `sdd-map.md` (~3,5 tys. tokenów zapisu do cache na subagenta). Mapa skilli jest zbędna agentom
+  implementującym, a ich zakres zmienia wszystkie skille, więc decyzja idzie zwykłą ścieżką.
+- T8: trzy commity `keep` przeniesione na gałąź sesji, bramka zielona. Merge do `main`
+  i `claude plugin marketplace update regent && claude plugin update regent@regent` czekają na Twój
+  przegląd. T9 (tydzień na żywo) i T10 (kolejne skille) są otwarte.
