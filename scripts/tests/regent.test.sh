@@ -55,6 +55,11 @@ else
   name="argumenty ze spacjami i cudzysłowami bez rozbicia"
   run "$T/plugin" "$NODEBIN" task done 3 --tests 'AC-1 → a b › "x"'
   if [ "$out" = 'dist task done 3 --tests AC-1 → a b › "x"' ]; then ok; else ko "argumenty"; fi
+
+  name="REGENT_NO_CLI=1: kod 3 mimo dist/cli.js i regent w PATH"
+  REGENT_NO_CLI=1 run "$T/plugin" "$T/bin:$NODEBIN" task list
+  if [ "$code" -eq 3 ] && [ -z "$out" ]; then ok; else ko "kod $code"; fi
+  if printf '%s' "$err" | grep -q '^regent.sh: CLI wyłączone'; then ok; else ko "stderr"; fi
 fi
 
 name="dist/cli.js bez node w PATH: regent z PATH"
