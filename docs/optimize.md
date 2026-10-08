@@ -54,7 +54,7 @@ w klonie zmieniałby skill we wszystkich sesjach.
 `optimize-score.sh run` uruchamia eval i wypisuje jedną linię:
 
 ```text
-quality=0.95 cost=1.21 tokens=1840522 seconds=268 prompt=14106 spread=0.18 cases=train-two-tasks:1,… failed=- errors=0
+quality=0.95 cost=1.21 tokens=1840522 seconds=268 prompt=14106 spread=0.18 tspread=0.21 cases=train-two-tasks:1,… failed=- errors=0
 ```
 
 - `quality` — średni wynik przypadków.
@@ -76,6 +76,8 @@ zaczyna oblewać. Dopiero po niej zmiana zostaje, gdy spełnia jeden z warunków
 Próg to max(5%, `spread`), gdzie `spread` to rozrzut kosztu zestawu w trzech przebiegach baseline:
 Σ(max − min) / Σ median przypadków. To w przybliżeniu 2σ różnicy dwóch pomiarów. Największy rozrzut
 pojedynczego przypadku byłby za ostry, bo jeden niestabilny przypadek blokowałby każdą poprawę.
+Czas ma osobny próg z `tspread` (w pilocie 21% wobec 9% dla kosztu). Wspólny próg odrzucał zmiany,
+które obniżały koszt, tylko dlatego, że czas najlepszego wyniku był szczęśliwym losowaniem.
 
 Jakość nie wchodzi do ilorazu z tokenami („tokeny / jakość”), bo wtedy pętla mogłaby oddać
 jakość za tańszy przebieg. Nieudany task kosztuje w realnej pracy więcej, niż wynosi oszczędność.

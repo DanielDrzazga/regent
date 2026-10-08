@@ -74,7 +74,9 @@ score run <wt> <skill>-train <wt>/evals/results/<tag>-000.json --runs 3 --files 
 score run <wt> <skill>-holdout <wt>/evals/results/<tag>-holdout-base.json --files <kandydaci>
 ```
 
-Linia train jest pierwszym `best`. Próg szumu: `noise` = max(0,05, `spread` z baseline).
+Linia train jest pierwszym `best`. Progi szumu z baseline'u:
+- `noise` = max(0,05, `spread`) dla kosztu;
+- `tnoise` = max(0,05, `tspread`) dla czasu, bo czas waha się mocniej niż koszt.
 Do tsv trafia wiersz `0` ze statusem `baseline`. Domyślny `--budget` liczysz z baseline:
 łączny koszt to `jq .costUsd <json>`.
 
@@ -94,7 +96,7 @@ Do tsv trafia wiersz `0` ze statusem `baseline`. Domyślny `--budget` liczysz z 
      `--budget <2 × koszt baseline train>` w tle (`run_in_background`); czekasz na zakończenie;
    - na ekran trafia wyłącznie linia wyniku;
    - kod 3 (eval padł) → wiersz `crash`, `git -C <wt> reset --hard HEAD~1`.
-6. **Decyzja:** `score decide "<best>" "<linia>" --noise <noise>`.
+6. **Decyzja:** `score decide "<best>" "<linia>" --noise <noise> --tnoise <tnoise>`.
    - Kod 0 (`keep`) → `best` = linia.
    - Kod 1 (`discard`) → `git -C <wt> reset --hard HEAD~1`.
 7. **Wiersz w tsv:** nr, krótki hash, status, pola z linii, opis, powód z `decide`. Doliczasz
@@ -121,7 +123,7 @@ Zasady pisania promptów: `CONTRIBUTING.md` → „Jak pisać prompty”. Najcz�
 
 1. Holdout na najlepszym commicie:
    `score run <wt> <skill>-holdout <wt>/evals/results/<tag>-holdout-best.json --files <kandydaci>`,
-   potem `score decide "<holdout-base>" "<holdout-best>" --noise <noise>`. Liczy się bramka jakości.
+   potem `score decide "<holdout-base>" "<holdout-best>" --noise <noise> --tnoise <tnoise>`. Liczy się bramka jakości.
    `discard` z powodem „jakość” albo „przypadek” oznacza, że holdout odrzuca wynik.
 2. Raport:
 

@@ -43,7 +43,7 @@ EOF
 
 name="score: mediany, tokeny ze śladów, oblane oceniacze, prompt z --files"
 out=$(bash "$SCRIPT" score "$T/eval.json" --plugin "$T/plugin" --files skills/apply/SKILL.md --keep-traces)
-want="quality=0.875 cost=2.5 tokens=500 seconds=240 prompt=10 spread=0.8 cases=train-one:0.75,train-two:1 failed=g2:1/3 errors=0"
+want="quality=0.875 cost=2.5 tokens=500 seconds=240 prompt=10 spread=0.8 tspread=0.83 cases=train-one:0.75,train-two:1 failed=g2:1/3 errors=0"
 if [ "$out" = "$want" ]; then ok; else ko "linia"; echo "    want: $want"; fi
 if [ -d "$T/claude-eval-a1" ]; then ok; else ko "--keep-traces usunął ślady"; fi
 
@@ -73,6 +73,14 @@ if [ "$code" -eq 0 ] && printf '%s' "$out" | grep -q '^keep: czas'; then ok; els
 name="decide: koszt i czas w szumie, krótszy prompt → keep (prostota)"
 dec "quality=0.9 cost=4.05 tokens=1000 seconds=590 prompt=900 spread=0 cases=a:1,b:0.8 failed=- errors=0"
 if [ "$code" -eq 0 ] && printf '%s' "$out" | grep -q '^keep: prostszy prompt'; then ok; else ko "kod $code"; fi
+
+name="decide: czas +15% w osobnym progu --tnoise 0.2, krótszy prompt → keep"
+out=$(bash "$SCRIPT" decide "$B" "quality=0.9 cost=4.05 tokens=1000 seconds=690 prompt=900 spread=0 cases=a:1,b:0.8 failed=- errors=0" --noise 0.05 --tnoise 0.2); code=$?
+if [ "$code" -eq 0 ] && printf "%s" "$out" | grep -q "^keep: prostszy prompt"; then ok; else ko "kod $code"; fi
+
+name="decide: czas +15% bez --tnoise (próg = --noise) → discard"
+dec "quality=0.9 cost=4.05 tokens=1000 seconds=690 prompt=900 spread=0 cases=a:1,b:0.8 failed=- errors=0"
+if [ "$code" -eq 1 ]; then ok; else ko "kod $code"; fi
 
 name="decide: koszt i czas w szumie, ten sam prompt → discard"
 dec "quality=0.9 cost=3.9 tokens=1000 seconds=590 prompt=1000 spread=0 cases=a:1,b:0.8 failed=- errors=0"

@@ -10,7 +10,7 @@
 #       --files a,b         pliki kandydata (ścieżki względem pluginu) — do pola prompt=
 #   optimize-score.sh score <wynik.json> [--plugin <katalog>] [--files a,b] [--keep-traces]
 #                                                                          linia z gotowego JSON-a
-#   optimize-score.sh decide <linia-najlepsza> <linia-kandydat> [--noise 0.05]
+#   optimize-score.sh decide <linia-najlepsza> <linia-kandydat> [--noise 0.05] [--tnoise <próg czasu>]
 #                                                     keep|discard: powód (kod 0 = keep, 1 = discard)
 #
 # Linia wyniku (pola key=value, jedna linia):
@@ -22,14 +22,15 @@
 #   prompt   bajty plików kandydata (--files); 0 bez --files
 #   spread   względny rozrzut kosztu zestawu: Σ(max − min) / Σ median przypadków (≈ 2σ różnicy
 #            dwóch pomiarów — z baseline ×3 liczy się z niego próg szumu)
+#   tspread  to samo dla czasu — czas waha się mocniej niż koszt, więc ma własny próg (--tnoise)
 #   cases    <przypadek>:<wynik>,… (nazwa bez prefiksu do pierwszego „-”)
 #   failed   <oceniacz>:<oblane>/<przebiegi>,… albo „-”
 #   errors   przebiegi z błędem (timeout, crash) — 0 przy zdrowym evalu
 #
 # Reguła decide: bramka jakości — quality kandydata ≥ najlepszej i każdy przypadek z wynikiem 1.00
-# zostaje na 1.00. Potem keep, gdy: koszt spada o więcej niż próg; albo czas spada o więcej niż
-# próg, a koszt nie rośnie ponad próg; albo koszt i czas w progu, a prompt jest krótszy. Kandydat
-# z errors > 0 → discard.
+# zostaje na 1.00. Potem keep, gdy: koszt spada o więcej niż --noise; albo czas spada o więcej niż
+# --tnoise, a koszt nie rośnie ponad --noise; albo koszt i czas w swoich progach, a prompt jest
+# krótszy. Kandydat z errors > 0 → discard. --tnoise domyślnie równa się --noise.
 #
 # run uruchamia eval z --keep-temp (ślady dla tokens=) i po policzeniu usuwa katalogi sandboksów.
 # Kody wyjścia: 0 — ok (decide: keep), 1 — decide: discard, 2 — błędne użycie, 3 — eval padł.
@@ -90,6 +91,7 @@ score() {
         secs: ([.runs[].durationSeconds // 0] | median),
         toks: (.toks | median),
         range: ([.runs[].costUsd // 0] | if length < 2 then 0 else max - min end),
+        trange: ([.runs[].durationSeconds // 0] | if length < 2 then 0 else max - min end),
         errors: ([.runs[] | select((.error // "") != "")] | length),
         failed: [.runs[].graders[]? | select(.passed == false and .scored != false) | .name]
       }] as $rows
@@ -102,6 +104,7 @@ score() {
       + " seconds=\([$rows[].secs] | add // 0 | floor)"
       + " prompt=\($prompt)"
       + " spread=\(([$rows[].cost] | add // 0) as $c | if $c == 0 then 0 else ([$rows[].range] | add) / $c | r2 end)"
+      + " tspread=\(([$rows[].secs] | add // 0) as $s | if $s == 0 then 0 else ([$rows[].trange] | add) / $s | r2 end)"
       + " cases=\([$rows[] | "\(.name):\(.score | r2)"] | join(","))"
       + " failed=\(if $failed == "" then "-" else $failed end)"
       + " errors=\([$rows[].errors] | add // 0)"
@@ -118,13 +121,13 @@ score() {
 field() { printf '%s\n' "$1" | tr ' ' '\n' | sed -n "s/^$2=//p" | head -1; }
 
 decide() {
-  best=$1; cand=$2; noise=$3
+  best=$1; cand=$2; noise=$3; tnoise=$4
   [ "$(field "$cand" errors)" = 0 ] || { echo "discard: przebiegi z błędem (errors=$(field "$cand" errors))"; return 1; }
   BQ=$(field "$best" quality) CQ=$(field "$cand" quality) \
   BK=$(field "$best" cost) CK=$(field "$cand" cost) \
   BT=$(field "$best" seconds) CT=$(field "$cand" seconds) \
   BP=$(field "$best" prompt) CP=$(field "$cand" prompt) \
-  BC=$(field "$best" cases) CC=$(field "$cand" cases) NOISE=$noise \
+  BC=$(field "$best" cases) CC=$(field "$cand" cases) NOISE=$noise TNOISE=$tnoise \
   awk 'BEGIN {
     if (ENVIRON["CQ"] + 0 < ENVIRON["BQ"] - 0.0005) { printf "discard: jakość %s < %s\n", ENVIRON["CQ"], ENVIRON["BQ"]; exit 1 }
     nb = split(ENVIRON["BC"], b, ","); nc = split(ENVIRON["CC"], c, ",")
@@ -135,15 +138,15 @@ decide() {
         printf "discard: przypadek %s spadł z 1.00 do %s\n", kv[1], (kv[1] in cs ? cs[kv[1]] : "brak"); exit 1
       }
     }
-    n = ENVIRON["NOISE"] + 0; bk = ENVIRON["BK"] + 0; ck = ENVIRON["CK"] + 0; bt = ENVIRON["BT"] + 0; ct = ENVIRON["CT"] + 0
+    n = ENVIRON["NOISE"] + 0; tn = ENVIRON["TNOISE"] + 0; bk = ENVIRON["BK"] + 0; ck = ENVIRON["CK"] + 0; bt = ENVIRON["BT"] + 0; ct = ENVIRON["CT"] + 0
     dk = (bk > 0) ? (ck - bk) / bk : 0
     dt = (bt > 0) ? (ct - bt) / bt : 0
     if (dk < -n) { printf "keep: koszt %+.0f%% (%.3f → %.3f USD)\n", dk * 100, bk, ck; exit 0 }
-    if (dt < -n && dk <= n) { printf "keep: czas %+.0f%% (%d → %d s), koszt %+.0f%%\n", dt * 100, bt, ct, dk * 100; exit 0 }
-    if (dk <= n && dk >= -n && dt <= n && dt >= -n && ENVIRON["CP"] + 0 < ENVIRON["BP"] + 0) {
+    if (dt < -tn && dk <= n) { printf "keep: czas %+.0f%% (%d → %d s), koszt %+.0f%%\n", dt * 100, bt, ct, dk * 100; exit 0 }
+    if (dk <= n && dk >= -n && dt <= tn && dt >= -tn && ENVIRON["CP"] + 0 < ENVIRON["BP"] + 0) {
       printf "keep: prostszy prompt (%d → %d B), koszt %+.0f%%, czas %+.0f%%\n", ENVIRON["BP"], ENVIRON["CP"], dk * 100, dt * 100; exit 0
     }
-    printf "discard: koszt %+.0f%%, czas %+.0f%% (próg %.0f%%), prompt %d → %d B\n", dk * 100, dt * 100, n * 100, ENVIRON["BP"], ENVIRON["CP"]
+    printf "discard: koszt %+.0f%% (próg %.0f%%), czas %+.0f%% (próg %.0f%%), prompt %d → %d B\n", dk * 100, n * 100, dt * 100, tn * 100, ENVIRON["BP"], ENVIRON["CP"]
     exit 1
   }'
 }
@@ -193,14 +196,15 @@ case "$cmd" in
     ;;
   decide)
     [ $# -ge 2 ] || usage
-    best=$1; cand=$2; shift 2; noise=0.05
+    best=$1; cand=$2; shift 2; noise=0.05; tnoise=""
     while [ $# -gt 0 ]; do
       case "$1" in
         --noise) noise=$2; shift 2 ;;
+        --tnoise) tnoise=$2; shift 2 ;;
         *) die "nieznana opcja: $1" ;;
       esac
     done
-    decide "$best" "$cand" "$noise"
+    decide "$best" "$cand" "$noise" "${tnoise:-$noise}"
     ;;
   *) usage ;;
 esac

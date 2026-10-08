@@ -190,3 +190,24 @@ w klonie zmieniałyby `apply` we wszystkich sesjach z terminala.
     jakość 0,958 → `discard`. Oblał `commit-na-task`, który liczył wywołania Bash z `git commit`,
     więc karał dwa commity w jednym wywołaniu. Oceniacz zastąpiony regexem po `tasks.md` (różne
     hashe przy kolejnych taskach), a baseline zmierzony od nowa.
+- Nowy baseline (wyrocznia `25aa88d`):
+  - train ×3: `quality=1 cost=1.249 tokens=5134355 seconds=238 spread=0.09`;
+  - holdout ×3: `quality=1 cost=1.866 seconds=378`, wszystkie 4 przypadki 1,00 (dawne oblania „commit
+    na task” były w dużej części artefaktem oceniacza).
+- Eksperymenty 3–8 (próg kosztu 9%):
+  - 3: powtórka 2 → **keep**: koszt −9%, tokeny −49% (5,13 → 2,62 mln), czas −12%;
+  - 4: jedna checklista w `backend-dev` → `discard` (koszt −4%, czas +13%, prompt −544 B);
+  - 5: kroki 0–2 `apply` jednym wywołaniem Bash → `discard` (koszt −8%, czas +10%);
+  - 6: subagenci rundy na pierwszym planie → `discard`: tokeny −42% i koszt −7%, ale czas +35%,
+    bo subagenci szli po kolei, nie równolegle;
+  - 7: krótszy raport `backend-dev` i Edit → `discard` (koszt +3%, czas +17%);
+  - 8: `apply` bez powtórzonych reguł → `discard` (koszt −1%, czas +14%, prompt −670 B).
+- Diagnoza po 3 (przebieg z zachowanym śladem):
+  - sesja główna to 9 wywołań i 300 tys. tokenów odczytu cache, subagenci 13 wywołań i 234 tys.;
+  - koszt najbardziej podbijają zapis do cache i tokeny wyjścia (~1/3 kosztu), a nie tani odczyt
+    cache.
+- Wniosek z 4, 5, 7 i 8: czas najlepszego wyniku (209 s) był szczęśliwym losowaniem, bo baseline i 8
+  mają po 238 s. Rozrzut czasu w baseline'ie to 21%, a kosztu 9%. Wspólny próg odrzucał zmiany za czas
+  mieszczący się w szumie, dlatego `optimize-score.sh` liczy teraz `tspread`, a `decide` ma osobny
+  `--tnoise`. Pomiary się nie zmieniają, więc 8 rozstrzygam od nowa nową regułą, a 4 testuję ponownie
+  na nowej bazie.
