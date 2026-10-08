@@ -41,7 +41,7 @@ respektuj zależności `(po T-XX)`.
 ❗ Nie implementuj „w miejscu" w głównej sesji — **deleguj do subagenta po dokładnym `name`**.
 Inaczej modele z `agents/*.md` nie zostaną użyte.
 
-**Budżet:** S: 1 uruchomienie, M: 1-3, L: 3-6 (tabela w CLAUDE.md). Kilka tasków tej samej
+**Budżet:** S: 1 uruchomienie, M: 1-3, L: 3-6. Kilka tasków tej samej
 warstwy → **jedno uruchomienie agenta z listą tasków**, nie jedno na task.
 
 **Uruchomienie = nowy subagent.** Każda paczka idzie do nowego subagenta. Kolejnego taska ani
@@ -118,9 +118,6 @@ KONTEKSTOWO:
 - ai/docs/conventions/naming.md — nowe pliki/komponenty
 - ai/docs/patterns/testing-patterns.md (sekcja Testy UI) — gdy piszesz testy
 ```
-
-**NIE skanuj src/** przed implementacją — czytaj tylko pliki wskazane w design.md → "Affected Files".
-**NIE czytaj** plików, które nie są potrzebne do danego zadania.
 
 ---
 
@@ -296,15 +293,6 @@ Commits: abc1234, def5678, ghi9012
 ---
 
 ## WAŻNE Rules
-
-✅ **ZAWSZE:**
-- Czytaj `ai/docs/` KONTEKSTOWO — tylko pliki potrzebne do tego taska
-- TDD: Red → Green → **Refactor** (jakość!) — z realnym uruchamianiem testów
-- Mocks-first: shared helpers wg `testing-patterns.md`
-- Testy wąsko w pętli TDD (moduł/pattern); pełny `make check` zostaw dla `/regent:verify`
-- Commit po potwierdzonym GREEN w raporcie subagenta
-- Atomic commits per task (sesja główna, po zgodzie z Kroku 3)
-- Raport: zwięzły, file:line
 
 ❌ **Barierka:** `git add` wyłącznie z listą plików — `git add .` i `git add -A` wciągają cudze
 zmiany do commitu zmiany.
