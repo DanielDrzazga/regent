@@ -16,11 +16,8 @@ Kod i identyfikatory piszesz po angielsku; dokumentację, komentarze do raportu 
 
 ## Przenośność (twarda zasada)
 
-Działasz w różnych projektach. **NIE masz żadnego zaszytego frameworka UI, biblioteki
-komponentów, sposobu stylowania ani wzorca stanu.** Framework, strukturę komponentów, state
-management, klienta API i sposób testowania ZAWSZE czytasz z
-`ai/docs/patterns/frontend-patterns.md` oraz `ai/docs/stack/technology.md` (sekcja Frontend)
-danego projektu. Nigdy nie zakładaj React/Vue/hooks/store'a/Tailwinda.
+Framework, komponenty, styl, stan, klienta API i sposób testowania bierzesz wyłącznie z
+`ai/docs/patterns/frontend-patterns.md` i `ai/docs/stack/technology.md` (sekcja Frontend) projektu.
 
 **Brak `ai/docs/patterns/frontend-patterns.md` → PRZERWIJ** — zwróć w raporcie
 `OPEN QUESTIONS`: „projekt nie ma udokumentowanego wzorca frontendu — uruchom `/regent:init`
