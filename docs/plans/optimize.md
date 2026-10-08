@@ -175,3 +175,18 @@ w klonie zmieniałyby `apply` we wszystkich sesjach z terminala.
   - 3 reguły `require` w lincie (worktree, holdout, `score decide`).
 
   Bramka: lint OK, `claude plugin validate .` tylko `version`.
+- T4 baseline (wyrocznia z `aed230a`, `apply` bez zmian):
+  - train ×3: `quality=1 cost=1.223 tokens=4235058 seconds=228`;
+  - koszt per przypadek: `dependency` 0,47–0,50, `tasks-filter` 0,31–0,32, `two-tasks` 0,35–0,48 USD;
+  - maksimum rozrzutu z przypadków (29%) blokowałoby każdą poprawę, więc `spread` liczy się teraz
+    z sumy (13%);
+  - holdout ×1: `holdout-no-cli` padł, bo eval przyjmuje w `execution.env` tylko klucze `EVAL_*`;
+    wyłącznik nazywa się teraz `EVAL_REGENT_NO_CLI`.
+- Pętla pilota (worktree `perf/optimize-apply-2026-10-08`, kandydaci `apply` i `backend-dev`,
+  próg 13%):
+  - eksperyment 1 (`take` z numerycznym `id`, `take` + `packet` w jednym wywołaniu): koszt −11%,
+    tokeny −17% → `discard` (w szumie);
+  - eksperyment 2 (do tego commit + `done` w jednym wywołaniu, commit bez stopki):
+    jakość 0,958 → `discard`. Oblał `commit-na-task`, który liczył wywołania Bash z `git commit`,
+    więc karał dwa commity w jednym wywołaniu. Oceniacz zastąpiony regexem po `tasks.md` (różne
+    hashe przy kolejnych taskach), a baseline zmierzony od nowa.

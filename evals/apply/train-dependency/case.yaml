@@ -31,12 +31,10 @@ graders:
     tool: Bash
     input_match: "task packet"
     arm: both
-  - name: commit-na-task
-    type: tool_used
-    tool: Bash
-    input_match: "git commit"
-    min: 2
-    arm: both
+  - name: osobny-commit-na-task
+    type: regex
+    target: {source: file, path: ai/changes/note-archive/tasks.md}
+    pattern: "T-01:.*commit: ([0-9a-f]{7})[\\s\\S]*T-02:.*commit: (?!\\1)[0-9a-f]{7}"
   - name: T-01-zamkniety
     type: regex
     target: {source: file, path: ai/changes/note-archive/tasks.md}

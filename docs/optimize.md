@@ -111,9 +111,10 @@ gitem, jak w prawdziwym projekcie.
 | `holdout-four-tasks` | `apply-holdout` | cztery taski z dwiema zależnościami |
 
 Oceniacze są najpierw deterministyczne:
-- `tool_used`: delegacja (`Agent` z `regent:<agent>`), `SendMessage` 0 razy, `task packet`,
-  liczba `git commit`;
-- regex po `tasks.md` (`[x] T-NN` ze śladem `commit:`);
+- `tool_used`: delegacja (`Agent` z `regent:<agent>`), `SendMessage` 0 razy, `task packet`;
+- regex po `tasks.md`: `[x] T-NN` ze śladem `commit:` oraz osobny commit na task (różne hashe przy
+  kolejnych taskach). Liczba wywołań Bash z `git commit` byłaby złym sygnałem, bo karałaby dwa
+  commity w jednym wywołaniu;
 - regex po śladzie: test oblany przed zielonym;
 - `file_exists`.
 
