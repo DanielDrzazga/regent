@@ -43,7 +43,7 @@ EOF
 
 name="score: mediany, tokeny ze śladów, oblane oceniacze, prompt z --files"
 out=$(bash "$SCRIPT" score "$T/eval.json" --plugin "$T/plugin" --files skills/apply/SKILL.md --keep-traces)
-want="quality=0.875 cost=2.5 tokens=500 seconds=240 prompt=10 spread=1 cases=train-one:0.75,train-two:1 failed=g2:1/3 errors=0"
+want="quality=0.875 cost=2.5 tokens=500 seconds=240 prompt=10 spread=0.8 cases=train-one:0.75,train-two:1 failed=g2:1/3 errors=0"
 if [ "$out" = "$want" ]; then ok; else ko "linia"; echo "    want: $want"; fi
 if [ -d "$T/claude-eval-a1" ]; then ok; else ko "--keep-traces usunął ślady"; fi
 

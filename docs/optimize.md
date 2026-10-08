@@ -73,7 +73,9 @@ zaczyna oblewać. Dopiero po niej zmiana zostaje, gdy spełnia jeden z warunków
 2. czas spada o więcej niż próg, a koszt nie rośnie ponad próg;
 3. koszt i czas mieszczą się w progu, a prompt jest krótszy (kryterium prostoty).
 
-Próg to max(5%, rozrzut kosztu w trzech przebiegach baseline).
+Próg to max(5%, `spread`), gdzie `spread` to rozrzut kosztu zestawu w trzech przebiegach baseline:
+Σ(max − min) / Σ median przypadków. To w przybliżeniu 2σ różnicy dwóch pomiarów. Największy rozrzut
+pojedynczego przypadku byłby za ostry, bo jeden niestabilny przypadek blokowałby każdą poprawę.
 
 Jakość nie wchodzi do ilorazu z tokenami („tokeny / jakość”), bo wtedy pętla mogłaby oddać
 jakość za tańszy przebieg. Nieudany task kosztuje w realnej pracy więcej, niż wynosi oszczędność.

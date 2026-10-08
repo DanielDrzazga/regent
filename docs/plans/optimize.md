@@ -133,3 +133,45 @@ w klonie zmieniałyby `apply` we wszystkich sesjach z terminala.
 - Pilot: holdout zielony na najlepszym commicie, zysk K lub T ponad próg szumu.
 - Na żywo (T9): w `regent-apply-tokens` niższa suma pierwszej tury i całego agenta niż w punkcie
   odniesienia etapu 1, bez nowych `BRAK W PACZCE`.
+
+## Przebieg (2026-10-08)
+
+- T1 spike (`claude plugin eval` 2.1.294, sesja chmurowa Linux, Node 22.22):
+  - prompt `/regent:commit` rozwija skill z `disable-model-invocation: true`;
+  - JSON evala ma per przebieg `score`, `turns`, `costUsd`, `durationSeconds`, oceniacze
+    z wyjaśnieniem i `tracePath`. Tokenów nie ma, ale `result.modelUsage` w `out/trace.jsonl`
+    obejmuje subagentów, a `--keep-temp` zostawia ślad i transkrypty;
+  - eval działa z wnętrza sesji Claude Code. Bash w evalu wymaga sandboksu: na Linuksie
+    `bubblewrap` i `socat`, bez nich przebieg kończy się odmową;
+  - `scaffold_script`: tylko plik z katalogu przypadku (`..` odrzucone). Uruchamiany jako
+    `bash <ścieżka bezwzględna>` z `cwd` i `HOME` sandboksu;
+  - sandbox pozwala pisać tylko w `HOME` i `TMPDIR` sandboksu i nie ma sieci, więc projekt
+    testowy jest bez zależności, a baza `regent` trafia do `HOME` sandboksu sama;
+  - narzędzie delegacji w wywołaniach to `Agent` (init wypisuje `Task`); `count:N` w regexie
+    oznacza dokładnie N;
+  - CLI `tools/regent` buduje się i działa na Node 22.22 (`node:sqlite`).
+- T2 wyrocznia `apply`:
+  - `evals/apply/`: projekt `notes-app` (4 zmiany `Approved`, każda bez ERROR w `sdd-check.sh
+    change`), 7 przypadków (3 `apply-train`, 4 `apply-holdout`);
+  - `REGENT_NO_CLI=1` w `regent.sh` do przypadku bez CLI, test w `regent.test.sh`.
+  - Pierwszy przebieg `train-two-tasks`: 87 s, 0,385 USD, 592 tys. tokenów (526 tys. to odczyt
+    cache). Dwa oceniacze okazały się błędne:
+    - sędzia haiku z nieostrym kryterium („osobnymi asercjami”) oblał poprawny plik; kryteria
+      przepisane na twierdzenia „PASS if … Otherwise FAIL”, nowe sprawdzone na tym pliku (3× PASS,
+      stare 2× FAIL);
+    - wzorzec `RED→GREEN:` nie pasował do raportu; zastąpiony sygnałem ze śladu (test oblany przed
+      zielonym).
+  - Ślad sesji głównej: 9 wywołań API po ~30–38 tys. kontekstu. Trzy do uniknięcia:
+    - `take T-01` zamiast id z `next`;
+    - powtórne `make test` po raporcie GREEN;
+    - commit ze stopką `Co-Authored-By` zablokowany przez git-guard.
+
+    To pierwsze hipotezy pętli.
+- T3: `scripts/optimize-score.sh` (`run`, `score`, `decide`), 14 testów w mawk i w bashu z PATH.
+  Wiersz w `docs/README.md`.
+- T5–T6:
+  - `skills/optimize/SKILL.md`, `docs/optimize.md`;
+  - wiersze w `README.md` i `context/sdd-map.md`;
+  - 3 reguły `require` w lincie (worktree, holdout, `score decide`).
+
+  Bramka: lint OK, `claude plugin validate .` tylko `version`.

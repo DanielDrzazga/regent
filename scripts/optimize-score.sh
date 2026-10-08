@@ -20,7 +20,8 @@
 #            modele z result.modelUsage śladu); 0, gdy ślad niedostępny
 #   seconds  suma median czasu przypadków
 #   prompt   bajty plików kandydata (--files); 0 bez --files
-#   spread   największy względny rozrzut kosztu przypadku: (max − min) / mediana
+#   spread   względny rozrzut kosztu zestawu: Σ(max − min) / Σ median przypadków (≈ 2σ różnicy
+#            dwóch pomiarów — z baseline ×3 liczy się z niego próg szumu)
 #   cases    <przypadek>:<wynik>,… (nazwa bez prefiksu do pierwszego „-”)
 #   failed   <oceniacz>:<oblane>/<przebiegi>,… albo „-”
 #   errors   przebiegi z błędem (timeout, crash) — 0 przy zdrowym evalu
@@ -88,8 +89,7 @@ score() {
         cost: ([.runs[].costUsd // 0] | median),
         secs: ([.runs[].durationSeconds // 0] | median),
         toks: (.toks | median),
-        spread: ([.runs[].costUsd // 0] | if length < 2 or median == 0 then 0
-                 else (max - min) / median end),
+        range: ([.runs[].costUsd // 0] | if length < 2 then 0 else max - min end),
         errors: ([.runs[] | select((.error // "") != "")] | length),
         failed: [.runs[].graders[]? | select(.passed == false and .scored != false) | .name]
       }] as $rows
@@ -101,7 +101,7 @@ score() {
       + " tokens=\([$rows[].toks] | add // 0 | floor)"
       + " seconds=\([$rows[].secs] | add // 0 | floor)"
       + " prompt=\($prompt)"
-      + " spread=\([$rows[].spread] | max // 0 | r2)"
+      + " spread=\(([$rows[].cost] | add // 0) as $c | if $c == 0 then 0 else ([$rows[].range] | add) / $c | r2 end)"
       + " cases=\([$rows[] | "\(.name):\(.score | r2)"] | join(","))"
       + " failed=\(if $failed == "" then "-" else $failed end)"
       + " errors=\([$rows[].errors] | add // 0)"
