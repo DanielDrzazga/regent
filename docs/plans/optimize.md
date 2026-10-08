@@ -312,3 +312,29 @@ w klonie zmieniałyby `apply` we wszystkich sesjach z terminala.
 - Sprawdzenie: lint OK, `claude plugin validate .` tylko `version`. Przebieg `apply-fe-train` ×1:
   oba przypadki 1,00, pierwszy kontekst subagenta 15,7 tys. tokenów (wcześniej 17,9 tys.), mapa
   skilli w śladzie tylko raz (sesja główna). Koszt 0,90 USD.
+
+## Przebieg (2026-10-08) — pomiar `/regent:verify`
+
+- Przypadek `evals/verify/diag-ui-search` (tag `verify-diag`). Scaffold bierze `notes-app` z zestawu
+  `apply` i zakłada gałąź `feat/ui-search`: commit na task, ślad z hashami w `tasks.md`, jak po
+  `apply`. W `Makefile` projektu doszedł cel `test-coverage` (Etap 1). Zmiana renderuje dane
+  użytkownika, więc uruchamia `code-reviewer` (opus), `qa-engineer` (sonnet) i `security-auditor`
+  (opus).
+- 2 przebiegi: oba zapisały `verification.md` i delegowały do trzech agentów. Werdykt FAIL
+  w obu: `qa-engineer` znalazł prawdziwą lukę w testach granic odmiany (12–14 sprawdzone tylko
+  przez 12). Koszt 0,67 i 0,75 USD (razem 1,42), czas 92 i 91 s.
+- Rozkład kosztu jednego przebiegu (`result.modelUsage`):
+  - sonnet ok. 0,38 USD: sesja główna ok. 0,30, `qa-engineer` ok. 0,08;
+  - opus ok. 0,33 USD (ok. 45%): `code-reviewer` ok. 0,19, `security-auditor` ok. 0,14;
+  - tokeny wyjścia to ok. 45% kosztu: sonnet ok. 10 tys. (`verification.md`, raport), opus ok.
+    6–7 tys. (raporty recenzentów, wyjście opusa ok. 25 USD/M).
+- Sesja główna: 9–10 wywołań, kontekst 29 → 48 tys. Trzy wywołania to czekanie na raporty
+  subagentów uruchomionych w tle (po jednym na raport).
+- Wniosek: na małej zmianie `verify` kosztuje ok. 1,5–2 razy tyle co przebieg `apply`; przy
+  większym diffie udział opusa rośnie, bo recenzenci czytają więcej kodu. Kandydaci do pętli
+  `/regent:optimize verify` (osobny budżet):
+  - format raportów `code-reviewer` i `security-auditor` (wyjście opusa);
+  - tury czekania sesji głównej (kompromis tokeny/czas jak w pilocie `apply`);
+  - opis MR przy PASS tylko na żądanie.
+- Zauważone przy okazji: `skills/verify/SKILL.md` → „Budżet” wciąż odsyła do nieistniejącej
+  „tabeli w CLAUDE.md” (w `apply` usunięte w pilocie).
