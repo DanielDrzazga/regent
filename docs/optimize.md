@@ -95,12 +95,15 @@ jakość za tańszy przebieg. Nieudany task kosztuje w realnej pracy więcej, ni
 ## Zestaw `apply`
 
 Projekt testowy `evals/apply/fixtures/notes-app/`:
-- Node bez zależności, testy `node --test`, `Makefile` z celami agentów;
-- minimalne `ai/docs/`;
-- cztery zmiany `Approved` i celowy bug dla `bugfix`.
+- Node bez zależności, testy `node --test`, `Makefile` z celami agentów (także `test-component`);
+- minimalne `ai/docs/` z `frontend-patterns.md`: UI bez frameworka, komponent to funkcja
+  `(stan) → HTML`, klient API z wstrzykiwanym `fetch`;
+- siedem zmian `Approved` (cztery BE/DB, trzy UI) i dwa celowe bugi dla `bugfix` (BE i UI).
 
 `evals/apply/scaffold.sh` kopiuje go do sandboksu evala i robi commit startowy z `/ai/` poza
 gitem, jak w prawdziwym projekcie.
+
+Tagi `<skill>-fe-train` i `<skill>-fe-holdout` wybierają podzestaw FE, np. dla `--agent frontend-dev`.
 
 | Przypadek | Tag | Co sprawdza |
 |---|---|---|
@@ -111,6 +114,10 @@ gitem, jak w prawdziwym projekcie.
 | `holdout-no-cli` | `apply-holdout` | ścieżka bez CLI (`EVAL_REGENT_NO_CLI=1`) |
 | `holdout-bugfix` | `apply-holdout` | `/regent:bugfix` na tym samym projekcie — chroni agenta `backend-dev`, którego używa 6 skilli |
 | `holdout-four-tasks` | `apply-holdout` | cztery taski z dwiema zależnościami |
+| `train-fe-two` | `apply-train`, `apply-fe-train` | dwa niezależne taski `[FE]`: routing do `regent:frontend-dev` (bez `backend-dev`), paczka, polska odmiana licznika |
+| `train-fe-fullstack` | `apply-train`, `apply-fe-train` | `[BE]` + `[FE]` z kontraktem API: klient wg kontraktu, FE mockuje HTTP |
+| `holdout-fe-three` | `apply-holdout`, `apply-fe-holdout` | trzy taski `[FE]` z jedną zależnością |
+| `holdout-fe-bugfix` | `apply-holdout`, `apply-fe-holdout` | `/regent:bugfix` w UI: tytuł z HTML-em na liście (XSS) — escapowanie i test regresji |
 
 Oceniacze są najpierw deterministyczne:
 - `tool_used`: delegacja (`Agent` z `regent:<agent>`), `SendMessage` 0 razy, `task packet`;
