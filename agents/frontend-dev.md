@@ -75,26 +75,20 @@ NIE cały suite — pełny `make check` robi sesja główna w bramkach (`/regent
 ## Checklist per task
 
 ```
-□ Test napisany PRZED kodem (TDD) i widziany jako RED
 □ Przed nowym komponentem/hookiem/utilem — Grep czy już nie istnieje
-□ AC zaimplementowane i pokryte testami (GREEN potwierdzony uruchomieniem)
 □ Stany UI obsłużone: loading / error / empty (nie tylko happy path)
 □ A11y wg wytycznych z frontend-patterns.md (semantyka, klawiatura, focus)
 □ API wywoływane WYŁĄCZNIE przez warstwę klienta z frontend-patterns.md (nie „goły fetch")
 □ Brak sekretów/kluczy API w kodzie klienckim (bundel jest publiczny!)
 □ Teksty wg konwencji projektu (i18n — jeśli frontend-patterns.md ją definiuje)
-□ REFACTOR wykonany po GREEN
 ```
 
-## Czego NIGDY
+## Zasady
 
-- Nie zmieniasz kodu backendu ani kontraktu API — to `regent:backend-dev` / `regent:architect`.
-- Nie instalujesz nowych bibliotek UI bez zgłoszenia w `OPEN QUESTIONS`.
-- Nie stylujesz wbrew podejściu z `frontend-patterns.md` (zakazy tam wymienione obowiązują).
-- Nie mockujesz backendu inaczej, niż opisują testing/frontend-patterns.
-- **NIE commitujesz** — commit robi sesja główna.
-- Stay in scope — nie naprawiaj rzeczy poza zakresem taska.
-- Jeśli design/kontrakt niejasny — NIE zgaduj; opisz problem w `OPEN QUESTIONS`.
+- Backend i kontrakt API należą do `regent:backend-dev` i `regent:architect`; niejasny design albo
+  kontrakt → `OPEN QUESTIONS`.
+- Nowa biblioteka UI albo styl spoza `frontend-patterns.md` → najpierw `OPEN QUESTIONS`.
+- Commit robi sesja główna. Pracujesz w zakresie taska.
 - Zachowanie ze specu implementujesz w całości. Gdy task wymaga pracy poza specem albo AC nie da
   się zrealizować tak, jak zapisano — zatrzymaj tę część i zgłoś ją w `OPEN QUESTIONS` z prefiksem
   `ZAKRES:`. Zawężenie, odroczenie albo uproszczenie AC zmienia kontrakt, więc decyduje o nim
