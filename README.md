@@ -26,6 +26,7 @@ projektu (`ai/docs/`) jest jedynym źródłem prawdy dla AI.
 - [Observability (opcjonalnie)](#observability-opcjonalnie)
 - [Zadania i regent task (opcjonalnie)](#zadania-i-regent-task-opcjonalnie)
 - [Agent teams i regent-watch (opcjonalnie)](#agent-teams-i-regent-watch-opcjonalnie)
+- [Optymalizacja skilli (opcjonalnie)](#optymalizacja-skilli-opcjonalnie)
 - [Konwencje](#konwencje)
 - [Bezpieczeństwo danych](#bezpieczeństwo-danych)
 - [Dokumentacja rozszerzona](#dokumentacja-rozszerzona)
@@ -105,10 +106,11 @@ regent/
 │   ├── dba.md                    (sonnet)
 │   ├── security-auditor.md       (opus)
 │   └── logging-engineer.md       (sonnet)
-├── skills/                # 18 skilli (/regent:propose, /regent:apply, ..., /regent:archive)
+├── skills/                # 19 skilli (/regent:propose, /regent:apply, ..., /regent:archive)
 ├── templates/             # Szablony artefaktów zmian + Makefile
 │   └── docs/              # Szablony plików ai/docs/ (wypełniane przez /regent:init)
 ├── scripts/               # sdd-check.sh (walidacja artefaktów), regent.sh, framework-lint.sh, statusline.sh, session-tokens.sh
+├── evals/                 # Zestawy evali skilli dla /regent:optimize (claude plugin eval, projekty testowe)
 ├── docs/                  # Dokumentacja frameworka i plany zmian
 ├── tools/regent/          # regent task — zadania i paczki dla agentów, baza SQLite (Node, poza pluginem)
 ├── tools/watch/           # regent-watch — podgląd agentów w terminalu, regent-apply-tokens — pomiar paczki (Node, poza pluginem)
@@ -153,6 +155,7 @@ Pomocniczo: `/regent:status` (stan projektu), `/regent:explore` (analiza read-on
 | Aktualizacja zależności / security patch | `/regent:dependency-update` |
 | Zmienia się podejście, stack albo konwencja projektu | `/regent:revise` |
 | Wiedza biznesowa: po co system istnieje | `/regent:wiki` |
+| Skill pluginu zużywa za dużo tokenów albo czasu | `/regent:optimize` |
 
 ## Przepływ pracy
 
@@ -199,6 +202,7 @@ Skróty poza pełnym cyklem:
 | `/regent:status` | Przegląd stanu projektu |
 | `/regent:explore` | Analiza read-only bez commitów |
 | `/regent:wiki` | Wiki biznesowa w Obsidian (`ai/wiki/`) — poza cyklem SDD |
+| `/regent:optimize` | Pętla optymalizacji skilla (eval, keep/discard) — poza cyklem SDD, w repo pluginu |
 
 Definicja każdego skilla: `skills/<nazwa>/SKILL.md`.
 
@@ -264,6 +268,16 @@ i Zdrowie, szczegóły agenta i skok do jego panelu tmux. Teams włączasz **tyl
 (`.claude/settings.local.json`), bo zmieniają delegację: nazwany agent startuje jako członek
 zespołu, nie subagent. Szczegóły, koszt i ograniczenia: [docs/agent-teams.md](docs/agent-teams.md).
 
+## Optymalizacja skilli (opcjonalnie)
+
+`/regent:optimize <skill>` to pętla wzorowana na `karpathy/autoresearch`. W osobnym worktree zmienia
+jeden plik promptu skilla albo agenta, uruchamia stały zestaw evali z `evals/<skill>/` (`claude plugin
+eval` na syntetycznym projekcie testowym) i zachowuje zmianę tylko wtedy, gdy jakość nie spada,
+a koszt tokenów, czas albo długość promptu spadają ponad szum. O `keep`/`discard` decyduje
+`scripts/optimize-score.sh`, nie model. Na końcu sprawdza przypadki kontrolne (holdout) i daje raport;
+merge robi użytkownik. Działa w repo pluginu. Zestaw jest dziś dla `apply`. Szczegóły:
+[docs/optimize.md](docs/optimize.md).
+
 ## Konwencje
 
 - **Commity:** `<type>: (<KEY>) <opis>` — **jedna linia, max 100 znaków, bez body**. Długi opis =
@@ -295,5 +309,6 @@ Repo jest publiczne i zawiera wyłącznie plugin i jego dokumentację — bez da
 - [`docs/writing-docs.md`](docs/writing-docs.md) — `ai/docs/`, logowanie, observability
 - [`docs/tasks.md`](docs/tasks.md) — zadania `regent task`: instalacja, polecenia, mapa stanów, paczka
 - [`docs/agent-teams.md`](docs/agent-teams.md) — agent teams w tmux i `regent-watch`
+- [`docs/optimize.md`](docs/optimize.md) — `/regent:optimize`: pętla optymalizacji skilli, zestawy evali, metryka
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — jak dodać skill/agenta/szablon
 - [`docs/`](docs/README.md) — indeks całej dokumentacji (m.in. `statusline.md` — konfiguracja statusline)

@@ -190,6 +190,9 @@ forbid  skills/status/SKILL.md         'git rev-parse HEAD`\). Różnica'       
 require skills/explore/SKILL.md        'Jeden kandydat = jedna zmiana SDD'      "discovery tnie inicjatywę na zmiany propose → archive"
 require skills/explore/SKILL.md        'Kandydat 1 = walking skeleton'          "discovery zaczyna od przekroju end-to-end, nie od fundamentu"
 forbid  skills/explore/SKILL.md        'ai/product'                             "discovery bez żywego backlogu w ai/ — kandydaci 2..N do trackera"
+require skills/optimize/SKILL.md       'git worktree add'                       "pętla pracuje w worktree — plugin działa na żywo z klonu"
+require skills/optimize/SKILL.md       'holdout'                                "wynik sprawdza zestaw kontrolny, którego pętla nie widzi w trakcie"
+require skills/optimize/SKILL.md       'score decide'                           "o keep/discard decyduje skrypt, nie model"
 
 require docs/roadmap.md                 'git checkout 39445f1 --'                "rejestr decyzji podaje drogę przywrócenia usuniętych elementów"
 forbid  skills/init/SKILL.md           '"command": "f=.*git-guard\.sh'            "git-guard rejestruje plugin (hooks/hooks.json), nie wpis w projekcie"
