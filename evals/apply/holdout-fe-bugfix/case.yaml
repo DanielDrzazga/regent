@@ -1,0 +1,34 @@
+schema_version: "1.0"
+name: apply-holdout-fe-bugfix
+description: /regent:bugfix w UI — tytuł z HTML-em renderuje się jako znaczniki (frontend-dev, test regresji).
+tags: [apply, apply-holdout, apply-fe-holdout]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:bugfix tytuł notatki z HTML-em (np. <b>Zakupy</b>) wyświetla się na liście notatek jako znaczniki zamiast jako tekst"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+graders:
+  - name: deleguje-frontend-dev
+    type: tool_used
+    tool: Agent
+    input_match: "regent:frontend-dev"
+    min: 1
+    arm: both
+  - name: commit-fix
+    type: tool_used
+    tool: Bash
+    input_match: "git commit.*fix"
+    arm: both
+  - name: fix-escape
+    type: llm
+    focus: {source: file, path: web/note-list.js}
+    criteria: "PASS if renderNoteList passes every note title through escapeHtml (or equivalent HTML escaping) before inserting it into the HTML, so a title like '<b>x</b>' is shown as text. Otherwise FAIL."
+  - name: test-regresji
+    type: llm
+    focus: {source: file, path: test/web-note-list.test.js}
+    criteria: "PASS if the file contains a test that renders a note whose title contains HTML markup (for example <b> or <script>) and asserts that the output contains the escaped text (for example &lt;b&gt;) and not the raw tag. Otherwise FAIL."

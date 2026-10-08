@@ -1,0 +1,59 @@
+schema_version: "1.0"
+name: apply-train-fe-two
+description: Dwa niezależne taski [FE] (ui-search) — routing do frontend-dev, paczka, commit i ślad na task.
+tags: [apply, apply-train, apply-fe-train]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:apply ui-search"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+graders:
+  - name: deleguje-frontend-dev
+    type: tool_used
+    tool: Agent
+    input_match: "regent:frontend-dev"
+    min: 1
+    arm: both
+  - name: bez-backend-dev
+    type: tool_used
+    tool: Agent
+    input_match: "regent:backend-dev"
+    min: 0
+    max: 0
+    arm: both
+  - name: bez-sendmessage
+    type: tool_used
+    tool: SendMessage
+    min: 0
+    max: 0
+    arm: both
+  - name: paczka-z-cli
+    type: tool_used
+    tool: Bash
+    input_match: "task packet"
+    arm: both
+  - name: T-01-zamkniety
+    type: regex
+    target: {source: file, path: ai/changes/ui-search/tasks.md}
+    pattern: "- \\[x\\] T-01:.*commit: [0-9a-f]{7}"
+  - name: T-02-zamkniety
+    type: regex
+    target: {source: file, path: ai/changes/ui-search/tasks.md}
+    pattern: "- \\[x\\] T-02:.*commit: [0-9a-f]{7}"
+  - name: osobny-commit-na-task
+    type: regex
+    target: {source: file, path: ai/changes/ui-search/tasks.md}
+    pattern: "T-01:.*commit: ([0-9a-f]{7})[\\s\\S]*T-02:.*commit: (?!\\1)[0-9a-f]{7}"
+  - name: red-przed-green
+    type: regex
+    target: trace
+    pattern: "# fail [1-9][\\s\\S]*# fail 0"
+  - name: licznik-odmiana
+    type: llm
+    focus: {source: file, path: web/result-count.js}
+    criteria: "PASS if renderResultCount(n) returns an element with role=\"status\" whose text is 'Brak wyników' for 0, '1 notatka' for 1, 'N notatki' for numbers ending in 2-4 except 12-14 (e.g. 2, 3, 22), and 'N notatek' otherwise (e.g. 5, 12, 25). Otherwise FAIL."

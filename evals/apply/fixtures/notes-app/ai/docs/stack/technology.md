@@ -16,3 +16,10 @@
 | `make lint` | `node --check` wszystkich plików |
 | `make type-check` | n/d (JavaScript bez typów) |
 | `make check` | lint + type-check + test |
+
+## Frontend
+
+| Obszar | Wybór |
+|--------|-------|
+| UI | bez frameworka: komponenty w `web/` jako funkcje `(stan) → HTML` (string) — wzorzec w `ai/docs/patterns/frontend-patterns.md` |
+| Testy komponentów | `node:test`, pliki `test/web-<komponent>.test.js`, cel `make test-component PATTERN=<komponent>` |
