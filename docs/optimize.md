@@ -106,7 +106,7 @@ gitem, jak w prawdziwym projekcie.
 | `train-dependency` | `apply-train` | `(po T-01)`: dwie rundy, nowy subagent na rundę, bez `SendMessage` |
 | `train-tasks-filter` | `apply-train` | `--tasks 2`: tylko wskazany task, reszta nietknięta |
 | `holdout-db-be` | `apply-holdout` | `[DB]` do `regent:dba`, potem `[BE]` |
-| `holdout-no-cli` | `apply-holdout` | ścieżka bez CLI (`REGENT_NO_CLI=1`) |
+| `holdout-no-cli` | `apply-holdout` | ścieżka bez CLI (`EVAL_REGENT_NO_CLI=1`) |
 | `holdout-bugfix` | `apply-holdout` | `/regent:bugfix` na tym samym projekcie — chroni agenta `backend-dev`, którego używa 6 skilli |
 | `holdout-four-tasks` | `apply-holdout` | cztery taski z dwiema zależnościami |
 

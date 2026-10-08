@@ -1,6 +1,6 @@
 schema_version: "1.0"
 name: apply-holdout-no-cli
-description: Ścieżka bez CLI (REGENT_NO_CLI=1) — subagent czyta pliki zmiany, ślad w tasks.md ręcznie.
+description: Ścieżka bez CLI (EVAL_REGENT_NO_CLI=1) — subagent czyta pliki zmiany, ślad w tasks.md ręcznie.
 tags: [apply, apply-holdout]
 runs: 3
 context:
@@ -13,7 +13,7 @@ execution:
   allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill]
   append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
   env:
-    REGENT_NO_CLI: "1"
+    EVAL_REGENT_NO_CLI: "1"
 graders:
   - name: deleguje-backend-dev
     type: tool_used

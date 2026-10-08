@@ -153,7 +153,7 @@ w klonie zmieniałyby `apply` we wszystkich sesjach z terminala.
 - T2 wyrocznia `apply`:
   - `evals/apply/`: projekt `notes-app` (4 zmiany `Approved`, każda bez ERROR w `sdd-check.sh
     change`), 7 przypadków (3 `apply-train`, 4 `apply-holdout`);
-  - `REGENT_NO_CLI=1` w `regent.sh` do przypadku bez CLI, test w `regent.test.sh`.
+  - `EVAL_REGENT_NO_CLI=1` w `regent.sh` do przypadku bez CLI, test w `regent.test.sh`.
   - Pierwszy przebieg `train-two-tasks`: 87 s, 0,385 USD, 592 tys. tokenów (526 tys. to odczyt
     cache). Dwa oceniacze okazały się błędne:
     - sędzia haiku z nieostrym kryterium („osobnymi asercjami”) oblał poprawny plik; kryteria
