@@ -41,8 +41,9 @@ respektuj zależności `(po T-XX)`.
 ❗ Nie implementuj „w miejscu" w głównej sesji — **deleguj do subagenta po dokładnym `name`**.
 Inaczej modele z `agents/*.md` nie zostaną użyte.
 
-**Budżet:** S: 1 uruchomienie, M: 1-3, L: 3-6. Kilka tasków tej samej
-warstwy → **jedno uruchomienie agenta z listą tasków**, nie jedno na task.
+**Budżet:** S: 1 uruchomienie, M: 1-3, L: 3-6. Taski tej samej warstwy, które nie dzielą plików →
+**jedno uruchomienie agenta z listą tasków**; taski zmieniające te same pliki → osobne uruchomienia,
+po kolei, bo inaczej commitów nie da się rozdzielić.
 
 **Uruchomienie = nowy subagent.** Każda paczka idzie do nowego subagenta. Kolejnego taska ani
 rundy — także napraw po `/regent:verify` — nie wysyłaj przez `SendMessage` agentowi, który już
@@ -53,8 +54,7 @@ przed commitem.
 
 **Podział ról:** agent implementujący SAM uruchamia testy w pętli TDD (wąsko — tylko testy
 zmienianego modułu/komponentu). Commituje SESJA GŁÓWNA po każdym tasku, na podstawie
-raportu subagenta (pliki per task). Taski z listy zmieniają te same pliki, więc commitów nie da
-się rozdzielić → jeden task na uruchomienie (nowy subagent), nie task po tasku w jednym agencie.
+raportu subagenta (pliki per task).
 Jeśli raport zawiera `OPEN QUESTIONS` → zapytaj użytkownika i
 kontynuuj tego samego subagenta (resume po agentId) z odpowiedziami. Odpowiedź dopisz jako
 `DECYZJA` w `proposal.md` → `## Decyzje i założenia`.
