@@ -1,0 +1,34 @@
+schema_version: "1.0"
+name: verify-diag-ui-search
+description: Pomiar /regent:verify na zmianie ui-search po apply (UI z danymi użytkownika — code-reviewer, qa-engineer, security-auditor).
+tags: [verify, verify-diag]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:verify ui-search"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 2400
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+graders:
+  - name: verification-zapisany
+    type: regex
+    target: {source: file, path: ai/changes/ui-search/verification.md}
+    pattern: "Verdict: (PASS|FAIL)"
+  - name: deleguje-code-reviewer
+    type: tool_used
+    tool: Agent
+    input_match: "regent:code-reviewer"
+    arm: both
+  - name: deleguje-qa-engineer
+    type: tool_used
+    tool: Agent
+    input_match: "regent:qa-engineer"
+    arm: both
+  - name: deleguje-security-auditor
+    type: tool_used
+    tool: Agent
+    input_match: "regent:security-auditor"
+    arm: both
