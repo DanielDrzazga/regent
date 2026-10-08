@@ -1,0 +1,55 @@
+schema_version: "1.0"
+name: apply-holdout-db-be
+description: Task [DB] do regent:dba, potem [BE] (note-tags).
+tags: [apply, apply-holdout]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:apply note-tags"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+
+graders:
+  - name: deleguje-dba
+    type: tool_used
+    tool: Agent
+    input_match: "regent:dba"
+    min: 1
+    arm: both
+  - name: deleguje-backend-dev
+    type: tool_used
+    tool: Agent
+    input_match: "regent:backend-dev"
+    min: 1
+    arm: both
+  - name: bez-sendmessage
+    type: tool_used
+    tool: SendMessage
+    min: 0
+    max: 0
+    arm: both
+  - name: commit-na-task
+    type: tool_used
+    tool: Bash
+    input_match: "git commit"
+    min: 2
+    arm: both
+  - name: T-01-zamkniety
+    type: regex
+    target: {source: file, path: ai/changes/note-tags/tasks.md}
+    pattern: "- \\[x\\] T-01:.*commit: [0-9a-f]{7}"
+  - name: T-02-zamkniety
+    type: regex
+    target: {source: file, path: ai/changes/note-tags/tasks.md}
+    pattern: "- \\[x\\] T-02:.*commit: [0-9a-f]{7}"
+  - name: migracja-002
+    type: file_exists
+    path: migrations/002_create_note_tags.js
+  - name: tagi-kod
+    type: llm
+    focus: {source: file, path: src/tags.js}
+    criteria: "PASS if tagNote(db, noteId, tag) stores { noteId, tag } in db.tables.note_tags with the tag trimmed and lower-cased, does not add a duplicate for the same note and tag, and noteIdsWithTag(db, tag) returns the note ids for a tag regardless of letter case. Otherwise FAIL."

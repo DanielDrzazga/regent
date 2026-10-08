@@ -1,0 +1,50 @@
+schema_version: "1.0"
+name: apply-holdout-no-cli
+description: Ścieżka bez CLI (REGENT_NO_CLI=1) — subagent czyta pliki zmiany, ślad w tasks.md ręcznie.
+tags: [apply, apply-holdout]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:apply note-search"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+  env:
+    REGENT_NO_CLI: "1"
+graders:
+  - name: deleguje-backend-dev
+    type: tool_used
+    tool: Agent
+    input_match: "regent:backend-dev"
+    min: 1
+    arm: both
+  - name: bez-sendmessage
+    type: tool_used
+    tool: SendMessage
+    min: 0
+    max: 0
+    arm: both
+  - name: commit-na-task
+    type: tool_used
+    tool: Bash
+    input_match: "git commit"
+    min: 2
+    arm: both
+  - name: T-01-zamkniety
+    type: regex
+    target: {source: file, path: ai/changes/note-search/tasks.md}
+    pattern: "- \\[x\\] T-01:.*commit: [0-9a-f]{7}"
+  - name: T-02-zamkniety
+    type: regex
+    target: {source: file, path: ai/changes/note-search/tasks.md}
+    pattern: "- \\[x\\] T-02:.*commit: [0-9a-f]{7}"
+  - name: bez-paczki
+    type: tool_used
+    tool: Bash
+    input_match: "task packet"
+    min: 0
+    max: 0
+    arm: both

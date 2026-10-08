@@ -1,0 +1,35 @@
+schema_version: "1.0"
+name: apply-holdout-bugfix
+description: /regent:bugfix — tytuł z samych spacji zapisuje się zamiast EmptyTitleError (ochrona agenta backend-dev).
+tags: [apply, apply-holdout]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:bugfix notatka z tytułem z samych spacji zapisuje się, a według REQ-001/AC-2 powinna zwrócić EmptyTitleError"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+
+graders:
+  - name: deleguje-backend-dev
+    type: tool_used
+    tool: Agent
+    input_match: "regent:backend-dev"
+    min: 1
+    arm: both
+  - name: commit-fix
+    type: tool_used
+    tool: Bash
+    input_match: "git commit.*fix"
+    arm: both
+  - name: fix-kod
+    type: llm
+    focus: {source: file, path: src/notes.js}
+    criteria: "PASS if create() checks for an empty title after trimming whitespace, so a title made only of spaces throws EmptyTitleError, and a normal title is still stored trimmed. Otherwise FAIL."
+  - name: test-regresji
+    type: llm
+    focus: {source: file, path: test/notes.test.js}
+    criteria: "PASS if the file contains a test that creates a note whose title consists only of whitespace (for example '   ') and expects EmptyTitleError to be thrown. Otherwise FAIL."

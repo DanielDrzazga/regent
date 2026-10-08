@@ -1,0 +1,55 @@
+schema_version: "1.0"
+name: apply-train-two-tasks
+description: Dwa niezależne taski [BE] (note-search) — delegacja, paczka, commit i ślad na task.
+tags: [apply, apply-train]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:apply note-search"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+
+graders:
+  - name: deleguje-backend-dev
+    type: tool_used
+    tool: Agent
+    input_match: "regent:backend-dev"
+    min: 1
+    arm: both
+  - name: bez-sendmessage
+    type: tool_used
+    tool: SendMessage
+    min: 0
+    max: 0
+    arm: both
+  - name: paczka-z-cli
+    type: tool_used
+    tool: Bash
+    input_match: "task packet"
+    arm: both
+  - name: commit-na-task
+    type: tool_used
+    tool: Bash
+    input_match: "git commit"
+    min: 2
+    arm: both
+  - name: T-01-zamkniety
+    type: regex
+    target: {source: file, path: ai/changes/note-search/tasks.md}
+    pattern: "- \\[x\\] T-01:.*commit: [0-9a-f]{7}"
+  - name: T-02-zamkniety
+    type: regex
+    target: {source: file, path: ai/changes/note-search/tasks.md}
+    pattern: "- \\[x\\] T-02:.*commit: [0-9a-f]{7}"
+  - name: red-przed-green
+    type: regex
+    target: trace
+    pattern: "# fail [1-9][\\s\\S]*# fail 0"
+  - name: testy-search-ac
+    type: llm
+    focus: {source: file, path: test/search.test.js}
+    criteria: "PASS if the file contains node:test tests that together check: (a) a query matched in a note title regardless of letter case, (b) a query matched in a note body, (c) an empty or whitespace-only query returning all notes. The number of assertions and the order of tests do not matter. Otherwise FAIL."
