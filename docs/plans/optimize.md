@@ -255,3 +255,45 @@ w klonie zmieniałyby `apply` we wszystkich sesjach z terminala.
 - T8: trzy commity `keep` przeniesione na gałąź sesji, bramka zielona (lint, validate, 93 testy
   `tools/regent`), fast-forward do `main` (`b7833ec`). Na Macu zostaje
   `claude plugin marketplace update regent && claude plugin update regent@regent`. T9 (tydzień na żywo) i T10 (kolejne skille) są otwarte.
+
+## Przebieg (2026-10-08) — pętla FE (`--agent frontend-dev`, budżet 35 USD)
+
+- Zestaw: warstwa `web/` w `notes-app` (UI bez frameworka), `frontend-patterns.md`, trzy zmiany UI
+  i cztery przypadki. Tagi `apply-fe-train` i `apply-fe-holdout`; przypadki FE są też w ogólnych
+  `apply-train` i `apply-holdout`.
+- Pilot ×1 przeszedł bez poprawek oceniaczy (0,82 USD). Baseline:
+  - train ×3: `quality=1 cost=0.793 tokens=2386960 seconds=155 spread=0.08 tspread=0.18`;
+  - holdout ×3: `quality=1 cost=0.819`.
+- Diagnoza (przebieg z zachowanym śladem):
+  - subagent `frontend-dev` jest już oszczędny: 6 wywołań, odczyty równolegle, oba taski
+    w jednym uruchomieniu dzięki regule z pilota;
+  - sesja główna to ok. 2/3 tokenów; plik agenta to ok. 4% kosztu przebiegu;
+  - jedna oszczędzona tura sesji głównej to ok. 0,015 USD, czyli 3–4% — poniżej progu przy
+    2 przebiegach.
+
+  Zakres pętli rozszerzony o `apply/SKILL.md` (jeden plik na eksperyment). Ścieżkę BE chroni
+  końcowy holdout na wszystkich 6 przypadkach.
+- Eksperymenty:
+
+  | nr | status | zmiana | koszt | tokeny | czas |
+  |---|---|---|---|---|---|
+  | 0 | baseline | `07b5bfe` | 0,793 | 2,39 mln | 155 s |
+  | 1 | discard | `apply`: jedyny subagent rundy na pierwszym planie | 0,787 | 2,68 mln | 152 s |
+  | 2 | keep | `frontend-dev`: krótkie zasady zamiast listy zakazów, checklista bez powtórzeń TDD | 0,780 | 2,17 mln | 138 s |
+  | 3 | keep | `frontend-dev`: przenośność w jednym zdaniu | 0,734 | 1,53 mln | 148 s |
+  | 4 | discard | `apply`: kroki 0–2 jednym wywołaniem Bash | 0,796 | 2,41 mln | 157 s |
+
+  Po eksperymencie 4 zakończyłem pętlę. Zmiany sesji głównej dają po 3–4%, czyli mniej niż próg
+  szumu, więc kolejne eksperymenty zjadałyby budżet bez rozstrzygnięcia.
+- Holdout ×2 na wszystkich 6 przypadkach: **PASS**, `quality=1`, każdy przypadek 1,00. Na FE
+  koszt 0,819 → 0,770 USD (−6%), czas +3%.
+- Wynik train wobec baseline'u: koszt −7%, tokeny −36%, czas −5%, prompt −650 B, jakość 1,0.
+  Zmiany obejmują tylko `agents/frontend-dev.md` (+7/−16).
+- Koszt: 16,95 USD z budżetu 35:
+  - pilot 0,82;
+  - baseline'y 4,88;
+  - diagnoza 0,29;
+  - 4 eksperymenty 6,19;
+  - holdout 4,76.
+- Pętla `--agent dba` nie ruszała: to 2 z 28 subagentów, a ścieżkę `[DB]` sprawdza
+  `holdout-db-be` (1,00).
