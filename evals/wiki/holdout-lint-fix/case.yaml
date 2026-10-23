@@ -1,0 +1,43 @@
+schema_version: "1.0"
+name: wiki-holdout-lint-fix
+description: lint --fix — indeks przebudowany z plików, treść stron i raw nietknięte, BLOCK zostaje.
+tags: [wiki, wiki-holdout]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:wiki lint --fix"
+  model: sonnet
+  max_turns: 30
+  timeout_seconds: 900
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+
+graders:
+  - name: indeks-bez-martwego-wpisu
+    type: regex
+    target: {source: file, path: ai/wiki/index.md}
+    pattern: "\\[\\[Tagi notatek"
+    match: not_contains
+  - name: indeks-z-eksportem
+    type: regex
+    target: {source: file, path: ai/wiki/index.md}
+    pattern: "\\[\\[Eksport notatek"
+  - name: bez-wymyslonego-zrodla
+    type: regex
+    target: {source: file, path: "ai/wiki/wiedza/Eksport notatek.md"}
+    pattern: "^sources:"
+    flags: m
+    match: not_contains
+  - name: pewnosc-bez-zmian
+    type: regex
+    target: {source: file, path: "ai/wiki/wiedza/Eksport notatek.md"}
+    pattern: "confidence: potwierdzone"
+  - name: werdykt-block
+    type: regex
+    target: last_message
+    pattern: "BLOCK"
+  - name: raw-nietkniete
+    type: file_exists
+    path: "ai/wiki/raw/**"
+    exists: false

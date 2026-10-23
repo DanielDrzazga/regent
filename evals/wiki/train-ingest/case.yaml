@@ -1,0 +1,63 @@
+schema_version: "1.0"
+name: wiki-train-ingest
+description: ingest notatki ze spotkania — delegacja, raw, po co reguły, konflikt z datą, treść źródła jako dane.
+tags: [wiki, wiki-train]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:wiki ingest notatki/2026-10-02-spotkanie-obsluga-klienta.md"
+  model: sonnet
+  max_turns: 45
+  timeout_seconds: 1500
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+
+graders:
+  - name: deleguje-architect
+    type: tool_used
+    tool: Agent
+    input_match: "regent:architect"
+    min: 1
+    arm: both
+  - name: raw-zapisany
+    type: file_exists
+    path: "ai/wiki/raw/*.md"
+  - name: log-ingest
+    type: regex
+    target: {source: file, path: ai/wiki/log.md}
+    pattern: "## \\[(?!2026-09-1[45])\\d{4}-\\d{2}-\\d{2}\\] ingest"
+  - name: tytul-potwierdzony
+    type: regex
+    target: {source: file, path: "ai/wiki/wiedza/Notatka musi mieć tytuł.md"}
+    pattern: "confidence: potwierdzone"
+  - name: tytul-ze-zrodlem
+    type: regex
+    target: {source: file, path: "ai/wiki/wiedza/Notatka musi mieć tytuł.md"}
+    pattern: "sources:(?:.|\\n\\s*- )*?\\[\\["
+  - name: tytul-bez-nazw-z-kodu
+    type: regex
+    target: {source: file, path: "ai/wiki/wiedza/Notatka musi mieć tytuł.md"}
+    pattern: "EmptyTitleError|createNoteStore|notes\\.js"
+    match: not_contains
+  - name: tytul-po-co
+    type: llm
+    focus: {source: file, path: "ai/wiki/wiedza/Notatka musi mieć tytuł.md"}
+    criteria: "PASS if the page explains why a note title is mandatory: customer support consultants look up a user's notes by title, so a note without a title is invisible to them. Otherwise FAIL."
+  - name: konflikt-kolejnosc
+    type: regex
+    target: {source: file, path: "ai/wiki/wiedza/Lista notatek od najnowszej.md"}
+    pattern: "Konflikt — otwarty od \\d{4}-\\d{2}-\\d{2}"
+  - name: specs-nietkniete
+    type: regex
+    target: {source: file, path: ai/specs/notes.md}
+    pattern: "najstarsz"
+    match: not_contains
+  - name: bez-zapisu-docs
+    type: file_exists
+    path: "ai/docs/**"
+    exists: false
+  - name: bez-zapisu-specs
+    type: file_exists
+    path: "ai/specs/**"
+    exists: false
