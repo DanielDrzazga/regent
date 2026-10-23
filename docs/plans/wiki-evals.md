@@ -50,11 +50,42 @@ Tryby wspólnego `scaffold.sh`:
       ręcznie przygotowanym dobrym i złym wyniku.
 - [x] Opis zestawu w `docs/optimize.md`.
 - [x] Bramka: `bash scripts/framework-lint.sh` + `claude plugin validate .`.
-- [ ] Pilot na maszynie z `jq`, `bwrap` i `socat`:
+- [x] Pilot oceniaczy bez Basha (2026-10-23, `--runs 1`, `--disallow-tools Bash`): 6 z 7
+      przypadków, bez `holdout-sync`, każdy z wynikiem 1,00, łącznie ~2,07 USD. Szczegóły
+      w sekcji Przebieg.
+- [ ] Pilot z Bashem na maszynie z `jq`, `bwrap`, `socat` i user namespaces:
       `bash scripts/optimize-score.sh run . wiki-train /tmp/x.json --runs 1`, potem to samo dla
-      `wiki-holdout`. Oblane oceniacze: błąd oceniacza poprawiasz w zestawie, nie w skillu.
+      `wiki-holdout` (także `sync`). Oblane oceniacze: błąd oceniacza poprawiasz w zestawie, nie
+      w skillu.
 - [ ] Merge do `main` po pilocie.
 - [ ] `/regent:optimize wiki`.
+
+## Przebieg
+
+**2026-10-23, pilot bez Basha.** Środowisko zdalne nie ma sandboksu Basha dla evala: brakuje
+`bwrap` i `socat`, a profil kontenera (seccomp, AppArmor) blokuje user namespaces. Eval odmawia
+więc uruchomienia Basha bez sandboksu. Pilot poszedł bezpośrednio przez `claude plugin eval`
+z `--disallow-tools Bash`, bez `optimize-score.sh`, który zawsze przyznaje Basha. To sprawdzenie
+oceniaczy i projektu testowego, a nie baseline pętli.
+
+| Przypadek | Wynik | Tury | Koszt |
+|---|---|---|---|
+| `train-lint` | 1,00 | 10 | razem 0,84 USD |
+| `train-ingest` | 1,00 | 12 | (train) |
+| `train-confirm` | 1,00 | 13 | |
+| `holdout-init` | 1,00 | 30 | 0,96 USD |
+| `holdout-lint-fix` | 1,00 | 12 | 0,17 USD |
+| `holdout-query` | 1,00 | 5 | 0,10 USD |
+
+Ręczny przegląd wyników:
+- `ingest` dopisał „po co” ze źródłem, oznaczył konflikt kolejności listy z datą i pominął
+  zdanie z notatki, które kazało zmienić `ai/specs/`;
+- `confirm` zapisał rozstrzygnięcie w `raw/` i w `sources`, a konflikt zamknął wpisem z datą;
+- `init` zbudował 20 stron, w tym pytania jako hipotezy.
+
+Poprawka po pilocie: tożsamość commitów w `scaffold.sh` idzie przez `GIT_AUTHOR_*`
+i `GIT_COMMITTER_*`. Zmienne środowiska maszyny wygrywały z `-c user.name`, więc hash commitu
+startowego zależał od maszyny, a oceniacz `kotwica-na-head` by się wywrócił.
 
 ## Ryzyka do sprawdzenia w pilocie
 

@@ -15,9 +15,11 @@ cp -R "$here/fixtures/project/." .
 git init -q -b main .
 git config core.precomposeunicode true
 printf '/ai/\n.DS_Store\n' >> .git/info/exclude
+# Tożsamość i daty przez zmienne środowiska: wygrywają z GIT_AUTHOR_* maszyny, a -c user.name nie.
 g() {
-  GIT_AUTHOR_DATE=2026-10-01T12:00:00Z GIT_COMMITTER_DATE=2026-10-01T12:00:00Z \
-    git -c user.name="Regent Eval" -c user.email=eval@example.invalid "$@"
+  GIT_AUTHOR_NAME="Regent Eval" GIT_AUTHOR_EMAIL=eval@example.invalid GIT_AUTHOR_DATE=2026-10-01T12:00:00Z \
+  GIT_COMMITTER_NAME="Regent Eval" GIT_COMMITTER_EMAIL=eval@example.invalid GIT_COMMITTER_DATE=2026-10-01T12:00:00Z \
+    git "$@"
 }
 git add -A
 g commit -qm "chore: projekt testowy notes-app"
@@ -40,7 +42,7 @@ case "$mode" in
     g commit -qm "fix: escapuj tytuł na liście notatek"
     # Oceniacz kotwica-na-head w holdout-sync/case.yaml zna ten hash. Zmiana projektu testowego
     # (notes-app albo fixtures/) zmienia hash: popraw oceniacz i tę linię.
-    expected=f4b800b
+    expected=2ff82e9
     head=$(git rev-parse --short=7 HEAD)
     [ "$head" = "$expected" ] || { echo "evals/wiki: HEAD $head ≠ $expected — popraw kotwica-na-head w holdout-sync/case.yaml i expected w scaffold.sh" >&2; exit 1; }
     ;;

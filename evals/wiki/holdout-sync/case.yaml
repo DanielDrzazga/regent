@@ -26,7 +26,7 @@ graders:
   - name: kotwica-na-head
     type: regex
     target: {source: file, path: ai/wiki/Home.md}
-    pattern: "last-sync-sha: f4b800b"
+    pattern: "last-sync-sha: 2ff82e9"
   - name: log-sync
     type: regex
     target: {source: file, path: ai/wiki/log.md}
