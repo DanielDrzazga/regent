@@ -31,7 +31,10 @@ Merge robisz Ty, zwykłą ścieżką repo: bramka, smoke, `main`.
 - Claude Code z `claude plugin eval`;
 - `jq`;
 - na Linuksie `bubblewrap` i `socat`, bo eval uruchamia Bash tylko w sandboksie (macOS ma
-  sandbox wbudowany);
+  sandbox wbudowany). Kontener bez user namespaces (np. Docker z domyślnym seccomp) sandboksu
+  nie uruchomi. Wtedy `optimize-score.sh run … --no-bash` odbiera przypadkom Basha. Takie
+  wyniki porównujesz tylko z baseline'em zrobionym też z `--no-bash`, a kroków skilla opartych
+  na Bashu (np. `git log` w `wiki sync`) taki eval nie ocenia;
 - dla `apply` zbudowane CLI `tools/regent` (pętla kopiuje `dist` do worktree).
 
 ## Jak to działa
