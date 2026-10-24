@@ -53,10 +53,10 @@ Tryby wspólnego `scaffold.sh`:
 - [x] Pilot oceniaczy bez Basha (2026-10-23, `--runs 1`, `--disallow-tools Bash`): 6 z 7
       przypadków, bez `holdout-sync`, każdy z wynikiem 1,00, łącznie ~2,07 USD. Szczegóły
       w sekcji Przebieg.
-- [ ] Pilot z Bashem na maszynie z `jq`, `bwrap`, `socat` i user namespaces:
-      `bash scripts/optimize-score.sh run . wiki-train /tmp/x.json --runs 1`, potem to samo dla
-      `wiki-holdout` (także `sync`). Oblane oceniacze: błąd oceniacza poprawiasz w zestawie, nie
-      w skillu.
+- [x] Pilot z Bashem (2026-10-24, `optimize-score.sh run … --runs 1`): `wiki-train` 3 z 3
+      i `wiki-holdout` 4 z 4 na 1,00, łącznie 2,26 USD (plus powtórka `sync` 0,14 USD). Żaden oceniacz nie oblał.
+      `holdout-sync` nie jest jednak sprawdzony: eval blokuje `git` w sandboksie (sekcja Przebieg).
+- [ ] `holdout-sync` z działającym `git` w sandboksie evala, `--runs 3`: każdy przebieg 1,00.
 - [ ] Merge do `main` po pilocie.
 - [ ] `/regent:optimize wiki`.
 
@@ -86,6 +86,27 @@ Ręczny przegląd wyników:
 Poprawka po pilocie: tożsamość commitów w `scaffold.sh` idzie przez `GIT_AUTHOR_*`
 i `GIT_COMMITTER_*`. Zmienne środowiska maszyny wygrywały z `-c user.name`, więc hash commitu
 startowego zależał od maszyny, a oceniacz `kotwica-na-head` by się wywrócił.
+
+**2026-10-24, pilot z Bashem.** `jq`, `bwrap` i `socat` z pakietów Alpine rozpakowane do katalogu
+użytkownika (bez roota), user namespaces działają, sandbox Basha w evalu startuje.
+
+| Zestaw | quality | cost | tokens | seconds |
+|---|---|---|---|---|
+| `wiki-train` | 1,00 | 0,925 USD | 1,17 mln | 188 |
+| `wiki-holdout` | 1,00 | 1,333 USD | 1,83 mln | 295 |
+
+Koszt per przypadek: `confirm` 0,18, `ingest` 0,57, `lint` 0,17, `init` 0,86, `lint-fix` 0,20,
+`query` 0,11, `sync` 0,16 USD.
+
+`holdout-sync` nie jest w tym środowisku miarodajny. Eval dopisuje `/usr/bin/git` do
+`sandbox.credentials.files` z `mode: deny`. Prawdopodobnie przez `credential.helper` w
+`/etc/gitconfig` kontenera, ale `GIT_CONFIG_NOSYSTEM=1` tego nie zmienia. Każde wywołanie `git`
+w sandboksie kończy się `Permission denied`. Pierwszy przebieg dał 1,00, bo agent wziął hash HEAD
+z migawki `git status` w prompcie systemowym i przesunął kotwicę bez listy zmienionych plików.
+Powtórka dała 0,6: agent odmówił przesunięcia kotwicy bez gita (zgodnie ze skillem) i oblał
+`kotwica-na-head` oraz `log-sync`. To błąd środowiska, nie oceniacza ani skilla, więc zestaw
+zostaje bez zmian. Na maszynie, na której eval blokuje `git`, `holdout-sync` waha się między 0,6
+a 1,0 i rozregulowuje bramkę holdout w `/regent:optimize wiki`.
 
 ## Ryzyka do sprawdzenia w pilocie
 
