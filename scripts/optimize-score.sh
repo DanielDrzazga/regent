@@ -8,6 +8,7 @@
 #       --budget USD        twardy limit kosztu przebiegu evala (--max-cost-usd)
 #       -j N                przypadki równolegle (domyślnie 2)
 #       --files a,b         pliki kandydata (ścieżki względem pluginu) — do pola prompt=
+#       --no-bash           bez Basha (--disallow-tools Bash): maszyna bez sandboksu (bwrap)
 #   optimize-score.sh score <wynik.json> [--plugin <katalog>] [--files a,b] [--keep-traces]
 #                                                                          linia z gotowego JSON-a
 #   optimize-score.sh decide <linia-najlepsza> <linia-kandydat> [--noise 0.05] [--tnoise <próg czasu>]
@@ -37,7 +38,7 @@
 
 set -u
 
-usage() { sed -n '2,32p' "$0" | sed -E 's/^# ?//'; exit 2; }
+usage() { sed -n '2,33p' "$0" | sed -E 's/^# ?//'; exit 2; }
 die() { echo "optimize-score.sh: $*" >&2; exit 2; }
 command -v jq >/dev/null || die "brak jq (brew install jq / apt install jq)"
 
@@ -159,20 +160,22 @@ case "$cmd" in
   run)
     [ $# -ge 3 ] || usage
     plugin=$1; tag=$2; out=$3; shift 3
-    runs=""; budget=""; jobs=2; files=""
+    runs=""; budget=""; jobs=2; files=""; tools="Bash Write Edit"; nobash=0
     while [ $# -gt 0 ]; do
       case "$1" in
         --runs) runs=$2; shift 2 ;;
         --budget) budget=$2; shift 2 ;;
         -j) jobs=$2; shift 2 ;;
         --files) files=$2; shift 2 ;;
+        --no-bash) tools="Write Edit"; nobash=1; shift ;;
         *) die "nieznana opcja: $1" ;;
       esac
     done
     [ -d "$plugin/evals" ] || die "brak $plugin/evals"
     set -- plugin eval "$plugin" --eval-dir evals --tag "$tag" --ablation none --scaffold \
-      --trust-plugin --allow-tools Bash Write Edit --no-publish --keep-temp --json "$out" -j "$jobs" \
+      --trust-plugin --allow-tools $tools --no-publish --keep-temp --json "$out" -j "$jobs" \
       --threshold 0
+    [ "$nobash" = 1 ] && set -- "$@" --disallow-tools Bash
     [ -n "$runs" ] && set -- "$@" --runs "$runs"
     [ -n "$budget" ] && set -- "$@" --max-cost-usd "$budget"
     claude "$@" > "$out.log" 2>&1

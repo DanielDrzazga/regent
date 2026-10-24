@@ -1,0 +1,32 @@
+schema_version: "1.0"
+name: wiki-train-lint
+description: lint na vaulcie z podrzuconymi błędami — werdykt BLOCK, oba błędy wskazane, bez zapisu.
+tags: [wiki, wiki-train]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:wiki lint"
+  model: sonnet
+  max_turns: 30
+  timeout_seconds: 900
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+
+graders:
+  - name: werdykt-block
+    type: regex
+    target: last_message
+    pattern: "BLOCK"
+  - name: wskazuje-potwierdzone-bez-zrodla
+    type: regex
+    target: last_message
+    pattern: "Eksport notatek"
+  - name: wskazuje-wpis-bez-pliku
+    type: regex
+    target: last_message
+    pattern: "Tagi notatek"
+  - name: lint-bez-zapisu
+    type: file_exists
+    path: "ai/wiki/**"
+    exists: false

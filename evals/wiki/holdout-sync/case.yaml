@@ -1,0 +1,37 @@
+schema_version: "1.0"
+name: wiki-holdout-sync
+description: sync po dwóch commitach — pyta o strony obszaru src/, kotwica na HEAD, strony nietknięte.
+tags: [wiki, wiki-holdout]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:wiki sync"
+  model: sonnet
+  max_turns: 30
+  timeout_seconds: 900
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+
+graders:
+  - name: strony-obszaru-src
+    type: regex
+    target: last_message
+    pattern: "Limit długości tytułu|Notatka musi mieć tytuł|Lista notatek od najnowszej"
+  - name: proponuje-ingest
+    type: regex
+    target: last_message
+    pattern: "ingest"
+  # Hash HEAD po scaffoldzie (stałe daty commitów) — scaffold.sh sprawdza go w trybie sync.
+  - name: kotwica-na-head
+    type: regex
+    target: {source: file, path: ai/wiki/Home.md}
+    pattern: "last-sync-sha: 2ff82e9"
+  - name: log-sync
+    type: regex
+    target: {source: file, path: ai/wiki/log.md}
+    pattern: "## \\[\\d{4}-\\d{2}-\\d{2}\\] sync"
+  - name: strony-nietkniete
+    type: file_exists
+    path: "ai/wiki/wiedza/**"
+    exists: false

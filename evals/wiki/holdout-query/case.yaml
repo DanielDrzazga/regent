@@ -1,0 +1,41 @@
+schema_version: "1.0"
+name: wiki-holdout-query
+description: query z odpowiedzią na jednej stronie — cytat [[strona]], tylko z wiki (bez raw i kodu), bez odkładania.
+tags: [wiki, wiki-holdout]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:wiki query dlaczego archiwizujemy notatki zamiast je usuwać"
+  model: sonnet
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+
+graders:
+  - name: cytuje-strone
+    type: regex
+    target: last_message
+    pattern: "\\[\\[Archiwizacja zamiast usuwania"
+  - name: odpowiedz
+    type: llm
+    criteria: "PASS if the answer says notes are archived instead of deleted because a customer support consultant must be able to restore a note at the user's request for up to 2 years. Otherwise FAIL."
+  - name: bez-raw
+    type: tool_used
+    tool: Read
+    input_match: "ai/wiki/raw/"
+    min: 0
+    max: 0
+    arm: both
+  - name: bez-kodu
+    type: tool_used
+    tool: Read
+    input_match: "/(src|web)/"
+    min: 0
+    max: 0
+    arm: both
+  - name: bez-zapisu
+    type: file_exists
+    path: "ai/wiki/**"
+    exists: false

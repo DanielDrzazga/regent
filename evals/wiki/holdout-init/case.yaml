@@ -1,0 +1,58 @@
+schema_version: "1.0"
+name: wiki-holdout-init
+description: init bez vaulta — jedno uruchomienie architect, szkielet vaulta z kotwicą sync, bez nazw z kodu w indeksie.
+tags: [wiki, wiki-holdout]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:wiki init"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 2400
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+
+graders:
+  - name: deleguje-architect-raz
+    type: tool_used
+    tool: Agent
+    input_match: "regent:architect"
+    min: 1
+    max: 1
+    arm: both
+  - name: strony-wiedzy
+    type: file_exists
+    path: "ai/wiki/wiedza/*.md"
+  - name: obsidian
+    type: file_exists
+    path: "ai/wiki/.obsidian/*.json"
+  - name: kotwica-sync
+    type: regex
+    target: {source: file, path: ai/wiki/Home.md}
+    pattern: "last-sync-sha: [0-9a-f]{7}"
+  - name: log-init
+    type: regex
+    target: {source: file, path: ai/wiki/log.md}
+    pattern: "## \\[\\d{4}-\\d{2}-\\d{2}\\] init"
+  - name: indeks-ma-notatke
+    type: regex
+    target: {source: file, path: ai/wiki/index.md}
+    pattern: "\\[\\[Notatka"
+  - name: indeks-bez-nazw-z-kodu
+    type: regex
+    target: {source: file, path: ai/wiki/index.md}
+    pattern: "createNoteStore|EmptyTitleError|renderNoteList|\\.js\\b"
+    match: not_contains
+  - name: raport-obsidian
+    type: regex
+    target: last_message
+    pattern: "Obsidian"
+  - name: bez-zapisu-docs
+    type: file_exists
+    path: "ai/docs/**"
+    exists: false
+  - name: bez-zapisu-specs
+    type: file_exists
+    path: "ai/specs/**"
+    exists: false

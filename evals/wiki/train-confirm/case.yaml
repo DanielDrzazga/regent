@@ -1,0 +1,40 @@
+schema_version: "1.0"
+name: wiki-train-confirm
+description: confirm hipotezy z konfliktem — potwierdzone, rozstrzygnięcie w treści i w raw, konflikt zamknięty.
+tags: [wiki, wiki-train]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:wiki confirm \"Limit długości tytułu\""
+  model: sonnet
+  max_turns: 30
+  timeout_seconds: 900
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe. Gdy skill pyta o rozstrzygnięcie, użytkownik odpowiada: „To twardy limit: tytuł po przycięciu białych znaków ma najwyżej 80 znaków, dłuższy jest odrzucany. Ustaliliśmy to z obsługą klienta 2026-10-05, bo dłuższy tytuł nie mieści się w widoku listy.”"
+
+graders:
+  - name: potwierdzone
+    type: regex
+    target: {source: file, path: "ai/wiki/wiedza/Limit długości tytułu.md"}
+    pattern: "confidence: potwierdzone"
+  - name: konflikt-zamkniety
+    type: regex
+    target: {source: file, path: "ai/wiki/wiedza/Limit długości tytułu.md"}
+    pattern: "Konflikt — otwarty od"
+    match: not_contains
+  - name: nowe-zrodlo
+    type: regex
+    target: {source: file, path: "ai/wiki/wiedza/Limit długości tytułu.md"}
+    pattern: "sources:(?:.|\\n\\s*- )*?\\[\\[(?!2026-09-15 Spotkanie o archiwizacji\\]\\])"
+  - name: raw-rozstrzygniecie
+    type: file_exists
+    path: "ai/wiki/raw/*.md"
+  - name: log-confirm
+    type: regex
+    target: {source: file, path: ai/wiki/log.md}
+    pattern: "## \\[\\d{4}-\\d{2}-\\d{2}\\] confirm"
+  - name: rozstrzygniecie-w-tresci
+    type: llm
+    focus: {source: file, path: "ai/wiki/wiedza/Limit długości tytułu.md"}
+    criteria: "PASS if the page states that 80 characters is a hard limit: a note title longer than 80 characters (counted after trimming whitespace) is rejected, and the page no longer presents this as an open question. Otherwise FAIL."
