@@ -6,7 +6,7 @@
 
 ## Cel
 
-Framework SDD działa na tym Macu wyłącznie z pluginu `regent` (zakres `user`): stare SDD znika
+Framework SDD działa na maszynie migracji wyłącznie z pluginu `regent` (zakres `user`): stare SDD znika
 z `~/.claude`, statusline idzie z danych pluginu, stare repo `claude-sdd-framework` jest
 zamrożone z odnośnikiem, a dla pozostałych maszyn jest checklista.
 
@@ -14,11 +14,11 @@ zamrożone z odnośnikiem, a dla pozostałych maszyn jest checklista.
 
 | Decyzja | Wartość |
 |---|---|
-| Ten Mac | mieszany — projekty prywatne i z pracy etatowej; plugin w zakresie `user` obejmie też projekty z pracy (tak jak dziś `~/.claude`) |
+| Maszyna migracji | mieszana — projekty prywatne i z pracy etatowej; plugin w zakresie `user` obejmie też projekty z pracy (tak jak dziś `~/.claude`) |
 | Zamrożenie | commit z odnośnikiem w README starego repo, wypchnięty na GitHub i na firmowy GitLab; working tree `~/.claude` (niezacommitowany `statusline.sh`, nieśledzone `session-tokens.sh` i `docs/announcements/`) nie trafia do tego commita |
 | Wywołanie skilli | 17 skilli z `disable-model-invocation: true` (opisy poza kontekstem, uruchamia tylko użytkownik); model może sam wywołać wyłącznie `/regent:status` |
 | Atrybucja | `attribution.pr: ""` w `~/.claude/settings.json` — zakaz atrybucji obejmuje też opisy PR |
-| Wizja | poza repo (repo jest publiczne): `~/_Private/regent-notes/vision.md`, tylko na tym Macu |
+| Wizja | poza repo (repo jest publiczne): `~/_Private/regent-notes/vision.md`, nie w każdym środowisku |
 
 ## Taski
 
@@ -31,7 +31,7 @@ W repo `regent` (gałąź):
 - [x] T3: bramka (lint w obu bashach + `claude plugin validate .`), merge do `main`, push —
   instalacja w T6 bierze plugin z `main`
 
-Na tym Macu (każdy krok usuwający — po potwierdzeniu):
+Lokalnie (każdy krok usuwający — po potwierdzeniu):
 
 - [x] T4: kopia zapasowa SDD z `~/.claude` do `~/_Private/regent-notes/claude-home-sdd-2026-09-28.tar.gz`:
   `agents/`, `commands/`, `templates/`, `scripts/`, `docs/` (z `announcements/`), `README.md`,
@@ -56,8 +56,8 @@ Na tym Macu (każdy krok usuwający — po potwierdzeniu):
 
 ## Poza zakresem
 
-Instalacja na Fedorze, TrueNAS i Windows (checklista z T2 — wykonuje użytkownik albo sesja na tamtej
-maszynie), instalacja na PC firmowym (decyzja użytkownika i polityka firmy), synchronizacja wizji
+Instalacja na pozostałych maszynach (checklista z T2 — wykonuje użytkownik albo sesja na tamtej
+maszynie), instalacja na sprzęcie firmowym (decyzja użytkownika i polityka firmy), synchronizacja wizji
 między maszynami, pełne usunięcie starych commitów z GitHuba (usunięcie i ponowne założenie repo
 albo zgłoszenie do GitHub Support — decyzja użytkownika).
 
@@ -68,7 +68,7 @@ albo zgłoszenie do GitHub Support — decyzja użytkownika).
 - **Nieodwracalność T8** — kopia z T4; stare repo zostaje na GitHubie i GitLabie.
 - **Bieżąca sesja** — ma w kontekście stary `CLAUDE.md` i komendy `-sdd` do końca; zmiany widać
   dopiero w nowej sesji.
-- **Projekty z pracy na tym Macu** — dostają kontekst i git-guard z pluginu tak jak dziś z `~/.claude`;
+- **Projekty z pracy na maszynie mieszanej** — dostają kontekst i git-guard z pluginu tak jak dziś z `~/.claude`;
   treść z tych projektów nie trafia do repo `regent` (`.claude/rules/privacy.md`).
 
 ## Przebieg (2026-09-28) — zmiana decyzji w trakcie
@@ -91,7 +91,7 @@ W trakcie T5 użytkownik zdecydował: **„nic nie usuwaj repo z SDD"**. Nowy st
 - Źródło prawdy dla dalszych zmian frameworka: **`regent`** (decyzja użytkownika). `~/.claude`
   zostaje bez zmian i nie dostaje nowych poprawek.
 
-## Przebieg (2026-09-30) — Regent we wszystkich projektach na Macu
+## Przebieg (2026-09-30) — Regent we wszystkich projektach
 
 Użytkownik chce testować Regenta wszędzie, nie w jednym projekcie. T8 wraca w wersji odwracalnej:
 przeniesienie zamiast usunięcia, bez marketplace.
@@ -101,7 +101,7 @@ przeniesienie zamiast usunięcia, bez marketplace.
   `~/.claude/sdd-wylaczone-2026-09-30/`. Zostają `scripts/` (statusline i wpis git-guard
   w `external-communication-service`), `templates/`, `docs/`, `.git` i `skills/` spoza SDD.
 - Plugin we wszystkich sesjach z terminala: alias `claude --plugin-dir "$HOME/_Private/regent"`
-  w `~/.zshrc`. Sesje spoza zsh (aplikacja desktopowa, IDE bez terminala) nie mają frameworka.
+  w konfiguracji powłoki. Sesje spoza terminala (aplikacja desktopowa, IDE bez terminala) nie mają frameworka.
 - Weryfikacja nowej sesji (`claude -p`, Haiku) w projekcie SDD: `-sdd` nie ma, widać `/regent:*`,
   „Twoja rola” raz, „Kontrakt `make`” z prefiksem `regent:`, bez `~/.claude/CLAUDE.md`; hook
   pluginu zapisał sync zadań (źródło `hook`).

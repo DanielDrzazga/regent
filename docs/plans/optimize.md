@@ -93,7 +93,7 @@ w klonie zmieniałyby `apply` we wszystkich sesjach z terminala.
   - regresje w lincie, np. `require` „worktree” i „holdout”
 - [x] T6: `docs/optimize.md`: jak używać i jak dopisać zestaw evali dla innego skilla; wpis w `docs/README.md`
 - [x] T7: bramka (`framework-lint.sh`, `claude plugin validate .`) i smoke: `/regent:optimize apply --limit 2`
-- [x] T8 (pilot i merge do `main` 2026-10-08; aktualizacja marketplace na Macu po Twojej stronie): pilot:
+- [x] T8 (pilot i merge do `main` 2026-10-08; aktualizacja lokalnego marketplace po Twojej stronie): pilot:
   - `/regent:optimize apply --agent backend-dev`, 10–20 eksperymentów;
   - przegląd tsv i diffu, holdout zielony;
   - bramka + smoke, merge, potem `claude plugin marketplace update regent && claude plugin update regent@regent`
@@ -253,7 +253,7 @@ w klonie zmieniałyby `apply` we wszystkich sesjach z terminala.
   i `sdd-map.md` (~3,5 tys. tokenów zapisu do cache na subagenta). Mapa skilli jest zbędna agentom
   implementującym, a ich zakres zmienia wszystkie skille, więc decyzja idzie zwykłą ścieżką.
 - T8: trzy commity `keep` przeniesione na gałąź sesji, bramka zielona (lint, validate, 93 testy
-  `tools/regent`), fast-forward do `main` (`b7833ec`). Na Macu zostaje
+  `tools/regent`), fast-forward do `main` (`b7833ec`). Tam, gdzie plugin idzie z lokalnego marketplace, zostaje
   `claude plugin marketplace update regent && claude plugin update regent@regent`. T9 (tydzień na żywo) i T10 (kolejne skille) są otwarte.
 
 ## Przebieg (2026-10-08) — pętla FE (`--agent frontend-dev`, budżet 35 USD)

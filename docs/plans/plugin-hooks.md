@@ -53,7 +53,7 @@ starego frameworka robi zmiana 3.
 
 ## Poza zakresem (zmiana 3: `retire-home-sdd`)
 
-Włączenie pluginu w zakresie `user` na każdej maszynie (w tym Fedora), usunięcie SDD z `~/.claude`
+Włączenie pluginu w zakresie `user` na każdej maszynie, usunięcie SDD z `~/.claude`
 (agents, commands, templates, scripts, reguły SDD i „Twoja rola" z `CLAUDE.md`), przełączenie
 `statusLine`, sprzątanie wpisów git-guard wskazujących `$HOME/.claude/…` w projektach,
 zamrożenie `claude-sdd-framework` z odnośnikiem, decyzja o `disable-model-invocation` dla skilli.

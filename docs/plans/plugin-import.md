@@ -90,7 +90,7 @@ instalacja pluginu). Poza zakresem tej zmiany: wpis hooka git-guard w `init` Kro
 
 Hooki pluginu (git-guard, SessionStart z `context/`), statusline (błąd `stat -f` na GNU,
 rejestracja poza pluginem), integracja `session-tokens.sh`, decyzja o `disable-model-invocation`,
-instalacja na Fedorze, usunięcie SDD z `~/.claude`, sprzątanie wpisów git-guard w projektach,
+instalacja na innych maszynach, usunięcie SDD z `~/.claude`, sprzątanie wpisów git-guard w projektach,
 zamrożenie `claude-sdd-framework`, usunięcie lokalnego `.claude/settings.local.json`.
 
 ## Ryzyka

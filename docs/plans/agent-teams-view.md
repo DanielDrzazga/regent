@@ -167,6 +167,6 @@ włączanie agent teams w projektach z pracy, publikacja pluginu.
 - **Koszt** — każdy członek zespołu ma własny kontekst; spike i smoke na Haiku, z małym zespołem.
 - **Delegacja SDD w projekcie z włączonymi teams** — nazwany agent (`regent:architect`) startuje jako
   członek zespołu, a nie subagent; dlatego teams tylko w wybranym projekcie.
-- **Prywatność** — transkrypty mogą zawierać treść z projektów z pracy (Mac mieszany): widok tylko
+- **Prywatność** — transkrypty mogą zawierać treść z projektów z pracy (maszyna mieszana): widok tylko
   czyta lokalnie, niczego nie zapisuje ani nie wysyła; do repo trafiają wyłącznie syntetyczne fixture'y.
 - **Windows** — split-pane nie działa w Windows Terminal; widok Ink zadziała, panele nie.
