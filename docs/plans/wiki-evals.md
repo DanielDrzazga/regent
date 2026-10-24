@@ -57,7 +57,7 @@ Tryby wspólnego `scaffold.sh`:
       i `wiki-holdout` 4 z 4 na 1,00, łącznie 2,26 USD (plus powtórka `sync` 0,14 USD). Żaden oceniacz nie oblał.
       `holdout-sync` nie jest jednak sprawdzony: eval blokuje `git` w sandboksie (sekcja Przebieg).
 - [ ] `holdout-sync` z działającym `git` w sandboksie evala, `--runs 3`: każdy przebieg 1,00.
-- [ ] Merge do `main` po pilocie.
+- [x] Merge do `main` po pilocie (2026-10-24).
 - [ ] `/regent:optimize wiki`.
 
 ## Przebieg
