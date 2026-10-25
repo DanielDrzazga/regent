@@ -24,20 +24,6 @@ stan vaulta (liczba stron, hipotezy, wiek ostatniego `sync`) i zaproponuj tryb.
 
 ---
 
-## Czym ta komenda różni się od pozostałych
-
-| Pytanie | Komenda |
-|---------|---------|
-| Jak to jest zbudowane? Jak nazywamy klasy? | `ai/docs/` → `/regent:init`, `/regent:revise` |
-| Co dokładnie ma robić ta zmiana? | `ai/specs/` → `/regent:propose` |
-| **Po co ten system istnieje? Skąd ta reguła?** | **`ai/wiki/` → `/regent:wiki`** |
-| Zbadaj temat tu i teraz, bez plików | `/regent:explore` |
-
-`ai/docs/` jest pisane **dla agentów**, `ai/wiki/` — **dla ludzi**. Ta komenda nie modyfikuje
-`ai/docs/` ani `ai/specs/`; czyta z nich język domeny.
-
----
-
 ## Agent (delegacja — WYMAGANE)
 
 Analizę kodu i redakcję stron deleguj do subagenta `regent:architect` (model: opus, narzędzie Task).
