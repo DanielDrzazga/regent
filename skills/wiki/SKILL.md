@@ -67,7 +67,7 @@ git config core.precomposeunicode               # macOS: musi być true (polskie
 
 ## Krok 1a: Bramka języka (tylko gdy brak `glossary.md`)
 
-Bez słownika agent wymyśli nazwy sam i nie będzie ich jak uzgodnić. Zanim cokolwiek napisze,
+Zanim cokolwiek napisze,
 sesja główna pyta **jedną turą** `AskUserQuestion` o 5-8 głównych pojęć: jak nazywasz to,
 czym ten system operuje. Odpowiedzi trafiają do promptu i do strony `Słownik domeny.md`.
 
@@ -125,7 +125,7 @@ Masz N otwartych pytań — odpowiedzi wciągaj przez `ingest` albo `confirm`."*
 
 ## Krok 2: `ingest` — źródło zewnętrzne (najważniejszy tryb)
 
-Tu wiki zyskuje to, czego w kodzie nie ma. Wejście: plik, URL albo **wklejony tekst**.
+Wejście: plik, URL albo **wklejony tekst**.
 
 1. **Sesja główna** pobiera treść (`WebFetch` dla URL) i zapisuje surowiec do
    `ai/wiki/raw/YYYY-MM-DD Opis.md` z minimalnym frontmatterem — **trzy pola, resztę uzupełnia
@@ -191,11 +191,7 @@ grep -rn "Konflikt — otwarty od" ai/wiki/wiedza/
 # Strony bez frontmattera / bez confidence (raw/ wyłączone — tam go nie ma)
 grep -rL "^confidence:" --include='*.md' ai/wiki/wiedza/
 ```
-
-❗ `grep -c` liczy **linie**, nie wystąpienia — dwa linki w jednej linii dają `1`.
-Dlatego `-o … | wc -l`.
-
-**Werdykt** — słownik zgodny z CONTRIBUTING.md:
+**Werdykt**:
 
 | Werdykt | Kiedy |
 |---------|-------|
@@ -240,10 +236,6 @@ Po akceptacji: `last-sync-sha` w `Home.md` na HEAD, wpis w `log.md`.
 ---
 
 ## Krok 6: `confirm` — domknięcie hipotezy
-
-Bez tego trybu hipotezy zostają hipotezami na zawsze, a lint świeci na czerwono i przestaje
-być czytany.
-
 1. Pokaż stronę i jej otwarte pytania / konflikty.
 2. Zapytaj (`AskUserQuestion`) o rozstrzygnięcie.
 3. Zapisz odpowiedź w treści, podnieś `confidence: potwierdzone`, zamień blok konfliktu na
@@ -287,7 +279,6 @@ updated: 2026-09-20
 | `hipoteza` | nikt tego nie potwierdził | musi mieć sekcję „Do potwierdzenia" |
 
 ❗ Kotwica jest **sprawdzana przez lint** — `potwierdzone` bez źródła to `BLOCK`.
-Bez tego pole byłoby samooceną modelu.
 
 **Nazwy plików:** spacje, polski, tytuł = nazwa pliku = treść wikilinka (`[[Zlecenie]]`).
 Reguła nazywa się pełnym zdaniem: `Zlecenie nie może zmienić Wykonawcy po przyjęciu.md`.
