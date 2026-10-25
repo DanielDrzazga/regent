@@ -65,16 +65,16 @@ git config core.precomposeunicode               # macOS: musi być true (polskie
 
 ## Krok 1a: Bramka języka (tylko gdy brak `glossary.md`)
 
-Zanim cokolwiek napisze,
-sesja główna pyta **jedną turą** `AskUserQuestion` o 5-8 głównych pojęć: jak nazywasz to,
+Zanim agent cokolwiek napisze, sesja główna pyta **jedną turą** `AskUserQuestion` o 5-8 głównych
+pojęć: jak nazywasz to,
 czym ten system operuje. Odpowiedzi trafiają do promptu i do strony `Słownik domeny.md`.
 
 ---
 
 ## Krok 1: `init` — szkielet z kodu
 
-**Kod mówi CO robi system, prawie nigdy PO CO.** Dlatego `init` produkuje **rusztowanie
-i pytania**, nie gotową dokumentację. Strony „po co" powstają dopiero z `ingest`.
+**Kod mówi CO robi system, prawie nigdy PO CO** — `init` daje rusztowanie i pytania, a strony
+„po co” powstają z `ingest`.
 
 Deleguj do `regent:architect` (partiami po ≤5 modułów, kolejne przez resume):
 
@@ -110,7 +110,7 @@ ZWRÓĆ w raporcie:
 
 ### Bramka planu (sesja główna)
 
-Pokaż **plan** (tytuły + jednozdaniowe opisy), nie pełną treść — ściany tekstu nikt nie czyta.
+Pokaż **plan** (tytuły + jednozdaniowe opisy), nie pełną treść.
 Dopiero po akceptacji planu pokaż treść **stronami po 5**, z opcją `popraw <tytuł>`.
 
 Po zapisie: uruchom `lint` w tej samej turze (resume tego samego agenta — bez dodatkowego
@@ -256,7 +256,7 @@ ai/wiki/
 └── .obsidian/           # app.json, graph.json, core-plugins.json (cały vault leży w ai/ — poza repo)
 ```
 
-**Frontmatter** — pięć pól, bez bookkeepingu, którego nikt nie zaktualizuje:
+**Frontmatter** — pięć pól:
 
 ```yaml
 ---
@@ -282,9 +282,8 @@ updated: 2026-09-20
 Reguła nazywa się pełnym zdaniem: `Zlecenie nie może zmienić Wykonawcy po przyjęciu.md`.
 
 **Mermaid** — twarde progi: `stateDiagram-v2` przy ≥3 stanach, `sequenceDiagram` przy
-≥2 aktorach, `erDiagram` przy ≥4 encjach z **znanymi** kardynalnościami. Diagram pokazuje
-kształt, tabela niesie szczegóły — strona przepływu ma oba, bo sam diagram gubi „co może
-pójść źle".
+≥2 aktorach, `erDiagram` przy ≥4 encjach z **znanymi** kardynalnościami. Strona przepływu ma
+diagram i tabelę („co może pójść źle”).
 
 ---
 
