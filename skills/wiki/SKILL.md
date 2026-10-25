@@ -17,14 +17,6 @@ przez ludzi w Obsidianie. Kod daje szkielet; znaczenie wnoszą Twoje źródła.
 /regent:wiki lint [--fix]            # health-check vaulta
 /regent:wiki sync                    # co w kodzie ruszyło od ostatniej synchronizacji
 /regent:wiki confirm <strona>        # hipoteza → potwierdzone (po Twoim rozstrzygnięciu)
-
-Przykłady:
-/regent:wiki init
-/regent:wiki ingest notatki/2026-09-20-spotkanie-rozliczenia.md
-/regent:wiki ingest https://intranet.firma.pl/decyzje/sla-2026
-/regent:wiki query dlaczego rozliczenie jest dwuetapowe
-/regent:wiki lint --fix
-/regent:wiki confirm "Opłata za odwołanie"
 ```
 
 Bez argumentu: gdy `ai/wiki/` nie istnieje → zaproponuj `init`; gdy istnieje → pokaż
@@ -165,7 +157,8 @@ Tu wiki zyskuje to, czego w kodzie nie ma. Wejście: plik, URL albo **wklejony t
 2. **Deleguj** do `regent:architect`: przeczytaj źródło, powiedz co wnosi, wskaż które strony
    zaktualizować (max 15), zwróć treść zmian jako **diff-opis**, nie pełne strony.
 
-3. **Konflikt** kod ↔ źródło zapisz jawnie, z datą w polu, nie w prozie:
+3. **Konflikt** — źródło mówi co innego niż kod albo strona (także zmiana uzgodniona, ale
+   jeszcze niewdrożona). Zapisz go na stronie tej reguły, z datą w polu, nie w prozie:
    ```markdown
    > [!warning] Konflikt — otwarty od 2026-09-20
    > Kod: próg eskalacji 500 zł (stała w module rozliczeń).
@@ -334,10 +327,3 @@ Po `init` wypisz użytkownikowi:
 - ❌ **Bez nazw klas, plików i endpointów w treści stron** — strona ma zostać prawdziwa, gdy
   cały kod zostanie przepisany. Zaczepienie o kod żyje w `obszar:`.
 - ✅ **`ai/docs/` i `ai/specs/` pozostają nietknięte** — ta komenda z nich czyta.
-
-Timeline: `init` 20-60 min (duże repo — więcej) · `ingest` 5-15 min · `query` 2-5 min ·
-`lint` 1-3 min · `sync` 3-10 min · `confirm` 2 min
-
-Wzorzec: [llm-wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
-(A. Karpathy) — wiki jako narastający artefakt zamiast RAG-a odtwarzającego wiedzę przy
-każdym pytaniu.
