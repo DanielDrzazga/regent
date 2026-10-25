@@ -331,20 +331,9 @@ Po `init` wypisz użytkownikowi:
 
 ## WAŻNE
 
-- ✅ **Kod daje szkielet, źródła dają znaczenie.** `init` produkuje encje, stany i pytania;
-  odpowiedzi „po co" wnosi `ingest`. Gdy kod nie mówi — strona mówi „nie wiem".
-- ✅ **Każde twierdzenie ma kotwicę.** `potwierdzone` → źródło w `raw/`; `wyprowadzone` →
-  `obszar:`; `hipoteza` → sekcja „Do potwierdzenia". Lint to sprawdza.
-- ✅ **Bramka pokazuje plan, potem treść porcjami.** Ściana tekstu jest odklikiwana na ślepo.
-- ✅ **Konflikt zostaje widoczny** z datą, aż ktoś go rozstrzygnie przez `confirm`.
-- ✅ **`sync` mówi co ruszyło i pyta** — nie udaje, że wie, czy reguła się zmieniła.
-- ✅ **Sesja główna zapisuje pliki** — `regent:architect` zwraca treść w raporcie (kontrakt subagenta).
-- ❌ **Bez nazw klas, plików i endpointów w treści stron** — to twarda barierka: strona ma
-  zostać prawdziwa, gdy cały kod zostanie przepisany. Zaczepienie o kod żyje w `obszar:`.
-- ❌ **`raw/` jest tylko do odczytu** — dezaktualizuje się strona wiedzy, nie zapis rozmowy,
-  która się odbyła.
+- ❌ **Bez nazw klas, plików i endpointów w treści stron** — strona ma zostać prawdziwa, gdy
+  cały kod zostanie przepisany. Zaczepienie o kod żyje w `obszar:`.
 - ✅ **`ai/docs/` i `ai/specs/` pozostają nietknięte** — ta komenda z nich czyta.
-- ✅ **Bez `ai/docs/` komenda działa** — pyta o język w Kroku 1a.
 
 Timeline: `init` 20-60 min (duże repo — więcej) · `ingest` 5-15 min · `query` 2-5 min ·
 `lint` 1-3 min · `sync` 3-10 min · `confirm` 2 min
