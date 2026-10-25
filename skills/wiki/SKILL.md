@@ -32,10 +32,8 @@ Analizę kodu i redakcję stron deleguj do subagenta `regent:architect` (model: 
 pliki zapisuje sesja główna po akceptacji. Bramki (pytania, zatwierdzenia) prowadzi
 sesja główna — subagent kończy turę raportem z sekcją `OPEN QUESTIONS`.
 
-❗ `regent:architect` ma w swoim pliku regułę oszczędnościową: szerokie skanowanie `src/` tylko gdy
-`ai/docs/` nie istnieje. **W prompcie nadpisz ją jawnie:**
-> „Tryb odkrywczy: `ai/wiki/` buduje obraz domeny od zera. Szerokie skanowanie `src/` jest tu
-> uzasadnione niezależnie od obecności `ai/docs/`."
+Szerokie skanowanie `src/` tylko w `init` (jego prompt to nakazuje). W `ingest` agent czyta
+źródło i strony wiki, a kod tylko po to, żeby sprawdzić konflikt.
 
 **Budżet:** 1 uruchomienie na krok delegujący, poprawki przez **resume** (SendMessage do tego
 samego `agentId`). Przy repo powyżej 5 modułów `init` idzie partiami — to resume, nie nowe
