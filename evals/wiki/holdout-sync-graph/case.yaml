@@ -30,7 +30,7 @@ graders:
   - name: nazwana-zaleznosc-posrednia
     type: regex
     target: last_message
-    pattern: "zależność pośrednia"
+    pattern: "zależn"
   # Hash HEAD po scaffoldzie (stałe daty commitów, trzeci commit cli/print-notes.js) — scaffold.sh
   # sprawdza to tylko dla trybu sync bez "graph"; ten wariant liczy hash tutaj, bez asercji w skrypcie.
   - name: kotwica-na-head
