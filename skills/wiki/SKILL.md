@@ -2,7 +2,7 @@
 description: Żywa wiki biznesowa w Obsidian — szkielet z kodu, treść z Twoich źródeł (notatki, maile, transkrypty)
 disable-model-invocation: true
 argument-hint: [init | ingest <plik|url> | query <pytanie> | lint [--fix] | sync | confirm <strona>]
-allowed-tools: Task, Read, Write, Edit, Grep, Glob, AskUserQuestion, WebFetch, SendMessage, Bash(ls:*), Bash(find:*), Bash(grep:*), Bash(git log:*), Bash(git diff:*), Bash(git status:*), Bash(git rev-parse:*), Bash(git cat-file:*), Bash(git config:*), Bash(mkdir:*), Bash(wc:*), Bash(sort:*), Bash(head:*), Bash(date:*)
+allowed-tools: Task, Read, Write, Edit, Grep, Glob, AskUserQuestion, WebFetch, SendMessage, Bash(ls:*), Bash(find:*), Bash(grep:*), Bash(git log:*), Bash(git diff:*), Bash(git status:*), Bash(git rev-parse:*), Bash(git cat-file:*), Bash(git config:*), Bash(mkdir:*), Bash(wc:*), Bash(sort:*), Bash(head:*), Bash(date:*), Bash(graphify query:*), Bash(graphify path:*), Bash(graphify explain:*), Bash(graphify affected:*)
 ---
 
 # /regent:wiki — Wiki biznesowa projektu w Obsidian
@@ -76,7 +76,9 @@ czym ten system operuje. Odpowiedzi trafiają do promptu i do strony `Słownik d
 **Kod mówi CO robi system, prawie nigdy PO CO** — `init` daje rusztowanie i pytania, a strony
 „po co” powstają z `ingest`.
 
-Deleguj do `regent:architect` (partiami po ≤5 modułów, kolejne przez resume):
+Deleguj do `regent:architect` partiami (kolejne przez resume): według społeczności z grafu
+(pole `community` w `ai/graph/graphify-out/graph.json`), gdy jest `context/code-map.md`;
+inaczej po ≤5 modułów.
 
 ```
 Zbuduj szkielet wiki biznesowej. Tryb odkrywczy — skanuj src/ szeroko.
@@ -216,6 +218,11 @@ git cat-file -e "$SHA^{commit}" 2>/dev/null \
 
 Dopasowanie zmienionych **plików** do pola `obszar:` strony idzie przez **prefiks katalogu**
 (nie przecięcie zbiorów — plik nigdy nie równa się katalogowi). `-M` wykrywa rename.
+
+Gdy jest `context/code-map.md` (graf zbudowany i aktualny): dla każdego zmienionego pliku
+sprawdź `graphify affected "<plik>"` i dopisz strony, których `obszar:` pokrywa zależny plik —
+z adnotacją „zależność pośrednia przez {plik}". Prefiks katalogu zostaje pierwszym, pewniejszym
+dopasowaniem.
 
 Raport jest **pytaniem, nie werdyktem**:
 ```

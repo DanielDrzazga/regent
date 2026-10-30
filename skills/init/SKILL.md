@@ -58,6 +58,21 @@ wynik zależy od reguł ignore, nie od tego, czy coś w `ai/` jest już śledzon
 
 ---
 
+## Krok 0.75: Mapa kodu (Graphify, opcjonalnie)
+
+```bash
+command -v graphify >/dev/null 2>&1 && echo cli-jest || echo cli-brak
+ls ai/graph/graphify-out/graph.json 2>/dev/null && echo graf-jest || echo graf-brak
+```
+
+| Stan | Reakcja |
+|------|---------|
+| CLI brak | pomiń krok po cichu — reszta `/regent:init` działa jak dotąd |
+| CLI jest, grafu brak | zaproponuj (`AskUserQuestion`: zbuduj / pomiń) `graphify extract . --code-only --out ai/graph`; dopisz `.graphifyignore` z `*.md` (jeśli pliku brak) — zabezpieczenie, gdyby użytkownik później ręcznie odpalił `graphify update` |
+| CLI jest, graf jest | w Kroku 1 architekt zaczyna od `graphify god-nodes` (moduły, centralne węzły) zamiast szerokiego `find`/`grep` — reguła i polecenia: `context/code-map.md` |
+
+---
+
 ## Krok 1: Wykryj istniejące pliki (--detect)
 
 Deleguj do subagenta `regent:architect` — skanuje repo i w raporcie proponuje też 3 małe (S)
