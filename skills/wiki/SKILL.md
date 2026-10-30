@@ -229,7 +229,9 @@ Obszar rozliczeń — 23 commity. Strony oparte na tym obszarze:
 Sieroty źródeł: obszar `src/billing/` nie istnieje — moduł przeniesiony?
 ```
 
-Po akceptacji: `last-sync-sha` w `Home.md` na HEAD, wpis w `log.md`.
+Akceptację zbierz w tej samej turze przez `AskUserQuestion`. Po akceptacji: `last-sync-sha`
+w `Home.md` na HEAD, wpis w `log.md` — oba przez `Edit`, nie Bash. Wiadomość końcowa powtarza
+strony do przejrzenia i `ingest`.
 
 ---
 
