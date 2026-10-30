@@ -17,32 +17,10 @@ przez ludzi w Obsidianie. Kod daje szkielet; znaczenie wnoszą Twoje źródła.
 /regent:wiki lint [--fix]            # health-check vaulta
 /regent:wiki sync                    # co w kodzie ruszyło od ostatniej synchronizacji
 /regent:wiki confirm <strona>        # hipoteza → potwierdzone (po Twoim rozstrzygnięciu)
-
-Przykłady:
-/regent:wiki init
-/regent:wiki ingest notatki/2026-09-20-spotkanie-rozliczenia.md
-/regent:wiki ingest https://intranet.firma.pl/decyzje/sla-2026
-/regent:wiki query dlaczego rozliczenie jest dwuetapowe
-/regent:wiki lint --fix
-/regent:wiki confirm "Opłata za odwołanie"
 ```
 
 Bez argumentu: gdy `ai/wiki/` nie istnieje → zaproponuj `init`; gdy istnieje → pokaż
 stan vaulta (liczba stron, hipotezy, wiek ostatniego `sync`) i zaproponuj tryb.
-
----
-
-## Czym ta komenda różni się od pozostałych
-
-| Pytanie | Komenda |
-|---------|---------|
-| Jak to jest zbudowane? Jak nazywamy klasy? | `ai/docs/` → `/regent:init`, `/regent:revise` |
-| Co dokładnie ma robić ta zmiana? | `ai/specs/` → `/regent:propose` |
-| **Po co ten system istnieje? Skąd ta reguła?** | **`ai/wiki/` → `/regent:wiki`** |
-| Zbadaj temat tu i teraz, bez plików | `/regent:explore` |
-
-`ai/docs/` jest pisane **dla agentów**, `ai/wiki/` — **dla ludzi**. Ta komenda nie modyfikuje
-`ai/docs/` ani `ai/specs/`; czyta z nich język domeny.
 
 ---
 
@@ -54,10 +32,8 @@ Analizę kodu i redakcję stron deleguj do subagenta `regent:architect` (model: 
 pliki zapisuje sesja główna po akceptacji. Bramki (pytania, zatwierdzenia) prowadzi
 sesja główna — subagent kończy turę raportem z sekcją `OPEN QUESTIONS`.
 
-❗ `regent:architect` ma w swoim pliku regułę oszczędnościową: szerokie skanowanie `src/` tylko gdy
-`ai/docs/` nie istnieje. **W prompcie nadpisz ją jawnie:**
-> „Tryb odkrywczy: `ai/wiki/` buduje obraz domeny od zera. Szerokie skanowanie `src/` jest tu
-> uzasadnione niezależnie od obecności `ai/docs/`."
+Szerokie skanowanie `src/` tylko w `init` (jego prompt to nakazuje). W `ingest` agent czyta
+źródło i strony wiki, a kod tylko po to, żeby sprawdzić konflikt.
 
 **Budżet:** 1 uruchomienie na krok delegujący, poprawki przez **resume** (SendMessage do tego
 samego `agentId`). Przy repo powyżej 5 modułów `init` idzie partiami — to resume, nie nowe
@@ -89,16 +65,16 @@ git config core.precomposeunicode               # macOS: musi być true (polskie
 
 ## Krok 1a: Bramka języka (tylko gdy brak `glossary.md`)
 
-Bez słownika agent wymyśli nazwy sam i nie będzie ich jak uzgodnić. Zanim cokolwiek napisze,
-sesja główna pyta **jedną turą** `AskUserQuestion` o 5-8 głównych pojęć: jak nazywasz to,
+Zanim agent cokolwiek napisze, sesja główna pyta **jedną turą** `AskUserQuestion` o 5-8 głównych
+pojęć: jak nazywasz to,
 czym ten system operuje. Odpowiedzi trafiają do promptu i do strony `Słownik domeny.md`.
 
 ---
 
 ## Krok 1: `init` — szkielet z kodu
 
-**Kod mówi CO robi system, prawie nigdy PO CO.** Dlatego `init` produkuje **rusztowanie
-i pytania**, nie gotową dokumentację. Strony „po co" powstają dopiero z `ingest`.
+**Kod mówi CO robi system, prawie nigdy PO CO** — `init` daje rusztowanie i pytania, a strony
+„po co” powstają z `ingest`.
 
 Deleguj do `regent:architect` (partiami po ≤5 modułów, kolejne przez resume):
 
@@ -134,7 +110,7 @@ ZWRÓĆ w raporcie:
 
 ### Bramka planu (sesja główna)
 
-Pokaż **plan** (tytuły + jednozdaniowe opisy), nie pełną treść — ściany tekstu nikt nie czyta.
+Pokaż **plan** (tytuły + jednozdaniowe opisy), nie pełną treść.
 Dopiero po akceptacji planu pokaż treść **stronami po 5**, z opcją `popraw <tytuł>`.
 
 Po zapisie: uruchom `lint` w tej samej turze (resume tego samego agenta — bez dodatkowego
@@ -147,7 +123,7 @@ Masz N otwartych pytań — odpowiedzi wciągaj przez `ingest` albo `confirm`."*
 
 ## Krok 2: `ingest` — źródło zewnętrzne (najważniejszy tryb)
 
-Tu wiki zyskuje to, czego w kodzie nie ma. Wejście: plik, URL albo **wklejony tekst**.
+Wejście: plik, URL albo **wklejony tekst**.
 
 1. **Sesja główna** pobiera treść (`WebFetch` dla URL) i zapisuje surowiec do
    `ai/wiki/raw/YYYY-MM-DD Opis.md` z minimalnym frontmatterem — **trzy pola, resztę uzupełnia
@@ -165,7 +141,8 @@ Tu wiki zyskuje to, czego w kodzie nie ma. Wejście: plik, URL albo **wklejony t
 2. **Deleguj** do `regent:architect`: przeczytaj źródło, powiedz co wnosi, wskaż które strony
    zaktualizować (max 15), zwróć treść zmian jako **diff-opis**, nie pełne strony.
 
-3. **Konflikt** kod ↔ źródło zapisz jawnie, z datą w polu, nie w prozie:
+3. **Konflikt** — źródło mówi co innego niż kod albo strona (także zmiana uzgodniona, ale
+   jeszcze niewdrożona). Zapisz go na stronie tej reguły, z datą w polu, nie w prozie:
    ```markdown
    > [!warning] Konflikt — otwarty od 2026-09-20
    > Kod: próg eskalacji 500 zł (stała w module rozliczeń).
@@ -212,11 +189,7 @@ grep -rn "Konflikt — otwarty od" ai/wiki/wiedza/
 # Strony bez frontmattera / bez confidence (raw/ wyłączone — tam go nie ma)
 grep -rL "^confidence:" --include='*.md' ai/wiki/wiedza/
 ```
-
-❗ `grep -c` liczy **linie**, nie wystąpienia — dwa linki w jednej linii dają `1`.
-Dlatego `-o … | wc -l`.
-
-**Werdykt** — słownik zgodny z CONTRIBUTING.md:
+**Werdykt**:
 
 | Werdykt | Kiedy |
 |---------|-------|
@@ -261,10 +234,6 @@ Po akceptacji: `last-sync-sha` w `Home.md` na HEAD, wpis w `log.md`.
 ---
 
 ## Krok 6: `confirm` — domknięcie hipotezy
-
-Bez tego trybu hipotezy zostają hipotezami na zawsze, a lint świeci na czerwono i przestaje
-być czytany.
-
 1. Pokaż stronę i jej otwarte pytania / konflikty.
 2. Zapytaj (`AskUserQuestion`) o rozstrzygnięcie.
 3. Zapisz odpowiedź w treści, podnieś `confidence: potwierdzone`, zamień blok konfliktu na
@@ -287,7 +256,7 @@ ai/wiki/
 └── .obsidian/           # app.json, graph.json, core-plugins.json (cały vault leży w ai/ — poza repo)
 ```
 
-**Frontmatter** — pięć pól, bez bookkeepingu, którego nikt nie zaktualizuje:
+**Frontmatter** — pięć pól:
 
 ```yaml
 ---
@@ -308,15 +277,13 @@ updated: 2026-09-20
 | `hipoteza` | nikt tego nie potwierdził | musi mieć sekcję „Do potwierdzenia" |
 
 ❗ Kotwica jest **sprawdzana przez lint** — `potwierdzone` bez źródła to `BLOCK`.
-Bez tego pole byłoby samooceną modelu.
 
 **Nazwy plików:** spacje, polski, tytuł = nazwa pliku = treść wikilinka (`[[Zlecenie]]`).
 Reguła nazywa się pełnym zdaniem: `Zlecenie nie może zmienić Wykonawcy po przyjęciu.md`.
 
 **Mermaid** — twarde progi: `stateDiagram-v2` przy ≥3 stanach, `sequenceDiagram` przy
-≥2 aktorach, `erDiagram` przy ≥4 encjach z **znanymi** kardynalnościami. Diagram pokazuje
-kształt, tabela niesie szczegóły — strona przepływu ma oba, bo sam diagram gubi „co może
-pójść źle".
+≥2 aktorach, `erDiagram` przy ≥4 encjach z **znanymi** kardynalnościami. Strona przepływu ma
+diagram i tabelę („co może pójść źle”).
 
 ---
 
@@ -331,24 +298,6 @@ Po `init` wypisz użytkownikowi:
 
 ## WAŻNE
 
-- ✅ **Kod daje szkielet, źródła dają znaczenie.** `init` produkuje encje, stany i pytania;
-  odpowiedzi „po co" wnosi `ingest`. Gdy kod nie mówi — strona mówi „nie wiem".
-- ✅ **Każde twierdzenie ma kotwicę.** `potwierdzone` → źródło w `raw/`; `wyprowadzone` →
-  `obszar:`; `hipoteza` → sekcja „Do potwierdzenia". Lint to sprawdza.
-- ✅ **Bramka pokazuje plan, potem treść porcjami.** Ściana tekstu jest odklikiwana na ślepo.
-- ✅ **Konflikt zostaje widoczny** z datą, aż ktoś go rozstrzygnie przez `confirm`.
-- ✅ **`sync` mówi co ruszyło i pyta** — nie udaje, że wie, czy reguła się zmieniła.
-- ✅ **Sesja główna zapisuje pliki** — `regent:architect` zwraca treść w raporcie (kontrakt subagenta).
-- ❌ **Bez nazw klas, plików i endpointów w treści stron** — to twarda barierka: strona ma
-  zostać prawdziwa, gdy cały kod zostanie przepisany. Zaczepienie o kod żyje w `obszar:`.
-- ❌ **`raw/` jest tylko do odczytu** — dezaktualizuje się strona wiedzy, nie zapis rozmowy,
-  która się odbyła.
+- ❌ **Bez nazw klas, plików i endpointów w treści stron** — strona ma zostać prawdziwa, gdy
+  cały kod zostanie przepisany. Zaczepienie o kod żyje w `obszar:`.
 - ✅ **`ai/docs/` i `ai/specs/` pozostają nietknięte** — ta komenda z nich czyta.
-- ✅ **Bez `ai/docs/` komenda działa** — pyta o język w Kroku 1a.
-
-Timeline: `init` 20-60 min (duże repo — więcej) · `ingest` 5-15 min · `query` 2-5 min ·
-`lint` 1-3 min · `sync` 3-10 min · `confirm` 2 min
-
-Wzorzec: [llm-wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
-(A. Karpathy) — wiki jako narastający artefakt zamiast RAG-a odtwarzającego wiedzę przy
-każdym pytaniu.
