@@ -6,9 +6,10 @@
 #   session  — zwykły stdout (Claude Code dodaje go do kontekstu sesji)
 #   subagent — JSON hookSpecificOutput.additionalContext; Explore i Plan pomijane, bo pomijają
 #              też CLAUDE.md
-#   always   — zawsze;  sdd — tylko w projekcie SDD (jest ai/docs/ w korzeniu projektu)
+#   always   — zawsze;  sdd — tylko w projekcie SDD (jest ai/docs/ w korzeniu projektu);
+#   graph    — tylko gdy zbudowany graf kodu (ai/graph/graphify-out/graph.json)
 #
-# Użycie (hooks/hooks.json):  bash "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/session-context.sh" <session|subagent> <always|sdd> <plik>
+# Użycie (hooks/hooks.json):  bash "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/session-context.sh" <session|subagent> <always|sdd|graph> <plik>
 #   np. session-context.sh session always role.md
 # Wejście: JSON hooka na stdin (subagent: pole agent_type). Kod wyjścia: zawsze 0 — brak kontekstu
 # nie może blokować sesji; błędne użycie → komunikat na stderr.
@@ -21,12 +22,13 @@ event=${1:-}; scope=${2:-}; file=${3:-}
 
 usage() { echo "session-context.sh: $1 — użycie: <session|subagent> <always|sdd> <plik>" >&2; exit 0; }
 case "$event" in session|subagent) ;; *) usage "nieznane zdarzenie '$event'" ;; esac
-case "$scope" in always|sdd) ;; *) usage "nieznany zakres '$scope'" ;; esac
+case "$scope" in always|sdd|graph) ;; *) usage "nieznany zakres '$scope'" ;; esac
 case "$file" in ''|*/*) usage "plik z context/ bez ścieżki" ;; esac
 src="$ROOT/context/$file"
 [ -f "$src" ] || usage "brak $src"
 
 [ "$scope" = sdd ] && [ ! -d "$PROJECT/ai/docs" ] && exit 0
+[ "$scope" = graph ] && [ ! -f "$PROJECT/ai/graph/graphify-out/graph.json" ] && exit 0
 
 if [ "$event" = session ]; then
   cat "$src"

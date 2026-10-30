@@ -7,9 +7,11 @@ set -u
 HOOK="$(cd "$(dirname "$0")" && pwd)/../hooks/session-context.sh"
 T=$(mktemp -d "${TMPDIR:-/tmp}/session-context.XXXXXX")
 trap 'rm -rf "$T"' EXIT
-mkdir -p "$T/plugin/context" "$T/sdd/ai/docs" "$T/plain"
+mkdir -p "$T/plugin/context" "$T/sdd/ai/docs" "$T/plain" "$T/graphed/ai/graph/graphify-out"
 printf 'Rola "partner"\n\tz tabem i \\ backslashem\nzażółć gęślą jaźń\n' > "$T/plugin/context/role.md"
 printf 'Reguły SDD\n' > "$T/plugin/context/sdd.md"
+printf 'Mapa kodu\n' > "$T/plugin/context/code-map.md"
+printf '{}\n' > "$T/graphed/ai/graph/graphify-out/graph.json"
 pass=0
 fail=0
 
@@ -57,6 +59,16 @@ IN=$(sub regent:spec-writer); run sdd subagent sdd sdd.md; expect_code 0; expect
 
 name="subagent sdd: projekt bez ai/docs — nic"
 IN=$(sub regent:spec-writer); run plain subagent sdd sdd.md; expect_code 0; expect_empty
+
+name="session graph: brak grafu — nic"
+IN=$SESSION; run plain session graph code-map.md; expect_code 0; expect_empty
+
+name="session graph: graf zbudowany — treść"
+IN=$SESSION; run graphed session graph code-map.md; expect_code 0; expect_has 'Mapa kodu'
+
+name="subagent graph: graf zbudowany — JSON"
+IN=$(sub regent:architect); run graphed subagent graph code-map.md; expect_code 0
+expect_json "$T/plugin/context/code-map.md"
 
 name="subagent Explore i Plan — pomijane jak CLAUDE.md"
 IN=$(sub Explore); run sdd subagent always role.md; expect_code 0; expect_empty
