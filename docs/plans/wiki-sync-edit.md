@@ -30,4 +30,4 @@ Krok 5, zdanie „Po akceptacji”:
   - z wiadomością końcową: 1,00 (3/3)
 - [x] Bramka: `bash scripts/framework-lint.sh`, `claude plugin validate .`
 - [x] Smoke: `holdout-sync` ×3 i `train-lint` ×1 na gałęzi
-- [ ] Merge do `main` razem z wynikiem pętli, push
+- [x] Merge do `main` razem z wynikiem pętli, push (2026-10-30)
