@@ -201,6 +201,10 @@ require docs/roadmap.md                 'git checkout 39445f1 --'               
 forbid  skills/init/SKILL.md           '"command": "f=.*git-guard\.sh'            "git-guard rejestruje plugin (hooks/hooks.json), nie wpis w projekcie"
 require hooks/hooks.json               'scripts/hooks/git-guard\.sh'           "plugin rejestruje git-guard"
 
+hits=$(echo "$REFS" | grep -E '^(skills|agents)/' | xargs grep -nE 'graphify (install|hook install)|graphify[^"'"'"']*--strict' 2>/dev/null)
+[ -z "$hits" ] || err "Graphify install/hook/strict w promptach (poza zakresem): $hits"
+require context/code-map.md             'Grep/Glob'                             "nieaktualny graf wraca do Grep/Glob, nie blokuje agenta"
+
 # --- 8. Skrypty: składnia i testy w każdym dostępnym bashu ---------------------------------
 # /bin/bash na macOS to 3.2 — bash z PATH bywa nowszy (Homebrew) i ukrywa błędy składni 3.2.
 shells=$( { [ -x /bin/bash ] && echo /bin/bash; command -v bash; } | awk '!seen[$0]++')

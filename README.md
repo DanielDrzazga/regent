@@ -24,6 +24,7 @@ projektu (`ai/docs/`) jest jedynym źródłem prawdy dla AI.
 - [Agenci i modele](#agenci-i-modele)
 - [Szablony](#szablony)
 - [Observability (opcjonalnie)](#observability-opcjonalnie)
+- [Mapa kodu — Graphify (opcjonalnie)](#mapa-kodu--graphify-opcjonalnie)
 - [Zadania i regent task (opcjonalnie)](#zadania-i-regent-task-opcjonalnie)
 - [Agent teams i regent-watch (opcjonalnie)](#agent-teams-i-regent-watch-opcjonalnie)
 - [Optymalizacja skilli (opcjonalnie)](#optymalizacja-skilli-opcjonalnie)
@@ -249,6 +250,15 @@ pilnuje, by **zmiana logowanej `action` nie rozjechała się z dashboardem**:
 - `/regent:verify` (Etap 7) uruchamia warunkową checklistę z `observability/maintenance.md`.
 
 Framework **nie buduje** dashboardów — tylko wymusza refleksję. Brak `observability/` → kroki N/A.
+
+## Mapa kodu — Graphify (opcjonalnie)
+
+Gdy w projekcie jest zbudowany graf kodu ([Graphify](https://github.com/Graphify-Labs/graphify),
+`ai/graph/graphify-out/graph.json`), agenci lokalizują pliki i zależności przez zapytania do
+niego zamiast przez Grep/Glob — treść wciąż czytają przez `Read`. Graf budujesz lokalnie,
+wyłącznie z kodu (`graphify extract . --code-only --out ai/graph`), bez LLM i bez sieci; buduje
+go i aktualizuje tylko sesja główna albo Ty. Bez CLI albo bez grafu — zero zmiany zachowania.
+Instalacja, polecenia i kiedy się to opłaca: [docs/code-map.md](docs/code-map.md).
 
 ## Zadania i regent task (opcjonalnie)
 
