@@ -61,17 +61,18 @@ nie budzą wątpliwości. Jedna korekta projektu z brief'u: polecenie budowy/akt
 | Element | Zmiana |
 |---|---|
 | `evals/wiki/scaffold.sh` | Drugi parametr `graph` (domyślnie puste): po ustawieniu projektu buduje graf (`graphify extract . --code-only --out ai/graph`); brak `graphify` w PATH → `exit 1` z komunikatem (jawna oblana, nie cicha). W trybie `sync` + `graph`: dodatkowy plik `cli/print-notes.js` (zależny od `web/note-list.js`) + commit, **tylko w wariancie graph** — hash `2ff82e9` istniejącego trybu `sync` (bez `graph`) zostaje nietknięty. |
-| `evals/wiki/holdout-sync-graph/` (nowy przypadek) | `scaffold.sh` → `../scaffold.sh sync graph` + dopisanie strony „Wydruk konsolowy" (`obszar: cli/`) do vaulta i `index.md` (poza gitem — `ai/` jest wyłączone, więc bez wpływu na hash). `case.yaml`: tag `wiki-holdout`, `code-map-graph`; oceniacz na wzmiankę „Wydruk konsolowy"/„zależność pośrednia" w odpowiedzi. |
-| `evals/wiki/holdout-sync/case.yaml` | `+tags: code-map-nograph` (metadane do wyboru przez `code-map-compare.sh`, bez zmiany scaffoldu/graderów/promptu — przypadek przechodzi identycznie jak dotąd). |
-| `evals/explore/` (nowy katalog) | `scaffold.sh` (notes-app + opcjonalny graf, drugi parametr jak w wiki), dwa przypadki: `explore-graph` (tag `code-map-graph`) i `explore-nograph` (tag `code-map-nograph`) — ten sam prompt o wpływie zmiany `web/html.js` (import w `web/note-list.js`), `runs: 3`. |
+| `evals/wiki/holdout-sync-graph/` (nowy przypadek) | `scaffold.sh` → `../scaffold.sh sync graph` + dopisanie strony „Wydruk konsolowy" (`obszar: cli/`) do vaulta i `index.md` (poza gitem — `ai/` jest wyłączone, więc bez wpływu na hash). `case.yaml`: tag `wiki-holdout`, `wiki-code-map-graph`; oceniacz na wzmiankę „Wydruk konsolowy"/„zależność pośrednia" w odpowiedzi. |
+| `evals/wiki/holdout-sync/case.yaml` | `+tags: wiki-code-map-nograph` (metadane do wyboru przez `code-map-compare.sh`, bez zmiany scaffoldu/graderów/promptu — przypadek przechodzi identycznie jak dotąd). |
+| `evals/explore/` (nowy katalog) | `scaffold.sh` (notes-app + opcjonalny graf, drugi parametr jak w wiki), dwa przypadki: `explore-graph` (tag `explore-code-map-graph`) i `explore-nograph` (tag `explore-code-map-nograph`) — ten sam prompt o wpływie zmiany `web/html.js` (import w `web/note-list.js`), `runs: 3`. |
 | `scripts/code-map-compare.sh` (nowy) | `run <plugin> <tag-bez> <tag-z> <out-prefix> [opcje optimize-score.sh]`: dwa przebiegi `optimize-score.sh run`, dwie linie wyniku, różnice `quality/cost/tokens/seconds`, werdykt `optimize-score.sh decide` (bez grafu = best/baseline, z grafem = kandydat). `--no-bash` przepuszczony z ostrzeżeniem, że graf nie zadziała (zapytania idą przez Bash). |
 | `scripts/tests/code-map-compare.test.sh` (nowy) | Tryb na sztucznych JSON-ach (dwa `score`), bez prawdziwego evala; bash 3.2. |
 | `docs/optimize.md` | Zostaje bez zmian — `code-map-compare.sh` dokumentuje się sam (nagłówek) + wpis w `docs/README.md`; nie jest częścią pętli `/regent:optimize`. |
 
 ## Krok 2c — Pomiar
 
-- **notes-app:** `scripts/code-map-compare.sh` na `evals/wiki` (tagi `code-map-nograph`/`code-map-graph`)
-  i `evals/explore` — wynik w sekcji „Wyniki" niżej po przebiegu.
+- **notes-app:** `scripts/code-map-compare.sh . wiki-code-map-nograph wiki-code-map-graph` (wiki)
+  i `scripts/code-map-compare.sh . explore-code-map-nograph explore-code-map-graph` (explore) —
+  wynik w sekcji „Wyniki" niżej po przebiegu.
 - **Repo publiczne:** wybór i wynik — sekcja „Wyniki" niżej (commit przypięty w tabeli).
 - **Repo firmowe:** poza zakresem tej sesji — robi użytkownik sam, liczby nie trafiają do repo
   (`.claude/rules/privacy.md`).

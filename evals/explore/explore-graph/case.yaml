@@ -1,7 +1,7 @@
 schema_version: "1.0"
 name: explore-impact
 description: pytanie o wpływ zmiany, z grafem kodu (Graphify) w kontekście.
-tags: [explore, explore-holdout, code-map-graph]
+tags: [explore, explore-holdout, explore-code-map-graph]
 runs: 3
 context:
   scaffold_script: scaffold.sh

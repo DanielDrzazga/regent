@@ -1,7 +1,7 @@
 schema_version: "1.0"
 name: wiki-holdout-sync
-description: sync z grafem — strona dotknięta zależnością pośrednią (cli/ → web/note-list.js), której dopasowanie po prefiksie obszar: nie łapie.
-tags: [wiki, wiki-holdout, code-map-graph]
+description: "sync z grafem — strona dotknięta zależnością pośrednią (cli/ → web/note-list.js), której dopasowanie po prefiksie obszar nie łapie."
+tags: [wiki, wiki-holdout, wiki-code-map-graph]
 runs: 3
 context:
   scaffold_script: scaffold.sh

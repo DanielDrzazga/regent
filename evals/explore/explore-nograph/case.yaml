@@ -1,7 +1,7 @@
 schema_version: "1.0"
 name: explore-impact
 description: kontrola — pytanie o wpływ zmiany bez grafu kodu (Grep/Glob jak dotąd).
-tags: [explore, explore-holdout, code-map-nograph]
+tags: [explore, explore-holdout, explore-code-map-nograph]
 runs: 3
 context:
   scaffold_script: scaffold.sh

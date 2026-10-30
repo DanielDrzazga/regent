@@ -1,7 +1,7 @@
 schema_version: "1.0"
 name: wiki-holdout-sync
 description: sync po dwóch commitach — pyta o strony obszaru src/, kotwica na HEAD, strony nietknięte.
-tags: [wiki, wiki-holdout, code-map-nograph]
+tags: [wiki, wiki-holdout, wiki-code-map-nograph]
 runs: 3
 context:
   scaffold_script: scaffold.sh
