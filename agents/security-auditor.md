@@ -23,6 +23,9 @@ Przeczytaj:
 - `ai/docs/patterns/architecture.md`
 - `ai/docs/stack/technology.md`
 
+Gdy w kontekście jest mapa kodu (`context/code-map.md`), zasięg zmienionych symboli (kto
+jeszcze je woła) sprawdzaj przez jej polecenia zamiast przez Grep.
+
 ## Security checklist
 
 ### Authentication

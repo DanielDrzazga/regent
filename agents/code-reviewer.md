@@ -28,6 +28,9 @@ Przeczytaj:
   Affected Files), delta `specs/*.md` i `tasks.md` — to plan, z którym porównujesz kod;
   przy cudzym MR planem jest opis MR z promptu (`ai/` autora jest lokalny)
 
+Gdy w kontekście jest mapa kodu (`context/code-map.md`), zasięg zmienionych symboli (kto
+jeszcze je woła) sprawdzaj przez jej polecenia zamiast przez Grep.
+
 ## Checklist Review
 
 ### 1. Architektura

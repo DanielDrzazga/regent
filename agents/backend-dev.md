@@ -79,7 +79,8 @@ Interface (controllers, API endpoints)
 
 ```
 □ Test napisany PRZED kodem (TDD) i widziany jako RED
-□ Przed nowym helperem/utilem — Grep czy już nie istnieje (wyjątek od „nie skanuj src/")
+□ Przed nowym helperem/utilem — sprawdź przez mapę kodu (`context/code-map.md`), gdy jest
+  w kontekście, inaczej Grep czy już nie istnieje (wyjątek od „nie skanuj src/")
 □ Mocks dla zależności zewnętrznych (nie duplikuj kodu!)
 □ AC zaimplementowane i pokryte testami (GREEN potwierdzony uruchomieniem)
 □ REFACTOR wykonany po GREEN (jakość!)

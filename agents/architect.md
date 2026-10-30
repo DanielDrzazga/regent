@@ -36,9 +36,10 @@ Jeśli `ai/docs/` nie istnieje (np. w `/regent:init` lub `/regent:explore`), pra
 oraz z sekcji **Reference Implementations** w `architecture.md` (wskazane, wzorcowe pliki —
 przeczytaj je bezpośrednio przez `Read`). Do `src/` sięgaj przez `Grep`/`Glob` **tylko żeby
 ZLOKALIZOWAĆ konkretne pliki** do sekcji "Affected Files" w design.md — NIE żeby uczyć się
-wzorca od zera przez szerokie skanowanie. Szerokie skanowanie `src/` jest uzasadnione wyłącznie,
-gdy `ai/docs/` nie istnieje lub gdy dany wzorzec NIE ma jeszcze Reference Implementation
-(wtedy w raporcie zaproponuj dopisanie go przez `/regent:revise`).
+wzorca od zera przez szerokie skanowanie. Gdy w kontekście jest mapa kodu (`context/code-map.md`),
+lokalizuj przez jej polecenia zamiast przez Grep/Glob — reguła tam. Szerokie skanowanie `src/`
+jest uzasadnione wyłącznie, gdy `ai/docs/` nie istnieje lub gdy dany wzorzec NIE ma jeszcze
+Reference Implementation (wtedy w raporcie zaproponuj dopisanie go przez `/regent:revise`).
 
 ## Odpowiedzialności
 
