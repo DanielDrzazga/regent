@@ -1,0 +1,47 @@
+schema_version: "1.0"
+name: wiki-holdout-sync
+description: sync z grafem — strona dotknięta zależnością pośrednią (cli/ → web/note-list.js), której dopasowanie po prefiksie obszar: nie łapie.
+tags: [wiki, wiki-holdout, code-map-graph]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:wiki sync"
+  model: sonnet
+  max_turns: 30
+  timeout_seconds: 900
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "Pracujesz bez użytkownika — to ocena automatyczna. Każde pytanie o zgodę (tak/nie) ma odpowiedź „tak”: nie pytaj, kontynuuj. Gdy skill każe zapytać przez AskUserQuestion, wybierz opcję rekomendowaną i zapisz decyzję tam, gdzie skill każe."
+
+graders:
+  - name: strony-obszaru-src
+    type: regex
+    target: last_message
+    pattern: "Limit długości tytułu|Notatka musi mieć tytuł|Lista notatek od najnowszej"
+  - name: uzywa-grafu
+    type: tool_used
+    tool: Bash
+    input_match: "graphify affected"
+    min: 1
+  - name: strona-zaleznosci-posredniej
+    type: regex
+    target: last_message
+    pattern: "Wydruk konsolowy"
+  - name: nazwana-zaleznosc-posrednia
+    type: regex
+    target: last_message
+    pattern: "zależność pośrednia"
+  # Hash HEAD po scaffoldzie (stałe daty commitów, trzeci commit cli/print-notes.js) — scaffold.sh
+  # sprawdza to tylko dla trybu sync bez "graph"; ten wariant liczy hash tutaj, bez asercji w skrypcie.
+  - name: kotwica-na-head
+    type: regex
+    target: {source: file, path: ai/wiki/Home.md}
+    pattern: "last-sync-sha: 699ad6e"
+  - name: log-sync
+    type: regex
+    target: {source: file, path: ai/wiki/log.md}
+    pattern: "## \\[\\d{4}-\\d{2}-\\d{2}\\] sync"
+  - name: strony-nietkniete
+    type: file_exists
+    path: "ai/wiki/wiedza/**"
+    exists: false
