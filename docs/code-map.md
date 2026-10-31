@@ -70,12 +70,26 @@ komputerze firmowym.
 
 ## Kiedy się opłaca
 
-- **Duże albo obce repo** — lokalizowanie przez graf jest rządowo tańsze niż seria Grep + Read,
-  a agent nie musi zgadywać wzorców wyszukiwania.
-- **Małe, znane repo** (np. `notes-app` w evalach) — koszt budowy grafu i wywołań CLI bywa
-  porównywalny z prostym Grep. Zysk widać na repo średniej/dużej wielkości — pomiar:
-  `scripts/code-map-compare.sh` i sekcja „Wyniki” w
-  [`docs/plans/code-map-graphify.md`](plans/code-map-graphify.md).
+Pomiar na trzech repo (`scripts/code-map-compare.sh`, szczegóły w sekcji „Wyniki” w
+[`docs/plans/code-map-graphify.md`](plans/code-map-graphify.md)) pokazuje, że **rozmiar repo nie
+jest jedynym czynnikiem** — liczy się też, jak łatwo znaleźć odpowiedź samym Grep:
+
+- **Małe, znane repo** (`notes-app` w evalach, kilka plików) — koszt budowy grafu i wywołań CLI
+  jest wyższy niż prosty Grep. Oczekiwane, nie regresja.
+- **Pytanie, które Grep rozwiązuje jednym trafieniem** (unikalna nazwa symbolu, mało wystąpień)
+  bywa droższe z grafem **niezależnie od rozmiaru repo** — na realnym backendzie z ~500 plikami
+  wariant z grafem wypadł wyraźnie drożej (koszt, tokeny i czas powyżej progu szumu) dla pytania
+  o wpływ zmiany jednego, dobrze nazwanego zdarzenia domenowego. Dodatkowe zapytanie do grafu
+  dokłada kroki, które Grep i tak by wykonał szybciej.
+- **Repo średniej wielkości z pytaniem wymagającym kilku przeskoków zależności** (np. „co zależy
+  od tego pliku” przez więcej niż jeden import) — graf wygrywa wyraźnie: na publicznym repo
+  średniej wielkości (~95 plików) `/regent:explore` z grafem wyszedł o ~19% taniej i ~15%
+  szybciej przy tej samej jakości; `/regent:init --detect` na tym samym repo — podobny czas
+  (~14% szybciej), koszt w granicach szumu.
+
+**Praktyczna reguła:** graf pomaga najbardziej, gdy pytanie brzmi „co zależy od X” albo „ścieżka
+A → B” przez nieoczywisty, wielomodułowy łańcuch — nie przy pytaniach, które i tak rozwiązuje
+jeden dobry Grep.
 
 ## Ograniczenia zaobserwowane
 

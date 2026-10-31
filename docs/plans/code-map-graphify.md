@@ -117,45 +117,65 @@ z 7 stronami przeczytanie wszystkiego naraz bywa tańsze niż jedno zapytanie do
 czasem słusznie z niego nie korzysta. **Oba wyniki na `notes-app` są oczekiwane na tej skali**,
 nie regresje.
 
-### Repo publiczne
+### Repo publiczne — `domain-driven-hexagon`
 
 Wybrane repo: [`Sairyss/domain-driven-hexagon`](https://github.com/Sairyss/domain-driven-hexagon)
 (commit `5c2d15a7e2d69e83dfddf28468ee9f30e02c30de`, 95 plików TS, 3121 linii, architektura
 DDD/hexagonal — moduły `user`/`wallet` z realną zależnością międzymodułową przez zdarzenie
 domenowe `UserCreated`, konsumowane przez handler w module `wallet`
 (`src/modules/wallet/application/event-handlers/create-wallet-when-user-is-created.domain-event-handler.ts`) —
-nieoczywiste bez przeszukania, dobry test lokalizowania przez graf).
-
-Pomiar przez tymczasowy, nie-commitowany przypadek `claude plugin eval` (nie wchodzi do zestawu
-stałego) z promptem `/regent:explore impact of changing the UserCreated domain event payload —
-which files would need to change?`. Pierwsza próba trafiła w limit sesji konta (`You've hit your
-session limit`, zero danych); po resecie — pełny wynik:
+nieoczywiste bez przeszukania, dobry test lokalizowania przez graf). Pomiar przez tymczasowy,
+nie-commitowany przypadek `claude plugin eval` (nie wchodzi do zestawu stałego; pierwsza próba
+trafiła w limit sesji konta, zero danych — powtórzona po resecie).
 
 | Przypadek | quality (bez→z) | cost USD (bez→z) | tokens (bez→z) | seconds (bez→z) | werdykt |
 |---|---|---|---|---|---|
-| `explore` na `domain-driven-hexagon` | 1 → 1 (+0%) | 0,398 → 0,322 (**−19,1%**) | 166 314 → 178 019 (+7,0%) | 91 → 77 (−15,4%) | **`keep`** — koszt poniżej progu o więcej niż szum |
+| `explore` — wpływ zmiany zdarzenia domenowego | 1 → 1 (+0%) | 0,398 → 0,322 (**−19,1%**) | 166 314 → 178 019 (+7,0%) | 91 → 77 (−15,4%) | **`keep`** |
+| `init --detect` | 1 → 1 (+0%) | 1,967 → 1,915 (−2,6%, w szumie) | n/d → 2 298 998* | 561 → 483 (**−13,9%**) | **`keep`** (przez czas) |
 
-Oba warianty poprawnie wskazały `create-wallet-when-user-is-created...` jako plik dotknięty
-zmianą zdarzenia domenowego `UserCreated` (oceniacz `wskazuje-wallet-handler` przeszedł w obu).
-`/regent:init --detect` i `/regent:wiki init` na repo publicznym **nie zostały zmierzone** w tej
-sesji (koszt/czas — każdy z nich to kilka razy droższa operacja niż `explore`); polecenia do
-powtórzenia protokołu: sekcja „Krok 2c" wyżej.
+\* tokeny bez grafu niedostępne — ślad przebiegu usunięty zanim ponownie policzyłem wynik po
+przerwaniu pierwszej próby (zbyt krótki limit tła); koszt (`costUsd`, z JSON-a, niezależny od
+śladu) jest wiarygodny.
+
+Oba warianty `explore` poprawnie wskazały handler dotknięty zmianą zdarzenia (oceniacz
+`wskazuje-wallet-handler` przeszedł w obu). `/regent:wiki init` **nie zostało zmierzone**
+(koszt/czas — kilka razy droższa operacja niż pozostałe dwie).
+
+### Repo prywatne — sanity-check (liczby zagregowane, bez szczegółów projektu)
+
+Na prośbę użytkownika dodatkowy pomiar na jego prywatnym repo (backend NestJS, ~500 plików TS,
+~80 tys. linii, modularna architektura z wydzielonymi zdarzeniami domenowymi między modułami) —
+**za zgodą użytkownika do repo trafiają tylko zagregowane liczby**, bez nazw plików/modułów
+(`.claude/rules/privacy.md`).
+
+| Przypadek | quality (bez→z) | cost USD (bez→z) | tokens (bez→z) | seconds (bez→z) | werdykt |
+|---|---|---|---|---|---|
+| `explore` — wpływ zmiany jednego zdarzenia domenowego, konsumowanego przez inny moduł | 1 → 1 (+0%) | 0,422 → 0,459 (**+8,8%**) | 235 240 → 285 686 (+21,4%) | 79 → 97 (+22,8%) | `discard` — koszt i czas powyżej progu szumu |
+
+**To jest pouczający kontrprzykład**, nie szum: na tym repo (większym niż `domain-driven-hexagon`)
+graf wyszedł **drożej**, bo pytanie miało unikalną, łatwo grepowalną nazwę symbolu — jeden dobry
+Grep znajduje odpowiedź szybciej, niż agent zdąży sformułować i rozebrać zapytanie do grafu.
+Rozmiar repo nie jest więc jedynym czynnikiem — liczy się też, czy Grep i tak by wystarczył.
+Wniosek wpisany do `docs/code-map.md` → „Kiedy się opłaca”.
 
 ### Werdykt wg kryterium utrzymania
 
 > Kryterium: *na `notes-app` jakość bez spadku i koszt w granicach szumu; na repo średnim spadek
 > kosztu `init --detect` i `explore` o co najmniej 15% przy tej samej jakości.*
 
-**Spełniony dla `explore`, nierozstrzygnięty dla `init --detect`.** Na `notes-app` koszt rośnie
-(+19% dla `explore`, +17% dla `wiki`) — pierwsza część kryterium formalnie nie przechodzi, ale to
-oczekiwane na tej skali (dokumentacja mówi to wprost) i nie przekreśla wyniku na repo średnim, bo
-oba poziomy mierzą różne rzeczy: mały projekt mierzy *koszt stałej narzuty reguły*, średni —
-*czy narzuta się opłaca*. Na `domain-driven-hexagon` (95 plików) `explore` **przechodzi**
-kryterium ≥15% z zachowaną jakością (−19,1% kosztu, −15,4% czasu). `/regent:init --detect` nie
-zostało zmierzone — brakuje jednego z dwóch wymaganych dowodów.
+**Mieszany, ale integrację zostawiam.** Na `notes-app` koszt rośnie (+19% `explore`, +17%
+`wiki`) — pierwsza część kryterium formalnie nie przechodzi, zgodnie z przewidywaniem w
+dokumentacji (mały projekt nie pokazuje oszczędności). Na repo średnim wynik **zależy od
+pytania, nie tylko od rozmiaru repo**: na `domain-driven-hexagon` `explore` przechodzi próg
+≥15% (−19,1% kosztu) i `init --detect` jest kierunkowo pozytywny (czas −14%, koszt w szumie);
+na większym repo prywatnym (~500 plików) to samo polecenie wypadło **drożej** (+8,8%/+22,8%),
+bo pytanie było trywialne dla Grep. Trzy z czterech zmierzonych par (`explore` × 2 repo średnie,
+`init --detect` × 1) są pozytywne lub neutralne; jedna (`explore` na repo, gdzie Grep i tak
+wygrywał) jest negatywna — zgodnie z nowo poznaną zasadą „graf pomaga przy pytaniach
+wielomodułowych/pośrednich, nie przy pytaniach, które rozwiązuje jeden Grep”.
 
-**Rekomendacja:** integrację **zostawiam** (nie wycofuję promptów) — dowód dla `explore` jest
-real, pozytywny i powtarzalny w kierunku; `init --detect` wymaga dodatkowego pomiaru, ale brak
-tego pomiaru nie jest sygnałem przeciw (koszt stałej narzuty reguły jest znany i mały — plik
-kontekstu to ~1,8 kB, wstrzykiwany tylko gdy graf istnieje). Gałąź zostaje nie zmergowana do
-`main` do czasu pomiaru `init --detect` i decyzji użytkownika.
+**Rekomendacja:** integrację **zostawiam** (nie wycofuję promptów) — mechanizm jest poprawny
+(opcjonalny, zero kosztu bez grafu, zero LLM/sieci przy budowie) i realnie oszczędza, gdy
+pytanie tego wymaga; to, że czasem nie pomaga, jest informacją dla użytkownika („kiedy się
+opłaca” w `docs/code-map.md`), nie wadą promptów. Gałąź zostaje nie zmergowana do `main` do
+decyzji użytkownika.
