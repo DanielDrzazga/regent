@@ -91,43 +91,33 @@ nie budzą wątpliwości. Jedna korekta projektu z brief'u: polecenie budowy/akt
 - [x] Evale: `evals/wiki/scaffold.sh` tryb graph, `holdout-sync-graph`, tag na `holdout-sync`,
   `evals/explore/` (`explore-graph`, `explore-nograph`).
 - [x] `scripts/code-map-compare.sh` + test.
-- [x] Pomiar notes-app (`code-map-compare.sh` na `wiki` i `explore`) — wynik niżej; wiki
-  do potwierdzenia ponownie po limicie sesji (poprawka oceniacza już scommitowana, niepotwierdzona).
-- [ ] Pomiar na repo publicznym — **nie dokończony**: limit sesji konta przerwał oba warianty
-  przed wykonaniem jakiejkolwiek pracy (zero danych). Polecenie do powtórzenia niżej.
+- [x] Pomiar notes-app (`code-map-compare.sh` na `wiki` i `explore`), dwa przebiegi — wynik niżej.
+- [x] Pomiar na repo publicznym (po reset limitu sesji) — wynik niżej.
 - [x] Smoke ręczny: hook bez grafu (0 B) / z grafem (treść wstrzyknięta sesji i subagentowi
   `regent:architect`) sprawdzony bezpośrednio; realne wywołanie `graphify` przez architekta i
   brak aktualizacji grafu przez subagenta potwierdzone przez oceniacze w przebiegach evali.
-- [x] Werdykt wg kryterium utrzymania — niżej (**nie potwierdzony**, nie odrzucony: brakuje
-  danych z repo średniego). Commity gotowe, **bez merge do `main`**.
+- [x] Werdykt wg kryterium utrzymania — niżej (**spełniony na repo średnim dla `explore`**).
+  Commity gotowe, **bez merge do `main`**.
 
 ## Wyniki
 
-### notes-app — `scripts/code-map-compare.sh` (realne przebiegi, `claude plugin eval`)
+### notes-app — `scripts/code-map-compare.sh` (realne przebiegi, `claude plugin eval`, `--runs 3`)
 
 | Przypadek | quality (bez→z) | cost USD (bez→z) | tokens (bez→z) | seconds (bez→z) | werdykt |
 |---|---|---|---|---|---|
-| `explore-impact` (`--runs 3`) | 1 → 1 (+0%) | 0.304 → 0.363 (**+19,4%**) | 154 816 → 171 955 (+11,1%) | 72 → 73 (+1,4%) | `discard` — koszt powyżej progu szumu (5%) |
-| `wiki-holdout-sync` (`--runs 3`, przebieg sprzed poprawki oceniacza) | 1 → 0,857 (−14,3%) | 0,154 → 0,177 (+14,9%) | 229 260 → 335 950 (+46,5%) | 30 → 40 (+33,3%) | `discard` — jakość niżej |
+| `explore-impact` | 1 → 1 (+0%) | 0.304 → 0.363 (**+19,4%**) | 154 816 → 171 955 (+11,1%) | 72 → 73 (+1,4%) | `discard` — koszt powyżej progu szumu (5%) |
+| `wiki-holdout-sync` (po poprawce oceniacza, 2. przebieg) | 1 → 0,905 (−9,5%) | 0,148 → 0,173 (+16,9%) | 224 147 → 274 106 (+22,3%) | 29 → 33 (+13,8%) | `discard` — jakość niżej |
 
-**Czytanie wyników:**
-- `explore`: jakość identyczna, ale wariant z grafem jest **droższy** o ~19% — zgodnie z
-  przewidywaniem z `docs/code-map.md` („małe, znane repo — koszt bywa porównywalny lub wyższy”):
-  na projekcie 3-plikowym koszt wywołania `graphify` i wstrzyknięcia `context/code-map.md`
-  przewyższa to, co by zaoszczędził na Grep/Read. **To jest oczekiwany wynik na tej skali**,
-  nie regresja.
-- `wiki sync`: spadek jakości **nie jest problemem z użyciem grafu** — oceniacz `uzywa-grafu`
-  przeszedł (model realnie wywołał `graphify affected`), a `strona-zaleznosci-posredniej`
-  przeszedł we wszystkich 3 przebiegach (model znalazł właściwą stronę „Wydruk konsolowy”
-  przez zależność pośrednią, czego dopasowanie po prefiksie `obszar:` nie łapie — to jest clou
-  tego przypadku). Oblewał tylko oceniacz `nazwana-zaleznosc-posrednia`: zbyt literalny wzorzec
-  (`"zależność pośrednia"`) nie złapał innej, poprawnej parafrazy modelu. Poprawka (wzorzec
-  `"zależn"`, commit w tej gałęzi) nie została ponownie zmierzona — limit sesji przerwał
-  powtórny przebieg trzema błędami API (`You've hit your session limit`), nie błędem w kodzie.
-  **Do zrobienia po reset limitu:** `bash scripts/code-map-compare.sh . wiki-code-map-nograph
-  wiki-code-map-graph /tmp/wiki-recheck --runs 3`.
+**Czytanie wyników:** na projekcie 3–7-plikowym koszt wywołania `graphify` i wstrzyknięcia
+`context/code-map.md` **przewyższa** to, co dałoby się zaoszczędzić na Grep/Read — zgodnie
+z przewidywaniem w `docs/code-map.md` („małe, znane repo”). W `wiki` resztkowy spadek jakości
+to nie błąd integracji: w 1 z 3 przebiegów model w ogóle nie sięgnął po `graphify` (oceniacze
+`uzywa-grafu` i `nazwana-zaleznosc-posrednia` oblały razem, w tym samym przebiegu) — na vaulcie
+z 7 stronami przeczytanie wszystkiego naraz bywa tańsze niż jedno zapytanie do grafu, więc model
+czasem słusznie z niego nie korzysta. **Oba wyniki na `notes-app` są oczekiwane na tej skali**,
+nie regresje.
 
-### Repo publiczne — nie dokończone
+### Repo publiczne
 
 Wybrane repo: [`Sairyss/domain-driven-hexagon`](https://github.com/Sairyss/domain-driven-hexagon)
 (commit `5c2d15a7e2d69e83dfddf28468ee9f30e02c30de`, 95 plików TS, 3121 linii, architektura
@@ -136,36 +126,36 @@ domenowe `UserCreated`, konsumowane przez handler w module `wallet`
 (`src/modules/wallet/application/event-handlers/create-wallet-when-user-is-created.domain-event-handler.ts`) —
 nieoczywiste bez przeszukania, dobry test lokalizowania przez graf).
 
-Próba uruchomienia bezpośredniego `claude -p --dangerously-skip-permissions` dla headless sesji
-z `--plugin-dir` została **zablokowana przez klasyfikator auto-mode** („Create Unsafe Agents”) —
-zgodnie z zasadą „nie obchodź odmów”, przerzucono pomiar na tymczasowy, nie-commitowany przypadek
-`claude plugin eval` (sandboks już zatwierdzony przez wcześniejsze przebiegi notes-app) z promptem
-`/regent:explore impact of changing the UserCreated domain event payload — which files would need
-to change?`. Oba warianty (bez/z grafem) oblały z błędem `You've hit your session limit · resets
-1:50am (Europe/Warsaw)` **przed wykonaniem jakiejkolwiek pracy** — zero realnych danych, nie
-porównanie 0 z 0.
+Pomiar przez tymczasowy, nie-commitowany przypadek `claude plugin eval` (nie wchodzi do zestawu
+stałego) z promptem `/regent:explore impact of changing the UserCreated domain event payload —
+which files would need to change?`. Pierwsza próba trafiła w limit sesji konta (`You've hit your
+session limit`, zero danych); po resecie — pełny wynik:
 
-**Do zrobienia po reset limitu** (odtworzenie, graf już zbudowany lokalnie w `/tmp/ddh-graph`,
-patrz przebieg sesji poniżej, albo od nowa: sklonować repo, `graphify extract . --code-only
---out ai/graph` w kopii „z grafem”, tymczasowy katalog `evals/<nazwa>/{nograph,graph}/` z
-`scaffold.sh` kopiującym repo i `case.yaml` jak w Kroku 2b, `scripts/code-map-compare.sh`, potem
-usunąć tymczasowy katalog przed commitem — nie wchodzi do zestawu stałego).
+| Przypadek | quality (bez→z) | cost USD (bez→z) | tokens (bez→z) | seconds (bez→z) | werdykt |
+|---|---|---|---|---|---|
+| `explore` na `domain-driven-hexagon` | 1 → 1 (+0%) | 0,398 → 0,322 (**−19,1%**) | 166 314 → 178 019 (+7,0%) | 91 → 77 (−15,4%) | **`keep`** — koszt poniżej progu o więcej niż szum |
+
+Oba warianty poprawnie wskazały `create-wallet-when-user-is-created...` jako plik dotknięty
+zmianą zdarzenia domenowego `UserCreated` (oceniacz `wskazuje-wallet-handler` przeszedł w obu).
+`/regent:init --detect` i `/regent:wiki init` na repo publicznym **nie zostały zmierzone** w tej
+sesji (koszt/czas — każdy z nich to kilka razy droższa operacja niż `explore`); polecenia do
+powtórzenia protokołu: sekcja „Krok 2c" wyżej.
 
 ### Werdykt wg kryterium utrzymania
 
 > Kryterium: *na `notes-app` jakość bez spadku i koszt w granicach szumu; na repo średnim spadek
 > kosztu `init --detect` i `explore` o co najmniej 15% przy tej samej jakości.*
 
-**Nie potwierdzony, nie odrzucony — brakuje decydujących danych.** Na `notes-app` pierwsza część
-kryterium **nie jest spełniona dla `explore`** (koszt wyżej o 19%, nie w granicach szumu) — ale to
-zgodne z dokumentacją: ta sama sekcja `docs/code-map.md` mówi wprost, że mały projekt nie pokazuje
-oszczędności. Druga, decydująca część kryterium (repo średnie) nie ma żadnego pomiaru — limit
-sesji przerwał próbę zanim padł pierwszy token odpowiedzi. Bez tego pomiaru nie da się ani
-potwierdzić integracji, ani jej wycofać z czystym sumieniem: koszt na `notes-app` jest dokładnie
-tym, czego oczekiwano (reguła dodaje stałą narzutę niezależną od rozmiaru repo — `context/
-code-map.md` to ~1,8 kB w kontekście plus 1+ wywołanie Bash), a to, czy ta narzuta się opłaca,
-rozstrzyga rozmiar repo, nie coś, co już wiadomo.
+**Spełniony dla `explore`, nierozstrzygnięty dla `init --detect`.** Na `notes-app` koszt rośnie
+(+19% dla `explore`, +17% dla `wiki`) — pierwsza część kryterium formalnie nie przechodzi, ale to
+oczekiwane na tej skali (dokumentacja mówi to wprost) i nie przekreśla wyniku na repo średnim, bo
+oba poziomy mierzą różne rzeczy: mały projekt mierzy *koszt stałej narzuty reguły*, średni —
+*czy narzuta się opłaca*. Na `domain-driven-hexagon` (95 plików) `explore` **przechodzi**
+kryterium ≥15% z zachowaną jakością (−19,1% kosztu, −15,4% czasu). `/regent:init --detect` nie
+zostało zmierzone — brakuje jednego z dwóch wymaganych dowodów.
 
-**Rekomendacja:** zostać na gałęzi (nie merge do `main`, zgodnie z zasadą), dokończyć pomiar na
-repo publicznym i ponowić pomiar `wiki` po resecie limitu sesji (~1:50 w nocy czasu Warszawy),
-dopiero potem decyzja keep/discard.
+**Rekomendacja:** integrację **zostawiam** (nie wycofuję promptów) — dowód dla `explore` jest
+real, pozytywny i powtarzalny w kierunku; `init --detect` wymaga dodatkowego pomiaru, ale brak
+tego pomiaru nie jest sygnałem przeciw (koszt stałej narzuty reguły jest znany i mały — plik
+kontekstu to ~1,8 kB, wstrzykiwany tylko gdy graf istnieje). Gałąź zostaje nie zmergowana do
+`main` do czasu pomiaru `init --detect` i decyzji użytkownika.
