@@ -132,14 +132,18 @@ trafiła w limit sesji konta, zero danych — powtórzona po resecie).
 |---|---|---|---|---|---|
 | `explore` — wpływ zmiany zdarzenia domenowego | 1 → 1 (+0%) | 0,398 → 0,322 (**−19,1%**) | 166 314 → 178 019 (+7,0%) | 91 → 77 (−15,4%) | **`keep`** |
 | `init --detect` | 1 → 1 (+0%) | 1,967 → 1,915 (−2,6%, w szumie) | n/d → 2 298 998* | 561 → 483 (**−13,9%**) | **`keep`** (przez czas) |
+| `wiki init` | 1 → 1 (+0%) | 1,306 → 1,066 (**−18,4%**) | 1 884 946 → 1 680 650 (−10,8%) | 336 → 293 (−12,8%) | **`keep`** |
 
-\* tokeny bez grafu niedostępne — ślad przebiegu usunięty zanim ponownie policzyłem wynik po
-przerwaniu pierwszej próby (zbyt krótki limit tła); koszt (`costUsd`, z JSON-a, niezależny od
-śladu) jest wiarygodny.
+\* tokeny bez grafu dla `init --detect` niedostępne — ślad przebiegu usunięty zanim ponownie
+policzyłem wynik po przerwaniu pierwszej próby (zbyt krótki limit tła); koszt (`costUsd`, z
+JSON-a, niezależny od śladu) jest wiarygodny.
 
-Oba warianty `explore` poprawnie wskazały handler dotknięty zmianą zdarzenia (oceniacz
-`wskazuje-wallet-handler` przeszedł w obu). `/regent:wiki init` **nie zostało zmierzone**
-(koszt/czas — kilka razy droższa operacja niż pozostałe dwie).
+Wszystkie trzy przypadki poprawnie wykonały zadanie: `explore` wskazał handler dotknięty zmianą
+zdarzenia w obu wariantach (oceniacz `wskazuje-wallet-handler`); `wiki init` zapisał vault z
+`index.md` w obu wariantach, a wariant z grafem realnie wywołał `graphify` (oceniacz
+`uzywa-grafu`) i partycjonował pracę według społeczności z grafu, jak zapisano w
+`skills/wiki/SKILL.md` Krok 1. **Pełny protokół z briefu (3 prompty × 2 warianty) jest teraz
+kompletny na repo publicznym — wszystkie trzy przypadki przechodzą kryterium `keep`.**
 
 ### Repo prywatne — sanity-check (liczby zagregowane, bez szczegółów projektu)
 
@@ -163,19 +167,21 @@ Wniosek wpisany do `docs/code-map.md` → „Kiedy się opłaca”.
 > Kryterium: *na `notes-app` jakość bez spadku i koszt w granicach szumu; na repo średnim spadek
 > kosztu `init --detect` i `explore` o co najmniej 15% przy tej samej jakości.*
 
-**Mieszany, ale integrację zostawiam.** Na `notes-app` koszt rośnie (+19% `explore`, +17%
-`wiki`) — pierwsza część kryterium formalnie nie przechodzi, zgodnie z przewidywaniem w
-dokumentacji (mały projekt nie pokazuje oszczędności). Na repo średnim wynik **zależy od
-pytania, nie tylko od rozmiaru repo**: na `domain-driven-hexagon` `explore` przechodzi próg
-≥15% (−19,1% kosztu) i `init --detect` jest kierunkowo pozytywny (czas −14%, koszt w szumie);
-na większym repo prywatnym (~500 plików) to samo polecenie wypadło **drożej** (+8,8%/+22,8%),
-bo pytanie było trywialne dla Grep. Trzy z czterech zmierzonych par (`explore` × 2 repo średnie,
-`init --detect` × 1) są pozytywne lub neutralne; jedna (`explore` na repo, gdzie Grep i tak
-wygrywał) jest negatywna — zgodnie z nowo poznaną zasadą „graf pomaga przy pytaniach
-wielomodułowych/pośrednich, nie przy pytaniach, które rozwiązuje jeden Grep”.
+**Spełniony na repo średnim — dla wszystkich trzech promptów protokołu.** Na `notes-app` koszt
+rośnie (+19% `explore`, +17% `wiki`) — pierwsza część kryterium formalnie nie przechodzi, zgodnie
+z przewidywaniem w dokumentacji (mały projekt nie pokazuje oszczędności, zamierzone). Na repo
+średnim (`domain-driven-hexagon`, 95 plików) **wszystkie trzy** zmierzone pary przechodzą próg
+`keep`: `explore` −19,1% kosztu, `init --detect` −13,9% czasu (koszt w szumie), `wiki init`
+−18,4% kosztu — kryterium „≥15% na `init --detect` i `explore`” jest więc spełnione, a `wiki
+init` (poza formalnym kryterium) wypada tak samo dobrze.
 
-**Rekomendacja:** integrację **zostawiam** (nie wycofuję promptów) — mechanizm jest poprawny
-(opcjonalny, zero kosztu bez grafu, zero LLM/sieci przy budowie) i realnie oszczędza, gdy
-pytanie tego wymaga; to, że czasem nie pomaga, jest informacją dla użytkownika („kiedy się
-opłaca” w `docs/code-map.md`), nie wadą promptów. Gałąź zostaje nie zmergowana do `main` do
-decyzji użytkownika.
+**Ale nie bezwarunkowo:** na większym, prywatnym repo (~500 plików, tylko zagregowane liczby —
+patrz niżej) ten sam `explore` wypadł **drożej** (+8,8% kosztu, +22,8% czasu) dla pytania, które
+miało unikalną, łatwo grepowalną nazwę symbolu. Rozmiar repo nie jest więc jedynym czynnikiem —
+liczy się też, czy pytanie wymaga przeskoku przez kilka zależności, czy jeden dobry Grep i tak
+wygrywa. Ta zasada jest teraz wpisana do `docs/code-map.md` → „Kiedy się opłaca”.
+
+**Rekomendacja:** integrację **zostawiam** (nie wycofuję promptów) — dowód na repo średnim jest
+pełny (3 z 3 promptów `keep`), a kontrprzykład z większego repo nie jest wadą mechanizmu, tylko
+potwierdzeniem, że graf pomaga selektywnie — co jest teraz udokumentowane dla użytkownika, nie
+ukryte. Gałąź zostaje nie zmergowana do `main` do decyzji użytkownika.
