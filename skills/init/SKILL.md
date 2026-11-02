@@ -223,7 +223,7 @@ Na podstawie wykrytego stacku skopiuj i wypełnij odpowiedni szablon:
 | Stack | Szablon |
 |---|---|
 | Node.js / TypeScript | `${CLAUDE_PLUGIN_ROOT}/templates/Makefile.node.template` |
-| Inny stack (Python, Go, Rust, …) | brak szablonu → wygeneruj Makefile ręcznie z tym samym zestawem celów: `install`, `lint`, `type-check`, `format`, `test`, `test-unit`, `test-integration`, `test-coverage`, `check`, `build`, `deps-outdated`, `deps-audit` — używając narzędzi wykrytego stacku (np. `pytest`, `ruff`, `go test`, `cargo test`) |
+| Inny stack (Python, Go, Rust, …) | brak szablonu → wygeneruj Makefile ręcznie z tym samym zestawem celów: `install`, `lint`, `type-check`, `format`, `test`, `test-unit`, `test-integration`, `test-coverage`, `check`, `build`, `deps-outdated`, `deps-audit`, `code-map` (`graphify extract . --code-only --out ai/graph` — niezależny od stacku) — używając narzędzi wykrytego stacku (np. `pytest`, `ruff`, `go test`, `cargo test`) |
 
 Cele Makefile to **kontrakt frameworka** — komendy (`/regent:apply`, `/regent:verify`, `/regent:commit`,
 `/regent:dependency-update`) wołają `make …`, nie surowe narzędzia stacku.

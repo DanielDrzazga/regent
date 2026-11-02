@@ -137,6 +137,12 @@ deps-update:       ## Zaktualizuj pakiet (make deps-update PKG=express)
 deps-upgrade:      ## Upgrade do najnowszej wersji (make deps-upgrade PKG=express)
 	$(PKG_MANAGER) install $(PKG)@latest
 
+# === Mapa kodu (opcjonalnie — wymaga zainstalowanego Graphify: github.com/Graphify-Labs/graphify) ===
+.PHONY: code-map
+
+code-map:          ## Zbuduj/zaktualizuj graf kodu (Graphify, tylko kod, zero LLM/sieci)
+	graphify extract . --code-only --out ai/graph
+
 # === Pomoc ===
 .PHONY: help
 

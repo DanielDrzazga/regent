@@ -34,6 +34,11 @@ graphify extract . --code-only --out ai/graph
   (Krok 0.75), razem z `.graphifyignore` zawierającym `*.md` — zabezpieczenie, gdyby ktoś później
   ręcznie odpalił `graphify update` (ten, w przeciwieństwie do `extract --code-only`, domyślnie
   wciąga nagłówki Markdown jako węzły, choć bez LLM).
+- Po pierwszym `/regent:init` to samo polecenie jest też celem Makefile: `make code-map`
+  (`templates/Makefile.node.template`, i ten sam cel w ręcznie generowanym Makefile dla innych
+  stacków) — wygodny skrót dla człowieka. Agenci wołają `graphify` bezpośrednio (reguła w
+  `context/code-map.md`), nie przez `make`, bo działa identycznie przed i po Kroku 3 (generowanie
+  Makefile) i nie zależy od tego, czy cel akurat jest w Makefile projektu.
 
 ### Dlaczego bez hooków Graphify
 
