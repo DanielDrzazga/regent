@@ -294,8 +294,7 @@ merge robi użytkownik. Działa w repo pluginu. Zestaw jest dziś dla `apply`. S
 ## Bezpieczeństwo danych
 
 Repo jest publiczne i zawiera wyłącznie plugin i jego dokumentację — bez danych z `~/.claude`
-(historia, transkrypty, sesje), bez notatek osobistych i bez kodu ani danych z pracy etatowej
-(`.claude/rules/privacy.md`).
+(historia, transkrypty, sesje), bez notatek osobistych.
 
 - Przed pushem sprawdź `git status` — `git add` tylko z listą konkretnych plików.
 - Nigdy nie commituj sekretów ani realnych logów/payloadów.
