@@ -25,7 +25,7 @@ projektu (`ai/docs/`) jest jedynym źródłem prawdy dla AI.
 - [Szablony](#szablony)
 - [Observability (opcjonalnie)](#observability-opcjonalnie)
 - [Zadania i regent task (opcjonalnie)](#zadania-i-regent-task-opcjonalnie)
-- [Agent teams i regent-watch (opcjonalnie)](#agent-teams-i-regent-watch-opcjonalnie)
+- [Agent teams (opcjonalnie)](#agent-teams-opcjonalnie)
 - [Optymalizacja skilli (opcjonalnie)](#optymalizacja-skilli-opcjonalnie)
 - [Konwencje](#konwencje)
 - [Bezpieczeństwo danych](#bezpieczeństwo-danych)
@@ -113,7 +113,7 @@ regent/
 ├── evals/                 # Zestawy evali skilli dla /regent:optimize (claude plugin eval, projekty testowe)
 ├── docs/                  # Dokumentacja frameworka i plany zmian
 ├── tools/regent/          # regent task — zadania i paczki dla agentów, baza SQLite (Node, poza pluginem)
-├── tools/watch/           # regent-watch — podgląd agentów w terminalu, regent-apply-tokens — pomiar paczki (Node, poza pluginem)
+├── tools/watch/           # regent-apply-tokens — pomiar paczki w skillu apply (Node, poza pluginem)
 ├── .claude/               # reguły pracy nad tym repo (nie są częścią pluginu)
 └── README.md · CONTRIBUTING.md
 ```
@@ -260,12 +260,10 @@ z artefaktów. `/regent:apply` z CLI bierze gotowe taski przez `next` i daje sub
 wszystko działa jak dotąd, na plikach. Instalacja, polecenia, mapa stanów i paczka:
 [docs/tasks.md](docs/tasks.md).
 
-## Agent teams i regent-watch (opcjonalnie)
+## Agent teams (opcjonalnie)
 
-Praca agentów widoczna na żywo w tmux: natywne agent teams Claude Code w trybie split-pane
-(każdy członek zespołu we własnym panelu) i `regent-watch` w osobnym oknie — mission control
-w stylu OpenRig: drzewo aktywnych sesji z całej maszyny, zakładki Tabela, Oś czasu, Graf, Przegląd
-i Zdrowie, szczegóły agenta i skok do jego panelu tmux. Teams włączasz **tylko w wybranym projekcie**
+Praca agentów widoczna na żywo w tmux: natywne agent teams Claude Code w trybie split-pane,
+każdy członek zespołu we własnym panelu. Teams włączasz **tylko w wybranym projekcie**
 (`.claude/settings.local.json`), bo zmieniają delegację: nazwany agent startuje jako członek
 zespołu, nie subagent. Szczegóły, koszt i ograniczenia: [docs/agent-teams.md](docs/agent-teams.md).
 
@@ -308,7 +306,7 @@ Repo jest publiczne i zawiera wyłącznie plugin i jego dokumentację — bez da
 - [`docs/workflow.md`](docs/workflow.md) — pełny cykl SDD + skróty
 - [`docs/writing-docs.md`](docs/writing-docs.md) — `ai/docs/`, logowanie, observability
 - [`docs/tasks.md`](docs/tasks.md) — zadania `regent task`: instalacja, polecenia, mapa stanów, paczka
-- [`docs/agent-teams.md`](docs/agent-teams.md) — agent teams w tmux i `regent-watch`
+- [`docs/agent-teams.md`](docs/agent-teams.md) — agent teams w tmux
 - [`docs/optimize.md`](docs/optimize.md) — `/regent:optimize`: pętla optymalizacji skilli, zestawy evali, metryka
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — jak dodać skill/agenta/szablon
 - [`docs/`](docs/README.md) — indeks całej dokumentacji (m.in. `statusline.md` — konfiguracja statusline)

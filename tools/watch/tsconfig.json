@@ -6,7 +6,6 @@
     ],
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "jsx": "react-jsx",
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": false,

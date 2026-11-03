@@ -11,7 +11,7 @@ Indeks dokumentacji frameworka. Szczegóły w plikach poniżej.
 | [writing-docs.md](writing-docs.md) | Jak pisać dokumentację w tym repo (styl, struktura) |
 | [roadmap.md](roadmap.md) | Świadome decyzje (czego nie ma i dlaczego, jak przywrócić), pomysły odłożone i zrealizowane |
 | [tasks.md](tasks.md) | Zadania `regent task`: instalacja CLI, polecenia, stany, sync z artefaktów SDD, paczka dla `apply`, utknięcie |
-| [agent-teams.md](agent-teams.md) | Agent teams w tmux (włączenie per projekt, koszt, wpływ na delegację) i podgląd `regent-watch` |
+| [agent-teams.md](agent-teams.md) | Agent teams w tmux (włączenie per projekt, koszt, wpływ na delegację) |
 | [plans/](plans/) | Plany zmian prowadzonych lekką ścieżką (gałąź + checklista) |
 
 ## Skrypty
@@ -42,4 +42,4 @@ Pakiety Node w [`tools/`](../tools/) — poza komponentami pluginu, instalowane 
 | Pakiet | Dokumentacja | O czym |
 |--------|--------------|--------|
 | [`tools/regent/`](../tools/regent/) | [tasks.md](tasks.md) | `regent task`: zadania z właścicielem i logiem przejść, sync z `ai/changes/`, paczka dla agenta `apply` |
-| [`tools/watch/`](../tools/watch/) | [agent-teams.md](agent-teams.md#regent-watch), [tasks.md](tasks.md#pomiar-paczki-regent-apply-tokens) | `regent-watch`: mission control agentów Claude Code — sesje z całej maszyny, akcje, kontekst, oś czasu, graf, koszt, zdrowie; `regent-apply-tokens`: tokeny pierwszej tury subagentów `apply` z paczką i bez |
+| [`tools/watch/`](../tools/watch/) | [tasks.md](tasks.md#pomiar-paczki-regent-apply-tokens) | `regent-apply-tokens`: tokeny pierwszej tury subagentów `apply` z paczką i bez |
