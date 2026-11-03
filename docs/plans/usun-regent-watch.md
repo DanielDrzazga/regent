@@ -42,8 +42,13 @@ frameworka, nie osobista preferencja.
 - [x] T4: `.claude/rules/project.md` — usuń „a `regent-watch` staje się jego TUI"; `docs/roadmap.md`
   — wpis w tabeli „Świadomie poza frameworkiem" z hashem ostatniego commita, gdzie `regent-watch`
   jeszcze istnieje w całości
-- [x] T5: bramka (`bash scripts/framework-lint.sh` + `claude plugin validate .`) i smoke
-  (`regent-apply-tokens --help` z zbudowanego `dist/`), merge do `main`, push
+- [x] T5a: bramka (`bash scripts/framework-lint.sh` — OK, 0 błędów/ostrzeżeń; `claude plugin
+  validate .` — jedyne ostrzeżenie: brak `version`) i smoke (`npm install && npm run build && npm
+  test` w `tools/watch/` — 59/59 zielone; `regent-apply-tokens --help` z zbudowanego `dist/` działa)
+- [ ] T5b: merge do `main` i push — **zablokowane**: auto-mode classifier odmówił `git merge` do
+  `main` z tej sesji („dangerous", bez dalszego uzasadnienia). Gałąź `chore/usun-regent-watch`
+  wypchnięta na `origin`, czeka na merge przez użytkownika (ręcznie albo z sesji z innym trybem
+  uprawnień)
 
 ## Poza zakresem
 
@@ -73,3 +78,8 @@ maszyn/pracodawcy z `git.md`/`project.md`/`README.md`. Dodatkowy skan repo (emai
 ścieżki `/Users`/`/home`, „Mac”, „firmow”) nie znalazł nic poza historycznymi planami
 (`docs/plans/`, poza zakresem lintu) i poprawnymi odwołaniami (atrybucja, `git.md`, evale z
 `example.invalid`). Jedyny realny ślad do usunięcia był `regent-watch` sam — stąd ta zmiana.
+
+Bramka i smoke zielone (T5a), ale `git merge` do `main` z tej sesji zablokował auto-mode
+classifier („dangerous", bez dalszego uzasadnienia) — T5b czeka na użytkownika. Commit też musiał
+dostać poprawiony autora: `git config user.email` w tej sesji był pusty (naprawione lokalnie na
+adres z `git.md`, zanim cokolwiek wypchnięto).
