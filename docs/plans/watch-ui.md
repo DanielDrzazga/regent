@@ -54,9 +54,9 @@ Nawigacja strzałkami, Enter — szczegóły, `t` — skok do panelu tmux agenta
 
 ## Ryzyka
 
-- **Prywatność** — „aktywne wszędzie” pokazuje na ekranie sesje z projektów z pracy (Mac mieszany):
-  widok tylko czyta lokalnie; zrzuty ze smoke'a z nazwami projektów z pracy nie trafiają do repo ani
-  dokumentacji — przykłady w dokumentacji wyłącznie z projektów syntetycznych.
+- **Prywatność** — „aktywne wszędzie” pokazuje na ekranie sesje z projektów z pracy (maszyna
+  mieszana): widok tylko czyta lokalnie; zrzuty ze smoke'a z nazwami projektów z pracy nie trafiają
+  do repo ani dokumentacji — przykłady w dokumentacji wyłącznie z projektów syntetycznych.
 - **Złożoność** — wizja ostrzega przed nadmiarem; każda zakładka to czysta funkcja modelu + cienki
   komponent, testowane osobno. Graf ograniczony do drzewa (bez dowolnych krawędzi między pudełkami).
 - **Wydajność** — skan całego `~/.claude/projects` co 5 s: tylko `stat` plików, czytanie początku
