@@ -54,9 +54,9 @@ WYMAGANE pliki (nie puste):
 Jeśli brakuje → "Uruchom /regent:init przed /regent:propose"
 ```
 
-**Konflikt z inną aktywną zmianą (twardy punkt, nie ostrzeżenie ogólne)** — widzisz tylko własne
-zmiany (`ai/` jest osobisty; pracę kolegów ujawni merge MR). Dla każdej zmiany
-w `ai/changes/` (bez `archive/`) porównaj z zakresem tej propozycji:
+**Konflikt z inną aktywną zmianą (twardy punkt, nie ostrzeżenie ogólne)** — gdy `ai/` jest osobisty
+(domyślny tryb), widzisz tylko własne zmiany; pracę kolegów ujawni dopiero merge MR. Dla każdej
+zmiany w swoim `ai/changes/` (bez `archive/`) porównaj z zakresem tej propozycji:
 ```
 □ ta sama domena w specs/{domena}.md?   (obie delty wejdą do tego samego main spec)
 □ wspólne pliki w design.md → „Affected Files"?

@@ -43,9 +43,11 @@ Przykład: `feat: (PROJ-123) add global error handling middleware`
 
 - [Strategia — np. squash / merge commit]
 - [Wymagane review / CI green przed merge]
-- `ai/` jest osobisty i globalnie ignorowany — do MR trafia kod i testy, a plan (cel, wymagania
-  z AC, decyzje) niesie opis MR generowany w `/regent:verify` Etap 9. Reviewer czyta najpierw opis
-  (czy plan jest dobry), potem kod (czy go realizuje).
+- `ai/` jest osobisty i globalnie ignorowany (domyślny tryb) albo współdzielony i śledzony w repo
+  (wybór przy `/regent:init`). Osobisty — do MR trafia kod i testy, a plan (cel, wymagania z AC,
+  decyzje) niesie opis MR generowany w `/regent:verify` Etap 9. Reviewer czyta najpierw opis
+  (czy plan jest dobry), potem kod (czy go realizuje). Współdzielony — `ai/changes/{nazwa}/`
+  jest częścią MR, opis MR z Etapu 9 i tak ułatwia review w samym UI.
 - `/regent:archive` po merge MR — twoje `ai/specs/` rośnie tylko o kod, który wszedł.
 - Temat commita squash zawiera klucz ticketu (`feat: (KEY) …`) — po nim `sdd-check stale`
   rozpoznaje pracę z cyklu SDD.

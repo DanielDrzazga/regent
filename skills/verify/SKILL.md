@@ -208,8 +208,11 @@ wywrotki, nie blokować weryfikacji.
 □ Dependencies locked?
 ```
 
-**Opis MR (gdy zespół pracuje na MR/PR):** `ai/` nie trafia do repo, więc plan niesie opis MR.
-Przy PASS dołącz do raportu gotowy do wklejenia opis: cel z `proposal.md` (1-2 zdania), wymagania
+**Opis MR (gdy zespół pracuje na MR/PR):** gdy `ai/` jest osobisty (domyślny tryb), reviewer MR
+nie ma do niego dostępu, więc plan niesie opis MR; przy współdzielonym `ai/` reviewer może
+przeczytać `ai/changes/{nazwa}/` wprost, ale opis MR i tak ułatwia review w samym UI MR/PR —
+dołączaj go w obu trybach. Przy PASS dołącz do raportu gotowy do wklejenia opis: cel z
+`proposal.md` (1-2 zdania), wymagania
 z delty z **treścią AC** (ADDED/MODIFIED/REMOVED — reviewer nie ma Twoich plików), pokrycie
 w postaci „treść AC → test", kluczowe `DECYZJA`, „Odstępstwa od zasad" z design.md (zasady MUST
 są zespołowe), tabela etapów z `verification.md`. Numery REQ/AC to Twoja lokalna numeracja —

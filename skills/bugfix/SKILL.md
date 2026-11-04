@@ -122,10 +122,14 @@ git checkout -b fix/{KEY}-{short-description}
 # 3. Verify: test przechodzi
 # 4. Verify: testy modułu nadal przechodzą
 
-# Commit (SESJA GŁÓWNA, po raporcie z potwierdzonym GREEN) — tylko kod i testy (ai/ jest lokalny);
+# Commit (SESJA GŁÓWNA, po raporcie z potwierdzonym GREEN) — tylko kod i testy;
 # po commicie ślad przy tasku jak w /regent:apply 4c: (commit: <hash> · testy: <test regresji>)
 git add [specific files]
 git commit -m "fix: (KEY) prevent duplicate email registration"
+
+# ai/ osobisty (git check-ignore -q --no-index ai/, exit 0) → tasks.md zostaje lokalnie, bez git add.
+# ai/ współdzielony (exit 1) → po edycji tasks.md drugi, krótki commit:
+# git add ai/changes/fix-{nazwa}/tasks.md && git commit -m "docs: odhacz T-01 w tasks.md"
 ```
 
 ---

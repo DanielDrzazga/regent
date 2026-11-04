@@ -14,7 +14,10 @@ cp -R "$here/../apply/fixtures/notes-app/." .
 cp -R "$here/fixtures/project/." .
 git init -q -b main .
 git config core.precomposeunicode true
-printf '/ai/\n.DS_Store\n' >> .git/info/exclude
+# EVAL_AI_SHARED=1 pomija /ai/ (tryb współdzielony — bez przypadków evali dla tego trybu,
+# docs/plans/ai-tracking-mode.md).
+printf '.DS_Store\n' >> .git/info/exclude
+[ "${EVAL_AI_SHARED:-}" = "1" ] || printf '/ai/\n' >> .git/info/exclude
 # Tożsamość i daty przez zmienne środowiska: wygrywają z GIT_AUTHOR_* maszyny, a -c user.name nie.
 g() {
   GIT_AUTHOR_NAME="Regent Eval" GIT_AUTHOR_EMAIL=eval@example.invalid GIT_AUTHOR_DATE=2026-10-01T12:00:00Z \

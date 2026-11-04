@@ -14,7 +14,7 @@ przywrócić coś, co zostało usunięte.
 |---------|--------|----------|-----------------|
 | `/deploy-sdd`, agent `devops-engineer`, `templates/docs/deployment.md` | usunięte 2026-09-16 | Wdrożenie to proces organizacji i pipeline CI — framework go nie owija. Framework kończy się na `/regent:archive`; lokalną gotowość sprawdzają Etap 9 (Git & Release Readiness) i Etap 8 (Smoke) w `/regent:verify`. Przy osobistym `ai/` runbook wdrożenia w `ai/docs/` pasowałby jeszcze gorzej — to wiedza zespołu. | `39445f1` |
 | `docs/audyt-prompt.md` | usunięty 2026-09-16 | Jednorazowe narzędzie robocze, nie dokumentacja; szybko się starzeje (opisywał 19 komend i cykl z discovery i deploy). Mechaniczną spójność sprawdza `scripts/framework-lint.sh`; przegląd z modelem — prompt spoza repo. | `39445f1` |
-| `/discover-sdd`, agent `product-manager`, `templates/discovery-template.md` | poza rdzeniem | Potrzeba jest realna, ale stara forma kłóci się z frameworkiem: żywy backlog w `ai/product/` jest artefaktem zespołu, a `ai/` jest osobisty; wymagała powiązań statusów F-XX w `/regent:propose`, `/regent:archive` i `/regent:status`; osobny agent na Opusie. Potrzebę realizuje tryb `/regent:explore --discovery` (niżej, „Zrealizowane"); resztę pokrywają korzeń PROBLEM w Challenge i `/regent:wiki`. | `39445f1` |
+| `/discover-sdd`, agent `product-manager`, `templates/discovery-template.md` | poza rdzeniem | Potrzeba jest realna, ale stara forma kłóci się z frameworkiem: żywy backlog w `ai/product/` wymagała powiązań statusów F-XX w `/regent:propose`, `/regent:archive` i `/regent:status` i osobnego agenta na Opusie — niezależnie od trybu `ai/` (osobisty/współdzielony, `docs/plans/ai-tracking-mode.md`). Potrzebę realizuje tryb `/regent:explore --discovery` (niżej, „Zrealizowane"); resztę pokrywają korzeń PROBLEM w Challenge i `/regent:wiki`. | `39445f1` |
 | `regent-watch` (TUI mission-control w stylu OpenRig: `tools/watch/src/cli.ts`, `main.tsx`, `ui/`, `store.ts`, `view.ts`, `tmux.ts`, `workspace.ts`) | usunięty 2026-11-03 | Powstał jako odpowiedź na pytanie z osobistej wizji produktu („który aspekt OpenRig się spodobał") — osobista eksploracja, nie rdzeń frameworka. Regent przestaje być narzędziem jednej osoby, więc TUI znika; `regent-apply-tokens` z tego samego pakietu zostaje (pomiar `apply`, T9 toru `/regent:optimize`). Fakty ze spike'a i decyzje budowy: `docs/plans/agent-teams-view.md`, `docs/plans/watch-ui.md`; decyzja usunięcia: `docs/plans/usun-regent-watch.md`. | `f677200` (regent) |
 
 **Przywrócenie** — hashe w tym pliku pochodzą z zamrożonego repo `claude-sdd-framework`
@@ -60,8 +60,9 @@ nie mówi: co wzięliśmy, czego świadomie nie i czego nauczyła próba.
 - Ze starego `/discover-sdd`: pytania wywiadu, „jeden kandydat = jedna zmiana SDD", cięcie MVP,
   bez finansów, werdykt z uzasadnieniem (`BUDUJEMY` / `DOPRECYZUJ` / `NIE BUDUJEMY` zamiast
   GO / PIVOT / NO-GO).
-- Bez `ai/product/` z żywym backlogiem, statusów F-XX i agenta `product-manager`: explore zostaje
-  read-only, kandydaci 2..N idą do trackera za zgodą (pilnuje `forbid 'ai/product'` w lincie).
+- Bez `ai/product/` z żywym backlogiem, statusów F-XX i agenta `product-manager` — niezależnie
+  od trybu `ai/`: explore zostaje read-only, kandydaci 2..N idą do trackera za zgodą (pilnuje
+  `forbid 'ai/product'` w lincie).
 - Inspiracja: spec-kit `extensions/assess` — esencja (rozbicie + werdykt), nie pięć artefaktów.
 - Próba na sucho na projekcie prywatnym (wiedza sprzed budowy, wynik porównany z faktycznym przebiegiem):
   reguła „kandydat 1 sprawdza wartość albo odblokowuje resztę" dała na start tenant + zaproszenia
