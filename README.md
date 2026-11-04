@@ -74,7 +74,7 @@ The installation is a copy of the clone's commit, so after pulling changes from 
 git pull && make plugin-update
 ```
 
-and start a new session. Other targets: `make plugin-status`, `plugin-uninstall`, `plugin-reinstall`.
+and start a new session. All targets (installation, status, quality gate): `make help`.
 
 Working on the plugin itself: `claude --plugin-dir <regent clone>` loads it straight from the clone
 for one session.

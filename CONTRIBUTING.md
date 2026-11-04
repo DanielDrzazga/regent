@@ -108,7 +108,7 @@ tools: Read, Grep, Glob, Bash          # dobierz do roli; role oceniające BEZ E
 Przed każdym commitem uruchom lint — w repo z promptami to on jest testem:
 
 ```bash
-bash scripts/framework-lint.sh      # RESULT: OK → można commitować
+make check      # lint (RESULT: OK) + claude plugin validate . — the gate before every MR
 ```
 
 Sprawdza frontmatter agentów i skilli, istnienie każdego wskazanego skilla/agenta/szablonu/skryptu,

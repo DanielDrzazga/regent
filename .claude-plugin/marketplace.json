@@ -2,7 +2,8 @@
   "name": "regent",
   "description": "Regent — SDD framework for Claude Code",
   "owner": {
-    "name": "Regent maintainers"
+    "name": "Daniel Drzazga",
+    "url": "https://github.com/DanielDrzazga"
   },
   "plugins": [
     {
