@@ -23,12 +23,12 @@ Decyzje i zakres: [plans/task-core.md](plans/task-core.md).
 ## Instalacja
 
 Pakiet: [`tools/regent/`](../tools/regent/) (Node 24, TypeScript) — poza komponentami pluginu,
-instalowany osobno, jak `regent-apply-tokens`:
+instalowany osobno:
 
 ```bash
 cd <klon repo regent>/tools/regent
 npm install        # zależności + build do dist/
-npm link           # opcjonalnie: polecenie regent w PATH
+npm link           # opcjonalnie: regent (i regent-apply-tokens, sekcja niżej) w PATH
 ```
 
 Bez `npm link` uruchamiasz `node <klon repo regent>/tools/regent/dist/cli.js`. Plugin znajduje CLI
@@ -209,9 +209,9 @@ i rozjazd stanu z artefaktami. Pod listą stoi czas ostatniego sync; przed pierw
 
 ## Pomiar paczki: `regent-apply-tokens`
 
-Czy paczka zmniejsza koszt agenta, pokazują transkrypty. `regent-apply-tokens` (pakiet
-[`tools/watch/`](../tools/watch/), instalacja jak `regent task` — `npm link` dodaje polecenie w PATH)
-bierze subagentów `backend-dev`, `frontend-dev` i `dba` z promptem o `ai/changes/` i dzieli ich
+Czy paczka zmniejsza koszt agenta, pokazują transkrypty. `regent-apply-tokens` (ten sam pakiet
+[`tools/regent/`](../tools/regent/) co `regent task`, drugi bin w `npm link`) bierze subagentów
+`backend-dev`, `frontend-dev` i `dba` z promptem o `ai/changes/` i dzieli ich
 na uruchomienia bez paczki i z paczką — `# Paczka:` w prompcie albo w wyniku narzędzia w pierwszej
 turze, gdy sesja główna zapisała paczkę do pliku i kazała ją przeczytać (wiersz „paczka z pliku”):
 
@@ -220,7 +220,7 @@ regent-apply-tokens --project ~/projekty --until 2026-09-28   # punkt odniesieni
 regent-apply-tokens --project ~/projekty --since 2026-09-29   # tydzień z paczką
 ```
 
-Mediany pierwszej tury (do `end_turn`, jak w parserze `tools/watch/src/parse/`, albo do pierwszej wiadomości
+Mediany pierwszej tury (do `end_turn`, jak w parserze `tools/regent/src/parse/`, albo do pierwszej wiadomości
 do agenta): suma tokenów wejścia wszystkich wywołań API (wejście + zapis i odczyt cache), liczba
 wywołań, kontekst pierwszego wywołania, przy pierwszej edycji i maksymalny, odczyt `tasks.md`,
 `design.md` i `specs/` zmiany. Pod nimi cały agent: ilu dostało wiadomości po prompcie (kontynuacja

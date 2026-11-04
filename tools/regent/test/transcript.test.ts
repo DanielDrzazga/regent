@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applyLines, applyRecord, createState, parseTranscript } from '../src/parse/transcript.js';
-import { ALPHA, BETA, LEAD, TEAM, readFixture } from './helpers.js';
+import { ALPHA, BETA, LEAD, TEAM, readFixture } from './watch-helpers.js';
 
 describe('transkrypt leada', () => {
   const s = parseTranscript(readFixture(LEAD));

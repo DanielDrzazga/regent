@@ -41,5 +41,4 @@ Pakiety Node w [`tools/`](../tools/) — poza komponentami pluginu, instalowane 
 
 | Pakiet | Dokumentacja | O czym |
 |--------|--------------|--------|
-| [`tools/regent/`](../tools/regent/) | [tasks.md](tasks.md) | `regent task`: zadania z właścicielem i logiem przejść, sync z `ai/changes/`, paczka dla agenta `apply` |
-| [`tools/watch/`](../tools/watch/) | [tasks.md](tasks.md#pomiar-paczki-regent-apply-tokens) | `regent-apply-tokens`: tokeny pierwszej tury subagentów `apply` z paczką i bez |
+| [`tools/regent/`](../tools/regent/) | [tasks.md](tasks.md) | `regent task`: zadania z właścicielem i logiem przejść, sync z `ai/changes/`, paczka dla agenta `apply`; `regent-apply-tokens`: tokeny pierwszej tury subagentów `apply` z paczką i bez ([szczegóły](tasks.md#pomiar-paczki-regent-apply-tokens)) |

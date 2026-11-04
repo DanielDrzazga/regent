@@ -36,7 +36,10 @@ git checkout f677200 -- tools/watch/
 ```
 
 Potem w `tools/watch/package.json` trzeba ręcznie wrócić do `name: regent-watch`, dwóch binów
-i zależności `ink`/`react` — ten plik zmienił się także w commicie usuwającym.
+i zależności `ink`/`react` — ten plik zmienił się także w commicie usuwającym. `regent-apply-tokens`
+(i `parse/`, `session.ts`, `units.ts`) od 2026-11-04 mieszka w `tools/regent/`, nie w `tools/watch/`
+— po przywróceniu usuń duplikat z `tools/watch/` i w `tools/regent/package.json` wyjmij bin
+`regent-apply-tokens`.
 
 ## Odłożone decyzje
 

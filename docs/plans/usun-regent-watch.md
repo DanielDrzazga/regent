@@ -17,7 +17,7 @@ frameworka, nie osobista preferencja.
 | Decyzja | Wartość |
 |---|---|
 | Zakres | usuń UI (`cli.ts`, `main.tsx`, `ui/`, `store.ts`, `view.ts`, `tmux.ts`, `workspace.ts`, `tail.ts`, `parse/team.ts`) i ich testy; zostaw `apply-tokens-cli.ts`, `apply-tokens.ts`, `parse/{firstturn,pricing,tools,transcript}.ts`, `session.ts` (tylko `defaultClaudeDir`), `units.ts` (tylko `fmtTokens`) |
-| Katalog/nazwa pakietu | `tools/watch/` zostaje (nie przenoszę) — zmiana ścieżki uderzyłaby w odwołania w `docs/plans/optimize.md` (aktywny, T9) i w historyczne plany; `package.json` **name** → `regent-apply-tokens`, bo to jedyny bin, który zostaje |
+| Katalog/nazwa pakietu | **zmiana decyzji 2026-11-04** (niżej, „Przebieg") — `tools/watch/` zniknął, `regent-apply-tokens` przeniesiony do `tools/regent/` jako drugi bin tego samego pakietu; pierwotna decyzja „zostaje, nie przenoszę" nieaktualna |
 | `docs/plans/watch-ui.md`, `agent-teams-view.md` i inne historyczne plany | zostają bez zmian — zapis decyzji z przeszłości, lint (`docs/plans/`) ich nie sprawdza |
 | `docs/agent-teams.md` | agent teams (natywna funkcja Claude Code) zostaje jako osobny temat — tylko sekcja `regent-watch` i jej odwołania wylatują |
 | `.claude/rules/project.md` | zdanie „`regent-watch` staje się jego TUI" usuwa się — harness na razie bez TUI, bez nowego zobowiązania |
@@ -49,19 +49,25 @@ frameworka, nie osobista preferencja.
   `main` z tej sesji („dangerous", bez dalszego uzasadnienia). Gałąź `chore/usun-regent-watch`
   wypchnięta na `origin`, czeka na merge przez użytkownika (ręcznie albo z sesji z innym trybem
   uprawnień)
+- [x] T6: zmiana decyzji 2026-11-04 — przenieś `regent-apply-tokens` (`apply-tokens.ts`,
+  `apply-tokens-cli.ts`, `parse/`, `session.ts`, `units.ts`) i jego testy/fixture'y z `tools/watch/`
+  do `tools/regent/`; drugi `bin` w `tools/regent/package.json`; usuń `tools/watch/` całkowicie;
+  `npm install && npm run build && npm test` w `tools/regent/` zielone (152 testy)
+- [x] T7: dokumentacja po przenosinach — `README.md` (drzewo repo: jeden wiersz `tools/regent/`),
+  `docs/README.md`, `docs/tasks.md` (instalacja, ścieżka parsera), `docs/plans/optimize.md`
+  (ścieżka `pricing.ts`), `docs/roadmap.md` (ścieżka przywrócenia `regent-watch` z uwagą
+  o przeniesionym `regent-apply-tokens`); bramka ponownie zielona
 
 ## Poza zakresem
 
-Przeniesienie/rename katalogu `tools/watch/` → `tools/apply-tokens/` (osobna decyzja, większy
-blast radius w historycznych planach); zamiennik TUI dla harnessu (roadmapowy punkt odłożony,
-nie rozstrzygnięty tu).
+Zamiennik TUI dla harnessu (roadmapowy punkt odłożony, nie rozstrzygnięty tu).
 
 ## Ryzyka
 
 - **T9 `/regent:optimize`** (`docs/plans/optimize.md`) zależy od `regent-apply-tokens` — dlatego
   zostaje; użytkownik potwierdził to świadomie (patrz „Przebieg").
-- **Niespójność nazwa/katalog** — pakiet `regent-apply-tokens` mieszka w `tools/watch/`; zapisane
-  w tym planie jako świadomy wybór, nie przeoczenie.
+- **Niespójność nazwa/katalog** — rozwiązana 2026-11-04: `regent-apply-tokens` przeniesiony
+  do `tools/regent/`, jeden pakiet, bez osobnego `tools/watch/`.
 
 ## Przebieg (2026-11-03)
 
@@ -83,3 +89,28 @@ Bramka i smoke zielone (T5a), ale `git merge` do `main` z tej sesji zablokował 
 classifier („dangerous", bez dalszego uzasadnienia) — T5b czeka na użytkownika. Commit też musiał
 dostać poprawiony autora: `git config user.email` w tej sesji był pusty (naprawione lokalnie na
 adres z `git.md`, zanim cokolwiek wypchnięto).
+
+## Przebieg (2026-11-04)
+
+Dalsze sprzątanie prywatnych elementów (na żądanie użytkownika) doprowadziło do pytania: po co
+osobny pakiet `tools/watch/`, gdy został w nim tylko jeden bin (`regent-apply-tokens`), a drugi
+pakiet (`tools/regent/`) ma identyczne `devDependencies` i ten sam wzorzec CLI (`Io`, jak
+`tools/regent/src/main.ts` — już zauważone w `docs/plans/task-core-check.md`)? Użytkownik:
+**przenieś to, co potrzebne, z `watch` do `regent`**.
+
+- T6: `git mv` modułów (`parse/`, `session.ts`, `units.ts`, `apply-tokens.ts`, `apply-tokens-cli.ts`)
+  i testów (`firstturn.test.ts`, `pricing.test.ts`, `tools.test.ts`, `transcript.test.ts`,
+  `apply-tokens.test.ts`, fixture'y `claude/projects/`) do `tools/regent/`; `helpers.ts` z `watch/`
+  zmienił nazwę na `watch-helpers.ts` (kolizja z istniejącym `tools/regent/test/helpers.ts` — inny
+  plik, inne fixture'y, zero wspólnego kodu). Drugi `bin` w `package.json`, bez nowych zależności
+  (te same `@types/node`/`typescript`/`vitest` w obu pakietach już wcześniej). `tools/watch/`
+  usunięty w całości (`package.json`, `package-lock.json`, `tsconfig*.json`, `.gitignore`).
+  Zielone: `npm install`, `npm run build`, `npm run typecheck`, `npm test` — 152/152 (93 regent +
+  59 watch), smoke `regent --help` i `regent-apply-tokens --help` z jednego `dist/`.
+- T7: poprawione odwołania w `README.md` (jeden wiersz drzewa dla `tools/regent/`), `docs/README.md`,
+  `docs/tasks.md` (zdjęta nieaktualna uwaga „instalowany osobno jak regent-apply-tokens" — to już
+  ten sam pakiet), `docs/plans/optimize.md` (`pricing.ts` pod nową ścieżką) i `docs/roadmap.md`
+  (ścieżka przywrócenia `regent-watch` dostała uwagę, że `regent-apply-tokens` trzeba by wtedy
+  wymontować z `tools/regent/` z powrotem). Bramka (`framework-lint.sh`, `claude plugin validate .`)
+  zielona po zmianach.
+- Ten sam zablokowany krok jak wczoraj: merge do `main` robi użytkownik, nie ta sesja.
