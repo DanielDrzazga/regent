@@ -60,7 +60,7 @@ nie mówi: co wzięliśmy, czego świadomie nie i czego nauczyła próba.
 - Bez `ai/product/` z żywym backlogiem, statusów F-XX i agenta `product-manager`: explore zostaje
   read-only, kandydaci 2..N idą do trackera za zgodą (pilnuje `forbid 'ai/product'` w lincie).
 - Inspiracja: spec-kit `extensions/assess` — esencja (rozbicie + werdykt), nie pięć artefaktów.
-- Próba na sucho na TeronGo (wiedza sprzed budowy, wynik porównany z faktycznym przebiegiem):
+- Próba na sucho na projekcie prywatnym (wiedza sprzed budowy, wynik porównany z faktycznym przebiegiem):
   reguła „kandydat 1 sprawdza wartość albo odblokowuje resztę" dała na start tenant + zaproszenia
   + role — ten sam fundament, na którym projekt utknął, zanim pracownik terenowy dostał pierwszy
   ekran. Stąd „Kandydat 1 = walking skeleton" i fundament w minimalnym zakresie wewnątrz
