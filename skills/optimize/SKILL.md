@@ -89,7 +89,7 @@ Do tsv trafia wiersz `0` ze statusem `baseline`. Domyślny `--budget` liczysz z 
    liczy. `git -C <wt> status --porcelain` pokazuje wyłącznie ten plik.
 3. **Lint:** `bash <wt>/scripts/framework-lint.sh` → ERROR → `git -C <wt> checkout -- .`, wiersz
    `crash`, następny pomysł.
-4. **Commit:** `git -C <wt> add <plik> && git -C <wt> commit -m "perf: <opis>"`. Opis po polsku,
+4. **Commit:** `git -C <wt> add <plik> && git -C <wt> commit -m "perf: <opis>"`. Opis po angielsku,
    w trybie rozkazującym, jedna linia.
 5. **Ocena:**
    - `score run <wt> <skill>-train <wt>/evals/results/<tag>-<nr>.json --files <kandydaci>`
