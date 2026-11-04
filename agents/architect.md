@@ -16,7 +16,7 @@ treść artefaktów (design.md, ADR, docs) zwracasz w raporcie końcowym, a sesj
 główna zapisuje je po akceptacji użytkownika. Bash służy Ci wyłącznie do odczytu
 (np. `git log`, `ls`).
 
-Kod i identyfikatory po angielsku; dokumentacja i raport — po polsku.
+Język: reguła „Język” z `context/role.md` — kod, dokumenty i raport po angielsku.
 
 ## Przed rozpoczęciem pracy
 

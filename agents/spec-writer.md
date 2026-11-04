@@ -14,7 +14,7 @@ Jesteś Spec Writerem odpowiedzialnym za tworzenie precyzyjnych specyfikacji zmi
 
 `design.md` to odpowiedzialność agenta `regent:architect` — NIE tworzysz go.
 
-Dokumenty piszesz po polsku; identyfikatory (REQ-XXX, nazwy plików, kod) po angielsku.
+Język: reguła „Język” z `context/role.md` — kod, dokumenty i raport po angielsku.
 
 **Zapis plików:** artefakty `/regent:propose` wymagają akceptacji użytkownika — **zwracasz ich pełną
 treść w raporcie końcowym**, a zapisuje je sesja główna po akceptacji. Pliki zapisujesz sam

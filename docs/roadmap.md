@@ -32,6 +32,7 @@ Po przywróceniu skilla dopisz go do tabel w `README.md` i `context/sdd-map.md` 
 | Pomysł | Decyzja | Kiedy wrócić | Źródło |
 |--------|---------|--------------|--------|
 | Lżejsza ścieżka dla zmian S — `/regent:propose` bez `regent:architect`, gdy zmiana nie ma nowego modułu, kontraktu ani DB | nie teraz (2026-09-23) — reguła „nie pomijaj kroków SDD, bo to mała zmiana"; Challenge i tak kończy się szybko przy S | retrospektywy pokażą, że architekt na Opusie przy S-kach to realny koszt | OpenSpec „Match the ceremony to the stakes", spec-kit `presets/lean` |
+| Pełne tłumaczenie skilli, szablonów i agentów na angielski (z nagłówkami czytanymi przez `sdd-check.sh` i `tools/regent`) | etap 2 (2026-11-04) — na razie tylko reguła „Język" w `context/role.md` z wyjątkiem przejściowym dla nagłówków i znaczników | po wdrożeniu reguły w firmie; jedna zmiana: szablony + skrypty + testy + lint naraz | `docs/plans/jezyk-angielski.md` |
 
 ## Zrealizowane
 
