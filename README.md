@@ -286,10 +286,12 @@ merge robi użytkownik. Działa w repo pluginu. Zestaw jest dziś dla `apply`. S
 - **Logi:** `action` w formacie `RZECZOWNIK_CZASOWNIK` (UPPERCASE, EN); tylko ID encji w `context`
   (zero PII/sekretów); nie logujemy w `domain/`.
 - **Specyfikacje:** delta (nie pełny stan); każde AC testowalne; INVARIANTS obowiązkowe dla refactorów.
-- **`ai/` jest osobisty:** każdy ma swój styl pracy z AI, więc `ai/` (docs, specs, changes, wiki)
-  jest globalnie ignorowany (`/ai/` w `core.excludesfile` — `/regent:init` Krok 0.5) i nie trafia do
-  repo produktu. Do MR idzie kod i testy, plan niesie opis MR z `/regent:verify`; numery REQ/AC są
-  lokalne i nie trafiają do kodu.
+- **`ai/` — osobisty albo współdzielony:** wybór przy `/regent:init` (Krok 0.5), wykrywany przez
+  `git check-ignore -q --no-index ai/`. Osobisty (domyślny) — `ai/` (docs, specs, changes, wiki)
+  jest globalnie ignorowany (`/ai/` w `core.excludesfile`) i nie trafia do repo produktu; do MR
+  idzie kod i testy, plan niesie opis MR z `/regent:verify`. Współdzielony — cały `ai/` jest
+  śledzony w repo, razem z `changes/archive/`. Numery REQ/AC są lokalne i nie trafiają do kodu
+  w obu trybach.
 
 ## Bezpieczeństwo danych
 

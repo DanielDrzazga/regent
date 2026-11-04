@@ -235,18 +235,26 @@ pokaż komunikat, pliku nie edytuj.
 
 **Bez CLI** — ślad dopisujesz ręcznie (format i uwaga o `git add` poniżej dotyczą obu ścieżek):
 
-`ai/` to osobisty warsztat — globalnie ignorowany, poza repo produktu. `tasks.md` zostaje więc
-lokalnie, a ślad taska dopisujesz po commicie: hash i test, który sprawdza jego AC (z raportu deva):
+`ai/` bywa osobisty (globalnie ignorowany) albo współdzielony (śledzony w repo) — sprawdź
+`git check-ignore -q --no-index ai/`. W obu trybach ślad taska dopisujesz po commicie: hash
+i test, który sprawdza jego AC (z raportu deva):
 
 ```markdown
 - [x] T-01: [BE] Create user entity — REQ-001/AC-1, AC-2 — … ✅ (commit: abc1234 · testy: AC-1 → tests/users/user.entity.test.ts › rejects empty email; AC-2 → … › trims name)
 - [ ] T-02: [BE] Create user repository — REQ-001/AC-2 — …
 ```
 
-`git add` wymienia wyłącznie pliki kodu i testów — ścieżka w `ai/` jest ignorowana, więc git
-skończyłby się kodem 1 i przerwał `git add … && git commit`. Po hashu `sdd-check diff/stale`
-odróżnia commity cyklu od zmian spoza SDD; po mapowaniu `testy:` reviewer w `/regent:verify`
-znajduje test każdego AC.
+**Osobisty** (exit 0) — `tasks.md` zostaje lokalnie; `git add` wymienia wyłącznie pliki kodu
+i testów, bo ścieżka w `ai/` jest ignorowana (dodanie kończyłoby się kodem 1 i przerwało
+`git add … && git commit`).
+
+**Współdzielony** (exit 1) — po edycji `tasks.md` dodaj drugi, krótki commit: `git add
+ai/changes/{nazwa}/tasks.md && git commit -m "docs: odhacz T-01 w tasks.md"`. Dwa commity na
+task (kod i testy, potem ślad) — hash musi już istnieć, zanim ślad go zacytuje.
+
+Po hashu `sdd-check diff/stale` odróżnia commity cyklu od zmian spoza SDD (w trybie
+współdzielonym rozpoznaje też same ścieżki w `ai/changes/`); po mapowaniu `testy:` reviewer
+w `/regent:verify` znajduje test każdego AC.
 
 ---
 

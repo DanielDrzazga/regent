@@ -44,17 +44,31 @@ Jeśli ai/docs/stack/technology.md istnieje i nie jest pusty:
 
 ---
 
-## Krok 0.5: `ai/` poza repo produktu
+## Krok 0.5: Tryb `ai/` — osobisty czy współdzielony
 
-`ai/` to osobisty warsztat pracy z AI — każdy ma swój styl, więc katalog nie trafia do repo
-produktu (konwencja frameworka). Sprawdź: `git check-ignore -q --no-index ai/` (`--no-index`:
-wynik zależy od reguł ignore, nie od tego, czy coś w `ai/` jest już śledzone)
+`ai/` to artefakty SDD (`docs/`, `specs/`, `changes/`). Zapytaj (`AskUserQuestion`): **osobisty**
+(każdy ma swój styl pracy z AI, katalog nie trafia do repo produktu) czy **współdzielony** (cała
+historia decyzji SDD — `docs/`, `specs/`, `changes/` aktywne i archiwum — w repo, widoczna dla
+zespołu i w MR).
+
+Sprawdź: `git check-ignore -q --no-index ai/` (`--no-index`: wynik zależy od reguł ignore, nie od
+tego, czy coś w `ai/` jest już śledzone).
+
+**Osobisty:**
 - ignorowany (exit 0) → dalej;
-- nieignorowany → zaproponuj (`AskUserQuestion`) dopisanie `/ai/` do globalnego excludes:
-  plik z `git config --global core.excludesfile` (brak → utwórz `~/.gitignore_global` i ustaw
-  go tą komendą). `/ai/` kotwiczy do korzenia repo — katalogi `ai/` w kodzie (np. `src/ai/`)
-  zostają śledzone. Pliki już śledzone w `ai/` git śledzi dalej; ich wyjęcie (`git rm --cached`)
-  zmienia repo całego zespołu, więc to osobna decyzja użytkownika.
+- nieignorowany → dopisz `/ai/` do globalnego excludes: plik z `git config --global
+  core.excludesfile` (brak → utwórz `~/.gitignore_global` i ustaw go tą komendą). `/ai/` kotwiczy
+  do korzenia repo — katalogi `ai/` w kodzie (np. `src/ai/`) zostają śledzone. Pliki już śledzone
+  w `ai/` git śledzi dalej; ich wyjęcie (`git rm --cached`) zmienia repo całego zespołu, więc to
+  osobna decyzja użytkownika.
+
+**Współdzielony:**
+- nieignorowany (exit 1) → dalej. Zapisz w wyniku Kroku 4: `ai/` trafia do repo w całości, ale
+  pierwszy realny commit nastąpi w `/regent:apply` albo `/regent:bugfix` razem z pierwszym
+  taskiem — ten krok tylko zapisuje pliki, niczego nie commituje;
+- ignorowany (exit 0, zwykle przez globalną regułę z innego projektu) → dopisz `!/ai/` do
+  **projektowego** `.gitignore` (wzorzec bliżej repo nadpisuje `core.excludesfile` — standardowy
+  mechanizm negacji git) i sprawdź ponownie.
 
 ---
 
@@ -256,6 +270,7 @@ jego usunięcie (dubluje hook pluginu, a po usunięciu frameworka z `~/.claude` 
 ⬜ ai/docs/patterns/frontend-patterns.md (opcjonalny — nie wykryto frontendu)
 ✅ Makefile (Node.js, pnpm, Prisma)
 ✅ git-guard — hook pluginu aktywny (projekt ma ai/docs/); stary wpis w .claude/settings*.json: brak / usunięty
+✅ ai/: tryb współdzielony (śledzony w repo) — pierwszy commit dopiero w apply/bugfix
 
 ### Podsumowanie:
 - Runtime: Node.js 20 + TypeScript 5.3

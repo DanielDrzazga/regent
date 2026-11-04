@@ -8,9 +8,10 @@ Plugin `regent` musi być załadowany (`claude --plugin-dir`, patrz [README → 
 Sprawdź, że Claude Code go widzi: wpisz `/regent:` i Tab — lista powinna pokazać `/regent:init`,
 `/regent:propose`, `/regent:apply` i resztę skilli.
 
-> **`ai/` jest osobisty.** Wszystko, co framework tworzy w `ai/`, to Twój warsztat — katalog jest
-> globalnie ignorowany (`/regent:init` Krok 0.5 sprawdzi to i zaproponuje wpis `/ai/`). Do repo
-> produktu trafia kod, testy i `Makefile`; plan zmiany niesie opis MR z `/regent:verify`.
+> **`ai/` — osobisty albo współdzielony.** `/regent:init` Krok 0.5 pyta, który tryb. Osobisty
+> (domyślny) — katalog jest globalnie ignorowany, do repo produktu trafia tylko kod, testy
+> i `Makefile`, a plan zmiany niesie opis MR z `/regent:verify`. Współdzielony — cały `ai/` jest
+> śledzony w repo produktu.
 
 ### Nowa maszyna — checklista (do czasu publikacji pluginu)
 

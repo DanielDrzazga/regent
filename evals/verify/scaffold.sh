@@ -6,7 +6,9 @@ set -eu
 here=$(cd "$(dirname "$0")" && pwd)
 cp -R "$here/../apply/fixtures/notes-app/." .
 git init -q -b main .
-printf '/ai/\n' >> .git/info/exclude
+# EVAL_AI_SHARED=1 pomija ten wpis (tryb współdzielony — bez przypadków evali dla tego trybu,
+# docs/plans/ai-tracking-mode.md).
+[ "${EVAL_AI_SHARED:-}" = "1" ] || printf '/ai/\n' >> .git/info/exclude
 g() { git -c user.name="Regent Eval" -c user.email=eval@example.invalid "$@"; }
 git add -A
 g commit -qm "chore: projekt testowy notes-app"

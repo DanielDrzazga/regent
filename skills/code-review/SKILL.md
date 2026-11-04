@@ -66,7 +66,7 @@ Następnie czytaj **tylko zmienione pliki** z `git diff --name-only` — NIE ska
 
 **Plan zmiany** (sekcja 7 checklisty `regent:code-reviewer` — zgodność z planem):
 - własna zmiana SDD → agent czyta `ai/changes/{nazwa}/` (design, delta, tasks);
-- cudzy MR → `ai/` autora jest lokalny, więc przekaż agentowi w prompcie **opis MR** (cel,
+- cudzy MR, `ai/` autora osobisty (domyślny tryb) → przekaż agentowi w prompcie **opis MR** (cel,
   wymagania z AC, decyzje, odstępstwa) jako plan; brak opisu → review bez sekcji 7 i jedno
   zdanie o tym w raporcie.
 
