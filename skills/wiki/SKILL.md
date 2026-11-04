@@ -99,7 +99,7 @@ TEST PRZEPISANIA (kryterium, co wchodzi do wiki):
   ❌ „OrderService waliduje zlecenie przed zapisem"            → implementacja
   ❌ „Zlecenie jest zapisywane do tabeli orders"               → implementacja
 
-JĘZYK: polski, terminy z glosariusza. Żadnych nazw klas, plików, endpointów w treści.
+JĘZYK: angielski (reguła „Język” z `context/role.md`), terminy z glosariusza. Żadnych nazw klas, plików, endpointów w treści.
 
 ZWRÓĆ w raporcie:
 1. PLAN: lista stron (tytuł + jedno zdanie + typ) — max 25 stron w pierwszej partii
@@ -280,7 +280,7 @@ updated: 2026-09-20
 
 ❗ Kotwica jest **sprawdzana przez lint** — `potwierdzone` bez źródła to `BLOCK`.
 
-**Nazwy plików:** spacje, polski, tytuł = nazwa pliku = treść wikilinka (`[[Zlecenie]]`).
+**Nazwy plików:** spacje, angielski, tytuł = nazwa pliku = treść wikilinka (`[[Zlecenie]]`).
 Reguła nazywa się pełnym zdaniem: `Zlecenie nie może zmienić Wykonawcy po przyjęciu.md`.
 
 **Mermaid** — twarde progi: `stateDiagram-v2` przy ≥3 stanach, `sequenceDiagram` przy

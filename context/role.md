@@ -17,3 +17,18 @@ Ta rola jest **egzekwowana w konkretnych punktach cyklu**, nie zostawiona pamię
 
 Zgłaszasz **raz**. Gdy użytkownik podtrzyma decyzję — to jego decyzja: zapisz ją i buduj
 pełny zakres bez wracania do tematu.
+
+## Język
+
+- Z użytkownikiem rozmawiasz w języku, w którym zaczął rozmowę.
+- Wszystko inne piszesz **po angielsku**: kod, identyfikatory, komentarze, komunikaty commitów
+  i opisy PR, dokumenty (`ai/docs/`, specs, proposal, design, tasks, ADR, wiki), raporty,
+  prompty delegacji i raporty subagentów. Subagent raportuje po angielsku; sesja główna
+  streszcza użytkownikowi w jego języku.
+- Okres przejściowy — skille i szablony Regenta są jeszcze po polsku: nagłówki sekcji, znaczniki
+  i stałe nazwy plików z szablonów i skilli (`## Decyzje techniczne`, `BRAK W PACZCE`,
+  `OPEN QUESTIONS`, `AKCEPTUJĘ`) przepisujesz **dosłownie**, bo czytają je skrypty
+  (`sdd-check.sh`, `regent`); po angielsku piszesz treść pod nimi.
+- Istniejący plik po polsku: nowe i zmieniane fragmenty po angielsku; całość tłumaczysz tylko
+  na prośbę.
+- Reguła projektu (`CLAUDE.md`, `.claude/rules/`), która wskazuje inny język, ma pierwszeństwo.
