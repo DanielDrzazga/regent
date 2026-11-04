@@ -4,7 +4,7 @@ Pierwsze uruchomienie frameworka w projekcie — krok po kroku.
 
 ## 0. Warunek wstępny
 
-Plugin `regent` installed from the marketplace (see [README → Użycie](../README.md#użycie)).
+Plugin `regent` installed from the local marketplace in the clone (see [README → Użycie](../README.md#użycie)).
 Check that Claude Code sees it: type `/regent:` and Tab — the list should show `/regent:init`,
 `/regent:propose`, `/regent:apply` and the other skills.
 
@@ -13,12 +13,12 @@ ignore rule hides it.
 
 ### Nowa maszyna — checklista
 
-1. `claude plugin marketplace add <regent repo URL>` and `claude plugin install regent@regent --scope user`.
+1. Clone the `regent` repo and in the clone: `make plugin-marketplace-add plugin-install`.
 2. In `~/.claude/settings.json` no AI attribution: `"attribution": { "commit": "", "pr": "" }`.
 3. Statusline from the plugin (optional) — see [statusline.md](statusline.md).
 4. New session: `/regent:` + Tab shows the skills; in a project with `ai/docs/` `/regent:status` works.
-5. After changes land on `main`: `claude plugin marketplace update regent && claude plugin update regent@regent`
-   and a new session.
+5. After changes land on `main`: `git pull && make plugin-update` in the clone and a new session —
+   the installation is a copy of the clone's commit, not a live clone.
 
 ## 1. `/regent:init` — skonfiguruj projekt
 

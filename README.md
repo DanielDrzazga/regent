@@ -61,18 +61,20 @@ opisuje `/regent:init` w `ai/docs/`, a komendy/agenci z nich korzystają.
 
 ## Użycie
 
-The repo is its own plugin marketplace (`.claude-plugin/marketplace.json`). Install once per machine:
+The plugin installs from a local marketplace in a clone of this repo (`.claude-plugin/marketplace.json`,
+`source: "./"`). Once per machine, in the clone:
 
 ```bash
-claude plugin marketplace add <regent repo URL>
-claude plugin install regent@regent --scope user
+make plugin-marketplace-add plugin-install
 ```
 
-Update after changes land on `main`:
+The installation is a copy of the clone's commit, so after pulling changes from `main`:
 
 ```bash
-claude plugin marketplace update regent && claude plugin update regent@regent
+git pull && make plugin-update
 ```
+
+and start a new session. Other targets: `make plugin-status`, `plugin-uninstall`, `plugin-reinstall`.
 
 Working on the plugin itself: `claude --plugin-dir <regent clone>` loads it straight from the clone
 for one session.
@@ -93,7 +95,7 @@ w projektach z `ai/docs/` oraz kopię statusline do stałej ścieżki
 
 ```
 regent/
-├── .claude-plugin/        # plugin.json (manifest), marketplace.json
+├── .claude-plugin/        # plugin.json (manifest), marketplace.json (local marketplace)
 ├── context/               # role.md (rola partnera), sdd.md (reguły SDD), sdd-map.md (mapa skilli i agentów), subagent.md (kontrakt subagenta)
 ├── agents/                # 9 subagentów (każdy z polem model:)
 │   ├── architect.md              (opus)
@@ -111,7 +113,7 @@ regent/
 ├── scripts/               # sdd-check.sh (walidacja artefaktów), framework-lint.sh, statusline.sh, session-tokens.sh
 ├── docs/                  # Dokumentacja frameworka
 ├── .claude/               # reguły pracy nad tym repo (nie są częścią pluginu)
-└── README.md · CONTRIBUTING.md
+└── README.md · CONTRIBUTING.md · Makefile (plugin installation)
 ```
 
 `context/` wstrzykują hooki pluginu (plugin nie wczytuje `CLAUDE.md`): `role.md` zawsze, a w projektach

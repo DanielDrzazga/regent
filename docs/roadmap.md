@@ -21,6 +21,7 @@ co z nich zrealizowano — po to, żeby przy nowym projekcie nie odkrywać tych 
 | Pomysł | Decyzja | Kiedy wrócić | Źródło |
 |--------|---------|--------------|--------|
 | Lżejsza ścieżka dla zmian S — `/regent:propose` bez `regent:architect`, gdy zmiana nie ma nowego modułu, kontraktu ani DB | nie teraz (2026-09-23) — reguła „nie pomijaj kroków SDD, bo to mała zmiana"; Challenge i tak kończy się szybko przy S | retrospektywy pokażą, że architekt na Opusie przy S-kach to realny koszt | OpenSpec „Match the ceremony to the stakes", spec-kit `presets/lean` |
+| Plugin publication in a remote marketplace (marketplace added by URL, `version` and the update channel) | not now (2026-11-04) — the plugin installs from a local marketplace in the clone (`Makefile`, targets `plugin-*`) | after researching how the company distributes Claude Code plugins | — |
 | Pełne tłumaczenie skilli, szablonów i agentów na angielski (ze znacznikami czytanymi przez `sdd-check.sh`) | etap 2 (2026-11-04) — na razie tylko reguła „Język" w `context/role.md` z wyjątkiem przejściowym dla nagłówków i znaczników | one change: templates + scripts + tests + lint together | — |
 
 ## Zrealizowane
