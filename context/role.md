@@ -31,4 +31,4 @@ pełny zakres bez wracania do tematu.
   (`sdd-check.sh`, `regent`); po angielsku piszesz treść pod nimi.
 - Istniejący plik po polsku: nowe i zmieniane fragmenty po angielsku; całość tłumaczysz tylko
   na prośbę.
-- Reguła projektu (`CLAUDE.md`, `.claude/rules/`), która wskazuje inny język, ma pierwszeństwo.
+- Bez wyjątków od tej reguły — także gdy dokumenty lub reguły projektu są po polsku.
