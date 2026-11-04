@@ -320,6 +320,57 @@ printf '### REQ-050: stare\n' > "$P/ai/changes/archive/2026-01-01-old/specs/x.md
 run next-req
 expect_code 0; expect_has '^REQ-051$'
 
+name="next-req: numer z delty na innej gałęzi (tryb współdzielony)"; fresh
+g checkout -q -b other; mkdir -p "$P/ai/changes/pay/specs"
+printf '## ADDED\n\n### REQ-040: płatność\n' > "$P/ai/changes/pay/specs/billing.md"
+g add -A; g commit -m pay; g checkout -q main
+run next-req
+expect_code 0; expect_has '^REQ-041$'
+
+# ---------------------------------------------------------------- kolizje między gałęziami
+name="preflight: ADDED zajęty na gałęzi domyślnej"; fresh
+g checkout -q -b feat; g checkout -q main
+printf '# Spec: billing\n\n### REQ-002: Faktura\n\n- [ ] AC-1: faktura powstaje\n' > "$P/ai/specs/billing.md"
+g add -A; g commit -m billing; g checkout -q feat
+run preflight add-login
+expect_code 1; expect_has 'ERROR .*REQ-002 \(ADDED\) jest już w main:ai/specs/billing.md'
+
+name="preflight: ten sam ADDED w delcie innej gałęzi"; fresh
+g checkout -q -b other; mkdir -p "$P/ai/changes/pay/specs"
+printf '## ADDED\n\n### REQ-002: płatność\n\n- [ ] AC-1: x\n\n## MODIFIED\n\n### REQ-001: y\n' > "$P/ai/changes/pay/specs/billing.md"
+g add -A; g commit -m pay; g checkout -q main
+run preflight add-login
+expect_code 0; expect_has 'WARN .*REQ-002 \(ADDED\) dodaje też zmiana pay na gałęzi other'; expect_not 'REQ-001 \(ADDED\)'
+
+name="preflight: zmiana z innej gałęzi już zarchiwizowana"
+mkdir -p "$P/ai/changes/archive/2026-01-01-pay"; printf '# x\n' > "$P/ai/changes/archive/2026-01-01-pay/proposal.md"
+run preflight add-login
+expect_not 'dodaje też zmiana pay'
+
+name="preflight: duplikat numeru w main specs"; fresh
+printf '# Spec: billing\n\n### REQ-001: Faktura\n\n- [ ] AC-1: x\n' > "$P/ai/specs/billing.md"
+run preflight add-login
+expect_code 1; expect_has 'ERROR .*REQ-001 występuje też w ai/specs/'
+
+# ---------------------------------------------------------------- renumber
+name="renumber: ADDED na next-req w plikach zmiany"; fresh
+printf 'REQ-0021 to inny numer\n' >> "$C/proposal.md"
+run renumber add-login REQ-002
+expect_code 0; expect_has 'specs/auth.md: REQ-002 -> REQ-003'; expect_has 'tasks.md: REQ-002 -> REQ-003'
+grep -q '^### REQ-003: Blokada' "$C/specs/auth.md" && ok || bad "brak REQ-003 w delcie"
+grep -q 'REQ-002' "$C/specs/auth.md" "$C/tasks.md" && bad "REQ-002 został" || ok
+grep -q 'REQ-0021' "$C/proposal.md" && ok || bad "ruszony dłuższy numer REQ-0021"
+grep -q '^### REQ-001: Logowanie' "$C/specs/auth.md" && ok || bad "ruszony REQ-001"
+
+name="renumber: MODIFIED odrzucony"; fresh; run renumber add-login REQ-001
+expect_code 1; expect_has 'nie jest w ADDED'
+
+name="renumber: numer docelowy zajęty"; fresh; run renumber add-login REQ-002 REQ-001
+expect_code 1; expect_has 'REQ-001 jest zajęty'
+
+name="renumber: jawny wolny numer"; fresh; run renumber add-login REQ-002 REQ-010
+expect_code 0; expect_has 'REQ-002 -> REQ-010'
+
 # ---------------------------------------------------------------- status
 name="status: jedna linia na zmianę"; fresh
 printf 'Verdict: PASS\nCommit HEAD: abc1234\n' > "$C/verification.md"; run status

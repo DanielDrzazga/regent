@@ -47,8 +47,14 @@ Sprawdź:
 □ (miękko) bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh drift {nazwa} — pliki z Affected Files zmienione od `Commit HEAD`?
   WARN → ostrzeż: "kod zmiany ruszył się po weryfikacji, rozważ re-run /regent:verify"
   (porównanie plików, nie hasha — merge i squash cudzych zmian nie dają fałszywego alarmu)
+□ (tryb współdzielony: `git check-ignore -q --no-index ai/` → exit 1) `git fetch -q` — preflight
+  porównuje numery z main specs gałęzi domyślnej i z deltami innych gałęzi
 □ bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh preflight {nazwa} — ERROR (kolizja numeru REQ, MODIFIED bez REQ, utrata AC) →
-  STOP i pokaż użytkownikowi; merge z takiej delty uszkodziłby main spec
+  STOP i pokaż użytkownikowi; merge z takiej delty uszkodziłby main spec.
+  Wyjątek — kolizja numeru ADDED (inna zmiana lub gałąź zajęła go wcześniej): numer z propose jest
+  roboczy, więc `sdd-check.sh renumber {nazwa} REQ-NNN` (nowy = next-req), powiedz użytkownikowi
+  o zmianie numeru i powtórz preflight. WARN „dodaje też zmiana … na gałęzi …" → archiwizujesz
+  pierwszy, numer zostaje; drugi przenumeruje u siebie
 
 Jeśli brak verification.md lub Verdict: FAIL:
   → "⚠️ Zmiana nie została zweryfikowana (PASS). Uruchom /regent:verify {nazwa} najpierw."
@@ -117,7 +123,8 @@ Nie każ mu zgadywać — niedopasowany `REQ` to `OPEN QUESTIONS`, nie cichy app
 
 ```
 ADDED sections:
-  → Numer REQ jest wolny we wszystkich main specs — zajęty → OPEN QUESTIONS (kolizja numeru)
+  → Numer REQ jest wolny we wszystkich main specs — zajęty → OPEN QUESTIONS (kolizja numeru;
+    sesja główna przenumeruje zmianę skryptem `renumber`, nie Ty)
   → Dodaj blok REQ do main spec, format Given-When-Then i AC bez zmian
 
 MODIFIED sections (blok w delcie = pełny, nowy stan wymagania):

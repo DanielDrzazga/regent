@@ -5,7 +5,8 @@
   Sekcje: ADDED (nowe), MODIFIED (zmienione), REMOVED (usunięte), INVARIANTS (niezmienne).
   Format AC: Given-When-Then.
   ID: REQ-NNN — numeracja globalna w projekcie (kolejny wolny numer z ai/specs/, aktywnych
-  ai/changes/ i archiwum — sdd-check next-req); AC numerowane w obrębie REQ (AC-1, AC-2…),
+  ai/changes/, archiwum i delt innych gałęzi — sdd-check next-req). Numer ADDED jest roboczy do
+  /regent:archive: kolizję z równoległą gałęzią naprawia sdd-check renumber. AC numerowane w obrębie REQ (AC-1, AC-2…),
   nowe AC dostaje numer po najwyższym w bloku. Odwołanie w taskach, raportach i verification.md:
   REQ-012/AC-2 (lista: REQ-012/AC-1, AC-3; zakres: REQ-012/AC-1..3).
   Numery są lokalną numeracją projektu (niezależną od tego, czy `ai/` jest osobisty czy

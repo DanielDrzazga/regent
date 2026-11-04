@@ -4,7 +4,8 @@
 checkboxów, porównywanie numerów REQ i zbiorów AC to praca, w której model się myli i płaci
 za nią tokenami — skrypt robi ją powtarzalnie w ułamku sekundy.
 
-Skrypt jest **read-only**: niczego nie zapisuje, tylko raportuje. Wołają go komendy frameworka
+Skrypt jest **read-only**: niczego nie zapisuje, tylko raportuje — poza trybem `renumber`, który
+przenumerowuje wymaganie w plikach jednej zmiany. Wołają go komendy frameworka
 w bramkach; możesz uruchomić go też sam, w katalogu głównym projektu:
 
 ```bash
@@ -16,11 +17,12 @@ bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh <tryb> [argumenty]
 | Tryb | Co sprawdza | Kto woła |
 |------|-------------|----------|
 | `change <nazwa>` | Status w proposal.md; delta: tylko sekcje ADDED/MODIFIED/REMOVED/INVARIANTS/Notes, każdy REQ ma AC, REMOVED ma Powód, brak placeholderów, refactor ma INV; tasks: checkboxy, ID, odwołania REQ/AC, `weryfikacja:`, pokrycie każdego AC taskiem | `/regent:propose` 3a, `/regent:apply` Krok 0 i 4.5, `/regent:verify` Krok 0, `/regent:archive` Krok 1 |
-| `preflight <nazwa>` | delta wobec `ai/specs/`: numer ADDED wolny (także wobec innych aktywnych zmian), MODIFIED/REMOVED wskazuje istniejący REQ, MODIFIED nie gubi AC z main spec | `/regent:propose` 3a, `/regent:archive` Krok 0 |
+| `preflight <nazwa>` | delta wobec `ai/specs/`: numer ADDED wolny (także wobec innych aktywnych zmian i main specs gałęzi domyślnej; ten sam ADDED w delcie innej gałęzi → WARN), MODIFIED/REMOVED wskazuje istniejący REQ, MODIFIED nie gubi AC z main spec, brak duplikatów REQ w main specs | `/regent:propose` 3a, `/regent:archive` Krok 0 |
 | `postmerge <nazwa>` | main specs po merge: bez nagłówków delty i linii Było/Usunięte AC, bez duplikatów REQ, zbiór AC każdego REQ = zbiór z delty | `/regent:archive` po Kroku 2 |
 | `drift <nazwa>` | czy pliki z „Affected Files" zmieniły się od `Commit HEAD` z verification.md | `/regent:archive` Krok 0, `/regent:status` |
 | `diff <nazwa> [baza]` | fakty dla review: usunięte testy, dodane `.skip/.only/xit`, testy z mniejszą liczbą asercji, pliki spoza „Affected Files" | `/regent:verify` przed Etapami 2-4 |
-| `next-req` | następny wolny numer REQ (max z `ai/specs/`, aktywnych zmian i archiwum + 1) | `/regent:propose` Krok 2 |
+| `next-req` | następny wolny numer REQ (max z `ai/specs/`, aktywnych zmian, archiwum i — w trybie współdzielonym — delt i main specs na wszystkich gałęziach lokalnych i zdalnych + 1) | `/regent:propose` Krok 2 |
+| `renumber <nazwa> <REQ> [REQ-nowy]` | **jedyny tryb, który zapisuje**: przenumerowuje wymaganie ADDED we wszystkich plikach zmiany (delta, tasks, verification, proposal); bez trzeciego argumentu bierze `next-req` | `/regent:archive` Krok 0 przy kolizji numeru |
 | `status` | jedna linia na aktywną zmianę: Status, taski x/y, werdykt weryfikacji | `/regent:status` |
 | `index` | spis wymagań: `domena: REQ-NNN tytuł (AC: n)` — mapa `ai/specs/` bez czytania całych plików | `regent:spec-writer` (przez prompt z `/regent:propose`) |
 | `stale` | pliki z „Affected Files" zarchiwizowanych zmian, zmienione później poza cyklem SDD (commit cyklu = hash w tasks.md, klucz ticketu z proposal w temacie — przeżywa squash — albo dotyka `ai/changes/`) | `/regent:status --drift` |

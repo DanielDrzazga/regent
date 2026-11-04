@@ -245,7 +245,9 @@ wynik poprzedniego:
 
 W prompcie do `regent:spec-writer` przekaż listę `DECYZJA` z Kroku 1b′ oraz zastrzeżenia (jeśli były),
 a także dwa fakty policzone skryptem (sesja główna, przed delegacją):
-- `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh next-req` → następny wolny numer REQ,
+- `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh next-req` → następny wolny numer REQ (tryb
+  współdzielony — `git check-ignore -q --no-index ai/` daje exit 1 — najpierw `git fetch -q`:
+  skrypt dolicza numery z delt na gałęziach zdalnych),
 - `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh index` → spis wymagań z `ai/specs/` — spec-writer czyta w całości tylko main specs
   domen, których dotyczy zmiana.
 

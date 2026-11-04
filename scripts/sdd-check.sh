@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# sdd-check.sh — deterministyczna walidacja artefaktów SDD w projekcie (tylko odczyt).
+# sdd-check.sh — deterministyczna walidacja artefaktów SDD w projekcie (tylko odczyt, poza renumber).
 #
 # To, co da się policzyć, liczy skrypt, nie model: format delty, checkboxy tasków, pokrycie
 # AC przez taski, kolizje numerów REQ, utrata AC przy merge do main spec, dryf kodu od weryfikacji.
 #
 # Użycie (w katalogu głównym projektu):  bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh <tryb> [argumenty]
 #   change <nazwa>        struktura zmiany: Status, delta, tasks, pokrycie AC przez taski
-#   preflight <nazwa>     delta vs ai/specs/: kolizje numerów REQ, MODIFIED/REMOVED bez REQ, utrata AC
+#   preflight <nazwa>     delta vs ai/specs/ (też gałęzi domyślnej): kolizje numerów REQ, MODIFIED/REMOVED bez REQ, utrata AC
 #   postmerge <nazwa>     po merge: main specs bez formatu delty, AC zgodne z deltą
 #   drift <nazwa>         czy pliki zmiany zmieniły się od weryfikacji (Commit HEAD z verification.md)
 #   diff <nazwa> [baza]   fakty dla review: wyłączone/usunięte testy, mniej asercji, pliki spoza Affected Files
-#   next-req              następny wolny numer REQ (ai/specs/, aktywne zmiany i archiwum)
+#   next-req              następny wolny numer REQ (ai/specs/, aktywne zmiany, archiwum, inne gałęzie)
+#   renumber <nazwa> <REQ> [REQ-nowy]  przenumeruj ADDED w plikach zmiany (domyślnie na next-req)
 #   status                jedna linia na aktywną zmianę: Status, taski, weryfikacja
 #   index                 spis wymagań: „domena: REQ-NNN tytuł (AC: n)" — mapa ai/specs/
 #   stale                 pliki zarchiwizowanych zmian ruszone później poza cyklem SDD
@@ -47,7 +48,7 @@ finish() {
   exit 1
 }
 
-usage() { sed -n '2,19p' "$0" | sed -E 's/^# ?//'; exit 2; }
+usage() { sed -n '2,20p' "$0" | sed -E 's/^# ?//'; exit 2; }
 
 # --- Parser specyfikacji --------------------------------------------------------------------
 # Emituje rekordy TSV: rola, plik, linia, rodzaj, sekcja, REQ, wartość.
@@ -228,6 +229,61 @@ default_branch() {
   return 0
 }
 
+# Gałęzie lokalne i zdalne (bez symbolicznych */HEAD). W trybie współdzielonym `ai/` jest w gicie,
+# więc delty i main specs innych gałęzi są widoczne bez checkoutu; w osobistym — puste.
+branch_refs() { git for-each-ref --format='%(refname)' refs/heads refs/remotes 2>/dev/null | grep -v '/HEAD$'; }
+
+# Numery REQ ze wszystkich gałęzi: „ref:ścieżka:linia" z nagłówkami sekcji i REQ, w kolejności pliku.
+ref_req_lines() {
+  refs=$(branch_refs)
+  [ -n "$refs" ] || return 0
+  # shellcheck disable=SC2086
+  git grep -E '^(## |### REQ-[0-9]+)' $refs -- 'ai/specs/*.md' 'ai/changes/*/specs/*.md' 2>/dev/null
+  return 0
+}
+
+# Wszystkie zajęte numery (bez zer wiodących): drzewo robocze + gałęzie.
+# Archiwum też: numer usuniętego REQ nie wraca do obiegu.
+used_req_numbers() {
+  files=$(ls ai/specs/*.md ai/changes/*/specs/*.md ai/changes/archive/*/specs/*.md 2>/dev/null)
+  {
+    # shellcheck disable=SC2086
+    [ -n "$files" ] && grep -hoE '^### REQ-[0-9]+' $files
+    ref_req_lines | grep -oE ':### REQ-[0-9]+'
+  } | sed 's/.*REQ-//; s/^0*//; s/^$/0/' | sort -nu
+}
+
+next_req_value() {
+  max=$(used_req_numbers | tail -n 1)
+  printf 'REQ-%03d\n' $((${max:-0} + 1))
+}
+
+# Rekordy „R ref zmiana REQ": ADDED w deltach aktywnych zmian innych gałęzi (bez zmiany $1).
+ref_added() {
+  ref_req_lines | awk -v me="$1" '
+    {
+      i = index($0, ":"); ref = substr($0, 1, i - 1); rest = substr($0, i + 1)
+      j = index(rest, ":"); path = substr(rest, 1, j - 1); txt = substr(rest, j + 1)
+      sub(/\r$/, "", txt)
+      if (ref ":" path != last) { last = ref ":" path; sec = "" }
+    }
+    txt ~ /^## / { sec = toupper(substr(txt, 4)); next }
+    path ~ /^ai\/changes\// && path !~ /^ai\/changes\/archive\// && sec ~ /^ADDED/ && txt ~ /^### REQ-[0-9]+/ {
+      split(path, p, "/"); if (p[3] == me) next
+      sub(/^refs\/(heads|remotes)\//, "", ref)
+      match(txt, /REQ-[0-9]+/); printf "R\t%s\t%s\t%s\n", ref, p[3], substr(txt, RSTART, RLENGTH)
+    }'
+}
+
+# Rekordy „A zmiana": zmiany już zarchiwizowane (lokalnie albo na gałęzi domyślnej $1) — ich
+# delty na starych gałęziach nie są kolizją.
+archived_changes() {
+  {
+    ls -d ai/changes/archive/*/ 2>/dev/null
+    [ -n "$1" ] && git ls-tree --name-only "$1" -- ai/changes/archive/ 2>/dev/null
+  } | awk '{ n = $0; sub(/\/$/, "", n); sub(/.*\//, "", n); sub(/^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-/, "", n); printf "A\t%s\n", n }'
+}
+
 need_change() {
   case "$1" in */*|*..*|"") echo "ERROR niepoprawna nazwa zmiany: '$1'"; exit 2 ;; esac
   [ -d "ai/changes/$1" ] || { err "ai/changes/$1: brak katalogu zmiany"; finish; }
@@ -350,10 +406,27 @@ cmd_preflight() {
       info "$f: nowy main spec ai/specs/$(basename "$f")"
     fi
   done
+  # Tryb współdzielony: main specs gałęzi domyślnej i delty innych gałęzi (bez checkoutu).
+  base=$(default_branch)
+  btmp=$(mktemp -d "${TMPDIR:-/tmp}/sdd-base.XXXXXX")
+  if [ -n "$base" ]; then
+    for f in $(git ls-tree --name-only "$base" -- ai/specs/ 2>/dev/null | grep '\.md$'); do
+      git show "$base:$f" > "$btmp/$(basename "$f")" 2>/dev/null
+    done
+  fi
   # shellcheck disable=SC2046,SC2086
-  recs=$(parse D $specs; parse M $(main_specs); parse O $(other_deltas "$name"))
-  emit "$(printf '%s\n' "$recs" | awk "$RULES_LIB"'
-    $1 == "M" && $4 == "REQ" { d = dom($2); mreq[d, $6] = 1; mdom[$6] = d; mtitle[d, $6] = $7; next }
+  recs=$(parse D $specs; parse M $(main_specs); parse O $(other_deltas "$name")
+    parse B $(ls "$btmp"/*.md 2>/dev/null); ref_added "$name"; archived_changes "$base")
+  rm -rf "$btmp"
+  emit "$(printf '%s\n' "$recs" | awk -v base="$base" "$RULES_LIB"'
+    $1 == "M" && $4 == "REQ" {
+      d = dom($2)
+      if ($6 in mdom) printf "ERROR %s:%s %s występuje też w ai/specs/%s.md — duplikat numeru\n", $2, $3, $6, mdom[$6]
+      mreq[d, $6] = 1; mdom[$6] = d; mtitle[d, $6] = $7; next
+    }
+    $1 == "B" && $4 == "REQ" { bdom[$6] = dom($2); next }
+    $1 == "R" { if (!($4 in rchg)) { rchg[$4] = $3; rref[$4] = $2 }; next }
+    $1 == "A" { arch[$2] = 1; next }
     $1 == "M" && $4 == "AC"  { d = dom($2); macl[d, $6] = macl[d, $6] " " $7; next }
     $1 == "O" && $4 == "REQ" { osec[$6] = key($5); ofile[$6] = $2; next }
     $1 == "D" && $4 == "REQ" { r = $6; dsec[r] = key($5); ddom[r] = dom($2); dloc[r] = $2 ":" $3; dtitle[r] = $7; ord[++n] = r; next }
@@ -365,6 +438,8 @@ cmd_preflight() {
         if (s == "ADDED") {
           if (r in mdom) printf "ERROR %s %s (ADDED) już istnieje w ai/specs/%s.md — kolizja numeru, weź next-req\n", loc, r, mdom[r]
           else if ((r in osec) && osec[r] == "ADDED") printf "ERROR %s %s (ADDED) dodaje też aktywna zmiana %s — kolizja numeru\n", loc, r, ofile[r]
+          else if (r in bdom) printf "ERROR %s %s (ADDED) jest już w %s:ai/specs/%s.md — kolizja z gałęzią domyślną, sdd-check renumber\n", loc, r, base, bdom[r]
+          else if ((r in rchg) && !(rchg[r] in arch)) printf "WARN  %s %s (ADDED) dodaje też zmiana %s na gałęzi %s — kto archiwizuje drugi, robi sdd-check renumber\n", loc, r, rchg[r], rref[r]
           continue
         }
         if (s != "MODIFIED" && s != "REMOVED") continue
@@ -563,19 +638,38 @@ cmd_diff() {
 
 # --- next-req ---------------------------------------------------------------------------------
 cmd_next_req() {
-  # shellcheck disable=SC2046
-  # archiwum też: numer usuniętego REQ nie wraca do obiegu
-  files=$(ls ai/specs/*.md ai/changes/*/specs/*.md ai/changes/archive/*/specs/*.md 2>/dev/null)
-  max=0
-  if [ -n "$files" ]; then
-    # shellcheck disable=SC2086
-    for n in $(grep -hoE '^### REQ-[0-9]+' $files | sed 's/^### REQ-//'); do
-      n=$((10#$n))
-      [ "$n" -gt "$max" ] && max=$n
-    done
-  fi
-  printf 'REQ-%03d\n' $((max + 1))
+  next_req_value
   exit 0
+}
+
+# --- renumber ---------------------------------------------------------------------------------
+# Jedyny tryb, który zapisuje: numer z /regent:propose jest roboczy — przy kolizji (inna gałąź
+# zajęła go wcześniej) zmiana dostaje nowy. Numery nie trafiają do kodu, więc wystarczą pliki zmiany.
+cmd_renumber() {
+  name=$1
+  old=$2
+  new=${3:-}
+  need_change "$name"
+  printf '%s' "$old" | grep -qE '^REQ-[0-9]+$' || { echo "ERROR niepoprawny numer: '$old' (oczekiwano REQ-NNN)"; exit 2; }
+  if [ -n "$new" ]; then
+    printf '%s' "$new" | grep -qE '^REQ-[0-9]+$' || { echo "ERROR niepoprawny numer: '$new'"; exit 2; }
+  fi
+  specs=$(change_specs "$name")
+  # shellcheck disable=SC2086
+  sec=$(parse D $specs | awk -F'\t' -v r="$old" "$RULES_LIB"'$4 == "REQ" && $6 == r { print key($5); exit }')
+  [ "$sec" = ADDED ] || { err "ai/changes/$name/specs/: $old nie jest w ADDED — przenumerować można tylko nowe wymaganie"; finish; }
+  if [ -z "$new" ]; then
+    new=$(next_req_value)
+  elif used_req_numbers | grep -qx "$(printf '%s' "$new" | sed 's/^REQ-0*//; s/^$/0/')"; then
+    err "$new jest zajęty — pomiń argument, a skrypt weźmie next-req"; finish
+  fi
+  find "ai/changes/$name" -type f -name '*.md' | sort | while IFS= read -r f; do
+    n=$(grep -oE "$old([^0-9]|\$)" "$f" | wc -l | tr -d ' ')
+    [ "$n" -gt 0 ] || continue
+    sed -E "s/$old([^0-9]|\$)/$new\\1/g" "$f" > "$f.renumber" && mv "$f.renumber" "$f"
+    echo "INFO  $f: $old -> $new ($n)"
+  done
+  finish
 }
 
 # --- status -----------------------------------------------------------------------------------
@@ -700,6 +794,7 @@ shift
 case "$mode" in
   -h|--help|help) usage ;;
   change|preflight|postmerge|drift|diff) [ $# -ge 1 ] || usage ;;
+  renumber) [ $# -ge 2 ] || usage ;;
   next-req|status|index|stale) ;;
   *) usage ;;
 esac
@@ -712,6 +807,7 @@ case "$mode" in
   drift)     cmd_drift "$1" ;;
   diff)      cmd_diff "$1" "${2:-}" ;;
   next-req)  cmd_next_req ;;
+  renumber)  cmd_renumber "$1" "$2" "${3:-}" ;;
   status)    cmd_status ;;
   index)     cmd_index ;;
   stale)     cmd_stale ;;

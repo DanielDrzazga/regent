@@ -51,8 +51,10 @@ Przeczytaj:
 - **INVARIANTS** — (obowiązkowe dla refactorów!) co MUSI pozostać niezmienione
 
 **Numeracja:** nowy REQ dostaje kolejny numer od „następnego wolnego REQ" z promptu (sesja
-główna liczy go skryptem `sdd-check.sh next-req`). Brak go w prompcie → policz sam (Grep
-`### REQ-[0-9]+` w `ai/specs/` i `ai/changes/` łącznie z archiwum, max + 1). AC numerujesz w obrębie REQ; format odwołań
+główna liczy go skryptem `sdd-check.sh next-req`). Brak go w prompcie → `OPEN QUESTIONS`, nie
+licz sam: skrypt widzi też delty innych gałęzi, Grep tylko bieżące drzewo. Numer jest roboczy —
+przy równoległej pracy na kilku gałęziach `/regent:archive` przenumerowuje kolizję
+(`sdd-check.sh renumber`), więc nie zapisuj go poza plikami zmiany. AC numerujesz w obrębie REQ; format odwołań
 (`REQ-012/AC-2`) opisuje `spec-template.md`. AC piszesz tylko w delcie — `proposal.md` do nich
 odsyła.
 
