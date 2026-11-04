@@ -1,81 +1,69 @@
 ---
-description: Inicjalizacja projektu SDD — wypełnienie ai/docs/ (stack, wzorce, konwencje) + Makefile
+description: SDD project initialization — fill ai/docs/ (stack, patterns, conventions) + Makefile
 disable-model-invocation: true
 argument-hint: [--detect | --manual]
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, AskUserQuestion, SendMessage, Bash
 ---
 
-# /regent:init — Inicjalizacja projektu SDD
+# /regent:init — SDD project initialization
 
-**Cel:** Skonfiguruj projekt do pracy z SDD Framework — wypełnij `ai/docs/` na podstawie istniejącego kodu lub wywiadu.
+**Goal:** Set up the project to work with the SDD Framework — fill `ai/docs/` based on the existing code or an interview.
 
-> Nie mylić z wbudowanym `/init` Claude Code (generuje `CLAUDE.md`) — ta komenda wypełnia `ai/docs/`.
+> Not to be confused with the built-in Claude Code `/init` (generates `CLAUDE.md`) — this command fills `ai/docs/`.
 
 ```
 /regent:init [--detect | --manual]
 
-Przykład:
-/regent:init --detect        (auto-skanowanie repo)
-/regent:init --manual        (interaktywny wywiad)
-/regent:init                 (domyślnie: --detect)
+Example:
+/regent:init --detect        (auto-scan the repo)
+/regent:init --manual        (interactive interview)
+/regent:init                 (default: --detect)
 ```
 
 ---
 
-## Agent (delegacja — WYMAGANE)
+## Agent (delegation — REQUIRED)
 
-Skanowanie repo i przygotowanie treści `ai/docs/` deleguj do subagenta `regent:architect`
-(model: opus, uruchom narzędziem Task). Nie rób tego „w miejscu" w głównej sesji —
-inaczej model z `agents/architect.md` nie zostanie użyty.
+Delegate scanning the repo and preparing the `ai/docs/` content to the `regent:architect` subagent
+(model: opus, launch with the Task tool). Do not do it "in place" in the main session —
+otherwise the model from `agents/architect.md` will not be used.
 
-**Kontrakt:** `regent:architect` jest read-only — **zwraca treść plików `ai/docs/` w raporcie**;
-sesja główna prezentuje wyniki (Krok 4) i po zatwierdzeniu zapisuje pliki. Wywiad
-w trybie `--manual` prowadzi sesja główna i przekazuje odpowiedzi w prompcie.
+**Contract:** `regent:architect` is read-only — **it returns the content of the `ai/docs/` files in its report**;
+the main session presents the results (Step 4) and writes the files after approval. The interview
+in `--manual` mode is run by the main session, which passes the answers in the prompt.
 
 ---
 
-## Krok 0: Sprawdź czy ai/docs/ już istnieje
+## Step 0: Check whether ai/docs/ already exists
 
 ```
-Jeśli ai/docs/stack/technology.md istnieje i nie jest pusty:
-  → "Projekt już zainicjalizowany. Użyj /regent:revise aby zaktualizować ai/docs/."
-  → STOP (chyba że user potwierdzi reinicjalizację)
+If ai/docs/stack/technology.md exists and is not empty:
+  → "Project already initialized. Use /regent:revise to update ai/docs/."
+  → STOP (unless the user confirms reinitialization)
 ```
 
 ---
 
-## Krok 0.5: Tryb `ai/` — osobisty czy współdzielony
+## Step 0.5: `ai/` tracked in the repo
 
-`ai/` to artefakty SDD (`docs/`, `specs/`, `changes/`). Zapytaj (`AskUserQuestion`): **osobisty**
-(każdy ma swój styl pracy z AI, katalog nie trafia do repo produktu) czy **współdzielony** (cała
-historia decyzji SDD — `docs/`, `specs/`, `changes/` aktywne i archiwum — w repo, widoczna dla
-zespołu i w MR).
+`ai/` holds the SDD artifacts (`docs/`, `specs/`, `changes/` active and archived) and is tracked
+in the product repo as a whole, so the team sees every decision and the plan travels with the MR.
 
-Sprawdź: `git check-ignore -q --no-index ai/` (`--no-index`: wynik zależy od reguł ignore, nie od
-tego, czy coś w `ai/` jest już śledzone).
+Check: `git check-ignore -q --no-index ai/` (`--no-index`: the result depends on ignore rules,
+not on whether anything in `ai/` is already tracked).
 
-**Osobisty:**
-- ignorowany (exit 0) → dalej;
-- nieignorowany → dopisz `/ai/` do globalnego excludes: plik z `git config --global
-  core.excludesfile` (brak → utwórz `~/.gitignore_global` i ustaw go tą komendą). `/ai/` kotwiczy
-  do korzenia repo — katalogi `ai/` w kodzie (np. `src/ai/`) zostają śledzone. Pliki już śledzone
-  w `ai/` git śledzi dalej; ich wyjęcie (`git rm --cached`) zmienia repo całego zespołu, więc to
-  osobna decyzja użytkownika.
-
-**Współdzielony:**
-- nieignorowany (exit 1) → dalej. Zapisz w wyniku Kroku 4: `ai/` trafia do repo w całości, ale
-  pierwszy realny commit nastąpi w `/regent:apply` albo `/regent:bugfix` razem z pierwszym
-  taskiem — ten krok tylko zapisuje pliki, niczego nie commituje;
-- ignorowany (exit 0, zwykle przez globalną regułę z innego projektu) → dopisz `!/ai/` do
-  **projektowego** `.gitignore` (wzorzec bliżej repo nadpisuje `core.excludesfile` — standardowy
-  mechanizm negacji git) i sprawdź ponownie.
+- not ignored (exit 1) → continue. Note in the Step 4 result that the first real commit of `ai/`
+  happens in `/regent:apply` or `/regent:bugfix` together with the first task — this step only
+  writes files and commits nothing;
+- ignored (exit 0, usually by a global rule) → add `!/ai/` to the **project** `.gitignore` (a
+  pattern closer to the repo overrides `core.excludesfile` — standard git negation) and check again.
 
 ---
 
-## Krok 1: Wykryj istniejące pliki (--detect)
+## Step 1: Detect existing files (--detect)
 
-Deleguj do subagenta `regent:architect` — skanuje repo i w raporcie proponuje też 3 małe (S)
-kandydatów na pierwszą zmianę: TODO/FIXME/HACK, moduły bez testów, połknięte wyjątki:
+Delegate to the `regent:architect` subagent — it scans the repo and in its report also proposes 3 small (S)
+candidates for the first change: TODO/FIXME/HACK, modules without tests, swallowed exceptions:
 
 ```bash
 # Package manager & dependencies
@@ -93,12 +81,12 @@ cat Dockerfile 2>/dev/null || cat docker-compose.yml 2>/dev/null
 # Existing structure
 find src/ -type f \( -name "*.ts" -o -name "*.js" -o -name "*.py" \) 2>/dev/null | head -50
 
-# Frontend? (deps UI w package.json, config bundlera, pliki komponentów, monorepo workspaces)
+# Frontend? (UI deps in package.json, bundler config, component files, monorepo workspaces)
 grep -E '"(react|vue|svelte|@angular/core|solid-js)"' package.json 2>/dev/null
 ls index.html vite.config.* next.config.* nuxt.config.* astro.config.* 2>/dev/null
 find src apps packages -maxdepth 4 \( -name "*.tsx" -o -name "*.vue" -o -name "*.svelte" \) 2>/dev/null | head -10
 
-# CI/CD / deployment? (pipeline, konteneryzacja)
+# CI/CD / deployment? (pipeline, containerization)
 ls .github/workflows/ .gitlab-ci.yml Jenkinsfile .circleci/ 2>/dev/null
 
 # Git history (last 20 commits for context)
@@ -107,210 +95,206 @@ git log --oneline -20 2>/dev/null
 # Existing tests
 find . \( -name "*.test.*" -o -name "*.spec.*" \) 2>/dev/null | head -20
 
-# Kandydaci na pierwszą zmianę (onboarding)
+# Candidates for the first change (onboarding)
 grep -rnE "TODO|FIXME|HACK" src/ 2>/dev/null | head -20
 ```
 
-### Wykrywane elementy:
+### Detected elements:
 
-| Element | Źródło | Cel |
-|---------|--------|-----|
+| Element | Source | Target |
+|---------|--------|--------|
 | Runtime & language | package.json, tsconfig | `stack/technology.md` |
 | Framework | dependencies | `stack/technology.md` |
 | Architecture | folder structure, imports | `patterns/architecture.md` |
-| Reference implementations | egzemplarze kluczowych wzorców w kodzie (consumer, event+handler, repo) | `patterns/architecture.md` (sekcja Reference Implementations) |
+| Reference implementations | instances of key patterns in the code (consumer, event+handler, repo) | `patterns/architecture.md` (Reference Implementations section) |
 | Naming | existing files, code | `conventions/naming.md` |
 | Code style | eslint, prettier config | `conventions/code-style.md` |
 | Git workflow | git log, branches | `conventions/git-workflow.md` |
 | Testing | test files, jest config | `patterns/testing-patterns.md` |
 | DI patterns | imports, constructors | `patterns/di-patterns.md` |
 | Logging | logger imports (pino/winston/CustomLoggerService), LoggerModule | `patterns/logging-patterns.md` |
-| Frontend | deps UI, config bundlera, pliki `*.tsx/*.vue/*.svelte`, workspaces, narzędzie testów UI | `stack/technology.md` (sekcja Frontend) + `patterns/frontend-patterns.md` |
+| Frontend | UI deps, bundler config, `*.tsx/*.vue/*.svelte` files, workspaces, UI test tool | `stack/technology.md` (Frontend section) + `patterns/frontend-patterns.md` |
 
 ---
 
-## Krok 1-alt: Wywiad (--manual)
+## Step 1-alt: Interview (--manual)
 
-Jeśli `--manual` lub repo jest puste:
+If `--manual` or the repo is empty:
 
-### Runda 1: Stack
+### Round 1: Stack
 ```
-1. Jaki runtime i język? (Node.js + TypeScript, Python, Go, ...)
-2. Jaki framework backend? (NestJS, Express, FastAPI, ...)
-3. Jaka baza danych? (PostgreSQL, MySQL, MongoDB, ...)
+1. Which runtime and language? (Node.js + TypeScript, Python, Go, ...)
+2. Which backend framework? (NestJS, Express, FastAPI, ...)
+3. Which database? (PostgreSQL, MySQL, MongoDB, ...)
 4. Package manager? (npm, pnpm, yarn)
-5. Czy projekt ma frontend? Jaki framework i bundler? (React+Vite, Next, Vue, ... / brak)
+5. Does the project have a frontend? Which framework and bundler? (React+Vite, Next, Vue, ... / none)
 ```
 
-Jeśli frontend = tak — mini-runda uzupełniająca:
+If frontend = yes — a short follow-up round:
 ```
-1. State management? (server-state + globalny klient)
-2. Styling i biblioteka komponentów?
-3. Testy komponentowe / E2E przeglądarkowe? (narzędzia)
+1. State management? (server-state + global client)
+2. Styling and component library?
+3. Component tests / browser E2E? (tools)
 ```
 
-### Runda 2: Architecture
+### Round 2: Architecture
 ```
-1. Typ architektury? (Modular Monolith, Microservices, Monolith)
-2. Struktura warstw? (Domain/Application/Infrastructure/Interface)
+1. Architecture type? (Modular Monolith, Microservices, Monolith)
+2. Layer structure? (Domain/Application/Infrastructure/Interface)
 3. DI container? (NestJS built-in, InversifyJS, manual)
 4. Error handling pattern? (custom exceptions, HTTP errors)
 ```
 
-### Runda 3: Conventions
+### Round 3: Conventions
 ```
-1. Nazewnictwo plików? (kebab-case, camelCase, PascalCase)
-2. Nazewnictwo w kodzie? (camelCase vars, PascalCase classes)
+1. File naming? (kebab-case, camelCase, PascalCase)
+2. Naming in code? (camelCase vars, PascalCase classes)
 3. Formatter/Linter? (Prettier, ESLint, ...)
 4. Git branching? (trunk-based, gitflow, ...)
 5. Commit format? (conventional commits, custom)
 ```
 
-**Wywiad prowadzi SESJA GŁÓWNA — czekaj na odpowiedzi użytkownika po każdej rundzie,
-potem przekaż komplet odpowiedzi subagentowi `regent:architect`.**
+**The interview is run by the MAIN SESSION — wait for the user's answers after each round,
+then pass the full set of answers to the `regent:architect` subagent.**
 
 ---
 
-## Krok 2: Generuj ai/docs/
+## Step 2: Generate ai/docs/
 
-Na podstawie detekcji lub wywiadu, wypełnij:
+Based on detection or the interview, fill in:
 
-### WYMAGANE (zawsze generowane):
-1. `ai/docs/stack/technology.md` — stos technologiczny
-2. `ai/docs/patterns/architecture.md` — wzorce architektoniczne
-   (w tym sekcja **Reference Implementations**: dla każdego wzorca z tabeli Key Patterns
-   architekt wskazuje 1-2 realne, wzorcowe implementacje w kodzie — pełne ścieżki od `src/`
-   + 1 zdanie. To pozwala późniejszym komendom czytać wskazany plik zamiast skanować `src/`.
-   Sekcja **Zasady nienegocjowalne**: tylko reguły już egzekwowane — reguły lintera, bramki CI,
-   ADR-y; nic takiego nie wykryto → sekcję usuń.)
-3. `ai/docs/conventions/naming.md` — konwencje nazewnictwa
-4. `ai/docs/conventions/code-style.md` — styl kodu
+### REQUIRED (always generated):
+1. `ai/docs/stack/technology.md` — technology stack
+2. `ai/docs/patterns/architecture.md` — architectural patterns
+   (including the **Reference Implementations** section: for each pattern from the Key Patterns table
+   the architect points to 1-2 real, exemplary implementations in the code — full paths from `src/`
+   + 1 sentence. This lets later commands read the indicated file instead of scanning `src/`.
+   The **Non-negotiable principles** section: only rules already enforced — linter rules, CI gates,
+   ADRs; nothing like that detected → remove the section.)
+3. `ai/docs/conventions/naming.md` — naming conventions
+4. `ai/docs/conventions/code-style.md` — code style
 5. `ai/docs/conventions/git-workflow.md` — git workflow
 
-### OPCJONALNE (generowane jeśli wykryto):
-6. `ai/docs/patterns/di-patterns.md` — wzorce DI
-7. `ai/docs/patterns/testing-patterns.md` — wzorce testowania
-8. `ai/docs/patterns/exception-patterns.md` — obsługa wyjątków
-9. `ai/docs/patterns/logging-patterns.md` — wzorzec logowania (źródło prawdy dla `/regent:logging`)
-10. `ai/docs/patterns/frontend-patterns.md` — wzorce frontendu (źródło prawdy dla `regent:frontend-dev`;
-    generowany TYLKO gdy wykryto frontend; wtedy też wypełnij sekcję Frontend w technology.md —
-    w projektach backend-only sekcję usuń)
-11. `ai/docs/domain/glossary.md` — słownik języka domeny (terminy, relacje, rozstrzygnięte
-    niejednoznaczności). Generuj, gdy z nazw modułów/encji w `src/` wyłania się **realne
-    słownictwo domenowe** (min. 3 terminy, których znaczenia nie da się odgadnąć z samej nazwy),
-    albo gdy użytkownik podał je w wywiadzie. W projekcie czysto technicznym (biblioteka, CLI,
-    narzędzie) pomiń — **pusty glosariusz szkodzi bardziej niż jego brak**: kosztuje kontekst
-    przy każdym czytaniu i zachęca do wrzucania tam decyzji implementacyjnych.
+### OPTIONAL (generated if detected):
+6. `ai/docs/patterns/di-patterns.md` — DI patterns
+7. `ai/docs/patterns/testing-patterns.md` — testing patterns
+8. `ai/docs/patterns/exception-patterns.md` — exception handling
+9. `ai/docs/patterns/logging-patterns.md` — logging pattern (source of truth for `/regent:logging`)
+10. `ai/docs/patterns/frontend-patterns.md` — frontend patterns (source of truth for `regent:frontend-dev`;
+    generated ONLY when a frontend was detected; then also fill the Frontend section in technology.md —
+    in backend-only projects remove that section)
+11. `ai/docs/domain/glossary.md` — glossary of the domain language (terms, relations, resolved
+    ambiguities). Generate it when **real domain vocabulary** emerges from module/entity names in `src/`
+    (min. 3 terms whose meaning cannot be guessed from the name alone),
+    or when the user provided it in the interview. In a purely technical project (library, CLI,
+    tool) skip it — **an empty glossary does more harm than none**: it costs context
+    on every read and invites dumping implementation decisions there.
 
-**Wypełniaj z szablonów** `${CLAUDE_PLUGIN_ROOT}/templates/docs/` (jeden szablon = jeden plik `ai/docs/`) — podmieniaj placeholdery wykrytymi wartościami, nie kopiuj placeholderów.
+**Fill from the templates** in `${CLAUDE_PLUGIN_ROOT}/templates/docs/` (one template = one `ai/docs/` file) — replace placeholders with detected values, do not copy placeholders.
 
-> ❗ `logging-patterns.md`: NIE scaffolduj kodu loggera (to zakres `/regent:logging`, nie `/regent:init`).
-> Gdy wykryto logger → opisz jego ścieżkę i API w szablonie. Gdy NIE wykryto → wygeneruj plik
-> ze statusem „do wdrożenia”, aby `/regent:logging` wiedział, że brak standardu.
+> ❗ `logging-patterns.md`: do NOT scaffold logger code (that is the scope of `/regent:logging`, not `/regent:init`).
+> Logger detected → describe its path and API in the template. NOT detected → generate the file
+> with the status "to be implemented", so `/regent:logging` knows there is no standard.
 
-### NIE generowane przez /regent:init (opcjonalne, autorskie):
-- `ai/docs/observability/` (dashboardy/alerty Kibany, `maintenance.md`) — zbyt środowiskowe
-  (index patterns, webhooki Slacka). Tworzone ręcznie w razie potrzeby. Jeśli istnieje,
-  `logging-patterns.md` powinien do niego linkować (sekcja „Synchronizacja z observability”).
+### NOT generated by /regent:init (optional, authored):
+- `ai/docs/observability/` (Kibana dashboards/alerts, `maintenance.md`) — too environment-specific
+  (index patterns, Slack webhooks). Created manually when needed. If it exists,
+  `logging-patterns.md` should link to it ("Synchronization with observability" section).
 
 ---
 
-## Krok 3: Generuj Makefile
+## Step 3: Generate the Makefile
 
-Na podstawie wykrytego stacku skopiuj i wypełnij odpowiedni szablon:
+Based on the detected stack, copy and fill the matching template:
 
-| Stack | Szablon |
+| Stack | Template |
 |---|---|
 | Node.js / TypeScript | `${CLAUDE_PLUGIN_ROOT}/templates/Makefile.node.template` |
-| Inny stack (Python, Go, Rust, …) | brak szablonu → wygeneruj Makefile ręcznie z tym samym zestawem celów: `install`, `lint`, `type-check`, `format`, `test`, `test-unit`, `test-integration`, `test-coverage`, `check`, `build`, `deps-outdated`, `deps-audit` — używając narzędzi wykrytego stacku (np. `pytest`, `ruff`, `go test`, `cargo test`) |
+| Other stack (Python, Go, Rust, …) | no template → generate the Makefile manually with the same set of targets: `install`, `lint`, `type-check`, `format`, `test`, `test-unit`, `test-integration`, `test-coverage`, `check`, `build`, `deps-outdated`, `deps-audit` — using the detected stack's tools (e.g. `pytest`, `ruff`, `go test`, `cargo test`) |
 
-Cele Makefile to **kontrakt frameworka** — komendy (`/regent:apply`, `/regent:verify`, `/regent:commit`,
-`/regent:dependency-update`) wołają `make …`, nie surowe narzędzia stacku.
+The Makefile targets are the **framework contract** — the commands (`/regent:apply`, `/regent:verify`, `/regent:commit`,
+`/regent:dependency-update`) call `make …`, not the raw stack tools.
 
-Podmień w szablonie:
-- `PKG_MANAGER` — wykryty package manager (`npm` / `pnpm` / `yarn`)
-- Sekcja Database — odkomentuj blok pasujący do wykrytego ORM (Prisma / TypeORM / inne)
-- Sekcja Frontend — odkomentuj cel `test-component`, gdy wykryto frontend
+Replace in the template:
+- `PKG_MANAGER` — the detected package manager (`npm` / `pnpm` / `yarn`)
+- Database section — uncomment the block matching the detected ORM (Prisma / TypeORM / other)
+- Frontend section — uncomment the `test-component` target when a frontend was detected
 
-Zapisz jako `Makefile` w katalogu głównym projektu.
+Save as `Makefile` in the project root directory.
 
-Jeśli `Makefile` już istnieje → NIE nadpisuj: zaproponuj brakujące cele jako diff do dopisania.
+If a `Makefile` already exists → do NOT overwrite: propose the missing targets as a diff to append.
 
 ---
 
-## Krok 3.5: Barierki git w projekcie
+## Step 3.5: Git guardrails in the project
 
-Reguły „`git add` wyłącznie z listą plików" i „bez `--no-verify`" żyją w promptach, a egzekwuje je
-deterministycznie hook `scripts/hooks/git-guard.sh`, **rejestrowany przez plugin** (`hooks/hooks.json`):
-blokuje `git add .` / `-A` / `--all` / `-u`, `git commit -a`, `--no-verify` i `-c core.hooksPath`
-oraz atrybucję AI w treści commita i PR (`Co-Authored-By` z Claude, „Generated with Claude…”),
-a agentowi mówi, co zrobić zamiast tego. Działa w każdym projekcie z `ai/docs/`, więc od zapisu plików w Kroku 4 chroni
-także ten projekt — bez wpisu w jego `.claude/settings*.json` i bez pytania o zgodę.
+The rules "`git add` only with a list of files" and "no `--no-verify`" live in the prompts, and they are enforced
+deterministically by the `scripts/hooks/git-guard.sh` hook, **registered by the plugin** (`hooks/hooks.json`):
+it blocks `git add .` / `-A` / `--all` / `-u`, `git commit -a`, `--no-verify` and `-c core.hooksPath`
+as well as AI attribution in commit and PR text (`Co-Authored-By` with Claude, "Generated with Claude…"),
+and tells the agent what to do instead. It works in every project with `ai/docs/`, so from the moment files are written in Step 4 it protects
+this project too — with no entry in its `.claude/settings*.json` and without asking for consent.
 
-Sprawdź tylko, czy projekt nie ma starego wpisu hooka wskazującego `$HOME/.claude/scripts/hooks/`
-(sprzed pluginu) w `.claude/settings.json` lub `.claude/settings.local.json`. Jest → zaproponuj
-jego usunięcie (dubluje hook pluginu, a po usunięciu frameworka z `~/.claude` nic nie robi).
-
-## Krok 4: Prezentacja i zatwierdzenie
+## Step 4: Presentation and approval
 
 ```markdown
-## Inicjalizacja SDD — Wyniki
+## SDD initialization — Results
 
-### Wypełnione pliki:
+### Filled files:
 ✅ ai/docs/stack/technology.md
 ✅ ai/docs/patterns/architecture.md
 ✅ ai/docs/conventions/naming.md
 ✅ ai/docs/conventions/code-style.md
 ✅ ai/docs/conventions/git-workflow.md
-⬜ ai/docs/patterns/di-patterns.md (opcjonalny — nie wykryto)
+⬜ ai/docs/patterns/di-patterns.md (optional — not detected)
 ✅ ai/docs/patterns/testing-patterns.md
-⬜ ai/docs/patterns/exception-patterns.md (opcjonalny — nie wykryto)
-⬜ ai/docs/domain/glossary.md (opcjonalny — brak słownictwa domenowego)
-✅ ai/docs/patterns/logging-patterns.md (wykryto: nestjs-pino)
-⬜ ai/docs/patterns/frontend-patterns.md (opcjonalny — nie wykryto frontendu)
+⬜ ai/docs/patterns/exception-patterns.md (optional — not detected)
+⬜ ai/docs/domain/glossary.md (optional — no domain vocabulary)
+✅ ai/docs/patterns/logging-patterns.md (detected: nestjs-pino)
+⬜ ai/docs/patterns/frontend-patterns.md (optional — no frontend detected)
 ✅ Makefile (Node.js, pnpm, Prisma)
-✅ git-guard — hook pluginu aktywny (projekt ma ai/docs/); stary wpis w .claude/settings*.json: brak / usunięty
-✅ ai/: tryb współdzielony (śledzony w repo) — pierwszy commit dopiero w apply/bugfix
+✅ git-guard — plugin hook active (project has ai/docs/); old entry in .claude/settings*.json: none / removed
+✅ ai/: tracked in the repo — first commit in apply/bugfix
 
-### Podsumowanie:
+### Summary:
 - Runtime: Node.js 20 + TypeScript 5.3
 - Framework: NestJS 10
 - Database: PostgreSQL 16
-- Architecture: Modular Monolith, 4 warstwy
+- Architecture: Modular Monolith, 4 layers
 
-### Kandydaci na pierwszą zmianę (do przećwiczenia cyklu):
-| # | Kandydat | Źródło | Rozmiar | Komenda |
-|---|----------|--------|---------|---------|
-| 1 | [np. walidacja email w rejestracji] | [TODO w src/…:42] | S | `/regent:propose …` |
-| 2 | [np. moduł bez testów] | [brak testów w src/…] | S | `/regent:testing …` |
-| 3 | [np. połknięty wyjątek] | [pusty catch w src/…:88] | S | `/regent:bugfix …` |
+### Candidates for the first change (to practice the cycle):
+| # | Candidate | Source | Size | Command |
+|---|-----------|--------|------|---------|
+| 1 | [e.g. email validation in registration] | [TODO in src/…:42] | S | `/regent:propose …` |
+| 2 | [e.g. module without tests] | [no tests in src/…] | S | `/regent:testing …` |
+| 3 | [e.g. swallowed exception] | [empty catch in src/…:88] | S | `/regent:bugfix …` |
 
-Czy zatwierdzasz? (tak/nie/popraw [plik])
+Do you approve? (yes/no/revise [file])
 ```
 
-**Czekaj na zatwierdzenie.** Po `tak` → sesja główna zapisuje pliki `ai/docs/` + `Makefile`
-z treści zwróconej przez `regent:architect`. `popraw [plik]` → kontynuuj tego samego subagenta
-z poprawkami.
+**Wait for approval.** After `yes` → the main session writes the `ai/docs/` files + `Makefile`
+from the content returned by `regent:architect`. `revise [file]` → continue the same subagent
+with the corrections.
 
 ---
 
-## WAŻNE Rules
+## IMPORTANT Rules
 
-✅ **ZAWSZE:**
-- Skanuj repo PRZED generowaniem
-- Prezentuj wyniki DO zatwierdzenia
-- Wypełniaj szablony konkretnymi wartościami (nie placeholderami)
-- Oznacz co wykryto automatycznie, a co wymaga weryfikacji
-- Wartości niepewne → zapytaj użytkownika
-- Istniejący, wypełniony plik → potwierdzenie przed nadpisaniem
+✅ **ALWAYS:**
+- Scan the repo BEFORE generating
+- Present the results FOR approval
+- Fill templates with concrete values (not placeholders)
+- Mark what was detected automatically and what needs verification
+- Uncertain values → ask the user
+- Existing, filled file → confirmation before overwriting
 
 ---
 
-## Następne kroki po /regent:init
+## Next steps after /regent:init
 
 ```
-→ /regent:propose "pierwsza zmiana"
-→ /regent:status (przegląd stanu)
+→ /regent:propose "first change"
+→ /regent:status (status overview)
 ```
 
-Timeline: 10-20 minut
+Timeline: 10-20 minutes

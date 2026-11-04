@@ -1,69 +1,69 @@
-# sdd-check — deterministyczna walidacja artefaktów
+# sdd-check — deterministic artifact validation
 
-`scripts/sdd-check.sh` sprawdza artefakty SDD w projekcie **skryptem, nie modelem**. Liczenie
-checkboxów, porównywanie numerów REQ i zbiorów AC to praca, w której model się myli i płaci
-za nią tokenami — skrypt robi ją powtarzalnie w ułamku sekundy.
+`scripts/sdd-check.sh` checks the SDD artifacts in a project **with a script, not the model**. Counting
+checkboxes, comparing REQ numbers and AC sets is work in which the model makes mistakes and pays
+for it in tokens — the script does it repeatably in a fraction of a second.
 
-Skrypt jest **read-only**: niczego nie zapisuje, tylko raportuje — poza trybem `renumber`, który
-przenumerowuje wymaganie w plikach jednej zmiany. Wołają go komendy frameworka
-w bramkach; możesz uruchomić go też sam, w katalogu głównym projektu:
+The script is **read-only**: it writes nothing, it only reports — except for the `renumber` mode, which
+renumbers a requirement in the files of one change. The framework's commands call it
+at gates; you can also run it yourself, in the project's root directory:
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh <tryb> [argumenty]
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh <mode> [arguments]
 ```
 
-## Tryby
+## Modes
 
-| Tryb | Co sprawdza | Kto woła |
+| Mode | What it checks | Who calls it |
 |------|-------------|----------|
-| `change <nazwa>` | Status w proposal.md; delta: tylko sekcje ADDED/MODIFIED/REMOVED/INVARIANTS/Notes, każdy REQ ma AC, REMOVED ma Powód, brak placeholderów, refactor ma INV; tasks: checkboxy, ID, odwołania REQ/AC, `weryfikacja:`, pokrycie każdego AC taskiem | `/regent:propose` 3a, `/regent:apply` Krok 0 i 4.5, `/regent:verify` Krok 0, `/regent:archive` Krok 1 |
-| `preflight <nazwa>` | delta wobec `ai/specs/`: numer ADDED wolny (także wobec innych aktywnych zmian i main specs gałęzi domyślnej; ten sam ADDED w delcie innej gałęzi → WARN), MODIFIED/REMOVED wskazuje istniejący REQ, MODIFIED nie gubi AC z main spec, brak duplikatów REQ w main specs | `/regent:propose` 3a, `/regent:archive` Krok 0 |
-| `postmerge <nazwa>` | main specs po merge: bez nagłówków delty i linii Było/Usunięte AC, bez duplikatów REQ, zbiór AC każdego REQ = zbiór z delty | `/regent:archive` po Kroku 2 |
-| `drift <nazwa>` | czy pliki z „Affected Files" zmieniły się od `Commit HEAD` z verification.md | `/regent:archive` Krok 0, `/regent:status` |
-| `diff <nazwa> [baza]` | fakty dla review: usunięte testy, dodane `.skip/.only/xit`, testy z mniejszą liczbą asercji, pliki spoza „Affected Files" | `/regent:verify` przed Etapami 2-4 |
-| `next-req` | następny wolny numer REQ (max z `ai/specs/`, aktywnych zmian, archiwum i — w trybie współdzielonym — delt i main specs na wszystkich gałęziach lokalnych i zdalnych + 1) | `/regent:propose` Krok 2 |
-| `renumber <nazwa> <REQ> [REQ-nowy]` | **jedyny tryb, który zapisuje**: przenumerowuje wymaganie ADDED we wszystkich plikach zmiany (delta, tasks, verification, proposal); bez trzeciego argumentu bierze `next-req` | `/regent:archive` Krok 0 przy kolizji numeru |
-| `status` | jedna linia na aktywną zmianę: Status, taski x/y, werdykt weryfikacji | `/regent:status` |
-| `index` | spis wymagań: `domena: REQ-NNN tytuł (AC: n)` — mapa `ai/specs/` bez czytania całych plików | `regent:spec-writer` (przez prompt z `/regent:propose`) |
-| `stale` | pliki z „Affected Files" zarchiwizowanych zmian, zmienione później poza cyklem SDD (commit cyklu = hash w tasks.md, klucz ticketu z proposal w temacie — przeżywa squash — albo dotyka `ai/changes/`) | `/regent:status --drift` |
+| `change <name>` | Status in proposal.md; delta: only ADDED/MODIFIED/REMOVED/INVARIANTS/Notes sections, every REQ has AC, REMOVED has a Reason, no placeholders, a refactor has INV; tasks: checkboxes, IDs, REQ/AC references, `verification:`, coverage of every AC by a task | `/regent:propose` 3a, `/regent:apply` Step 0 and 4.5, `/regent:verify` Step 0, `/regent:archive` Step 1 |
+| `preflight <name>` | delta against `ai/specs/`: the ADDED number is free (also against other active changes and the default branch's main specs; the same ADDED in another branch's delta → WARN), MODIFIED/REMOVED points to an existing REQ, MODIFIED does not lose AC from the main spec, no duplicate REQs in main specs | `/regent:propose` 3a, `/regent:archive` Step 0 |
+| `postmerge <name>` | main specs after merge: no delta headings and no Was/Removed AC lines, no duplicate REQs, the AC set of every REQ = the set from the delta | `/regent:archive` after Step 2 |
+| `drift <name>` | whether the files from "Affected Files" changed since the `Commit HEAD` from verification.md | `/regent:archive` Step 0, `/regent:status` |
+| `diff <name> [base]` | facts for review: removed tests, added `.skip/.only/xit`, tests with fewer assertions, files outside "Affected Files" | `/regent:verify` before Stages 2-4 |
+| `next-req` | the next free REQ number (max from `ai/specs/`, active changes, the archive, deltas and main specs on all local and remote branches + 1) | `/regent:propose` Step 2 |
+| `renumber <name> <REQ> [REQ-new]` | **the only mode that writes**: renumbers an ADDED requirement in all files of the change (delta, tasks, verification, proposal); without the third argument it takes `next-req` | `/regent:archive` Step 0 on a number collision |
+| `status` | one line per active change: Status, tasks x/y, verification verdict | `/regent:status` |
+| `index` | requirements index: `domain: REQ-NNN title (AC: n)` — a map of `ai/specs/` without reading whole files | `regent:spec-writer` (via the prompt from `/regent:propose`) |
+| `stale` | files from "Affected Files" of archived changes, later changed outside the SDD cycle (a cycle commit = a hash in tasks.md, the ticket key from the proposal in the subject — survives a squash — or it touches `ai/changes/`) | `/regent:status --drift` |
 
-## Wynik
+## Output
 
 ```
-ERROR ai/changes/x/specs/auth.md:14 REQ-001/AC-2 jest w main spec, a nie ma go w bloku MODIFIED …
-WARN  ai/changes/x/tasks.md:9 T-04 bez weryfikacja:
-INFO  tasks.md: 2/5 zrobione
+ERROR ai/changes/x/specs/auth.md:14 REQ-001/AC-2 is in the main spec but not in the MODIFIED block …
+WARN  ai/changes/x/tasks.md:9 T-04 without verification:
+INFO  tasks.md: 2/5 done
 RESULT: ERROR (errors=1 warnings=1)
 ```
 
-Kod wyjścia: `0` — brak ERROR, `1` — są ERROR, `2` — błędne użycie. **ERROR** łamie kontrakt
-artefaktu (merge zgubiłby dane, format jest nieczytelny dla kolejnych komend). **WARN** to
-sygnał do decyzji — komenda, która woła skrypt, mówi, co z nim zrobić. **INFO** to fakt.
+Exit code: `0` — no ERROR, `1` — there are ERRORs, `2` — invalid usage. **ERROR** breaks the artifact
+contract (the merge would lose data, the format is unreadable for the next commands). **WARN** is a
+signal for a decision — the command that calls the script says what to do with it. **INFO** is a fact.
 
-## Formaty, na których polega skrypt
+## Formats the script relies on
 
-- Wymaganie: `### REQ-NNN: Nazwa`; AC pod nim: `- [ ] AC-n: …` (format: `templates/spec-template.md`).
-- Usunięcie AC w MODIFIED: `**Usunięte AC:** AC-3 — powód`; AC przepisane bez zmian: dopisek `(bez zmian)`
-  na końcu linii (pomijane w pokryciu AC przez taski, zakazane w main spec).
-- Task: `- [ ] T-NN: [TAG] opis — REQ-NNN/AC-n — pliki: … — weryfikacja: …` (format: `agents/spec-writer.md`);
-  lista `REQ-001/AC-1, AC-3`, zakres `REQ-001/AC-1..3`, całe wymaganie `REQ-001`, refactor `INV-1`.
-- `**Usunięte AC:**` w jednej linii (`AC-3 — powód`) albo z listą punktów pod spodem.
-- Nagłówki `####` pod REQ (np. scenariusze) nie kończą bloku REQ; `#`–`###` kończą.
-- Status: wiersz `| Status | Approved |` albo linia `Status: Approved`.
-- Weryfikacja: linie `Verdict: PASS` i `Commit HEAD: <hash>` w verification.md.
-- Ślad taska po commicie: `✅ (commit: <hash> · testy: AC-1 → plik › test; …)` (`/regent:apply` 4c) —
-  `ai/` jest lokalny, więc to główne powiązanie commitów z cyklem. Bazę `diff` wyznacza kolejno:
-  najstarszy commit dotykający katalogu zmiany → najstarszy hash z tasks.md → merge-base z gałęzią
-  główną. `stale` uznaje commit za cyklowy po hashu, kluczu ticketu w temacie (całe słowo),
-  dotknięciu `ai/changes/` albo po zawartości plików równej zapisanemu commitowi (squash).
+- Requirement: `### REQ-NNN: Name`; AC under it: `- [ ] AC-n: …` (format: `templates/spec-template.md`).
+- Removing AC in MODIFIED: `**Removed AC:** AC-3 — reason`; AC copied without changes: the suffix `(unchanged)`
+  at the end of the line (skipped in AC coverage by tasks, forbidden in the main spec).
+- Task: `- [ ] T-NN: [TAG] description — REQ-NNN/AC-n — files: … — verification: …` (format: `agents/spec-writer.md`);
+  a list `REQ-001/AC-1, AC-3`, a range `REQ-001/AC-1..3`, a whole requirement `REQ-001`, a refactor `INV-1`.
+- `**Removed AC:**` on one line (`AC-3 — reason`) or with a bullet list below it.
+- `####` headings under a REQ (e.g. scenarios) do not end the REQ block; `#`–`###` do.
+- Status: a row `| Status | Approved |` or a line `Status: Approved`.
+- Verification: the lines `Verdict: PASS` and `Commit HEAD: <hash>` in verification.md.
+- Task trace after the commit: `✅ (commit: <hash> · tests: AC-1 → file › test; …)` (`/regent:apply` 4c) —
+  this is the main link between commits and the cycle. The `diff` base is determined in order:
+  the oldest commit touching the change directory → the oldest hash from tasks.md → merge-base with the main
+  branch. `stale` treats a commit as a cycle commit by its hash, the ticket key in the subject (whole word),
+  touching `ai/changes/`, or by file contents equal to the recorded commit (squash).
 
-Bloki kodu i komentarze HTML są pomijane — instrukcje z szablonów nie są treścią.
+Code blocks and HTML comments are skipped — instructions from templates are not content.
 
-## Testy
+## Tests
 
 ```bash
-bash scripts/tests/sdd-check.test.sh     # fixture'y w katalogu tymczasowym; uruchamia je też framework-lint.sh
+bash scripts/tests/sdd-check.test.sh     # fixtures in a temporary directory; framework-lint.sh runs them too
 ```
 
-Skrypt celuje w bash 3.2 (domyślny na macOS) i POSIX awk — bez tablic asocjacyjnych w bashu
-i bez rozszerzeń gawk.
+The script targets bash 3.2 (the default on macOS) and POSIX awk — no associative arrays in bash
+and no gawk extensions.

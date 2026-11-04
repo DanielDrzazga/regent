@@ -1,54 +1,54 @@
-# Słownik domeny — [Nazwa projektu]
+# Domain glossary — [Project name]
 
-> **Czym jest ten plik:** słownikiem języka domeny tego projektu i **wyłącznie nim**.
-> Termin, jego znaczenie tutaj, i synonimy, których unikamy.
+> **What this file is:** a glossary of this project's domain language and **only that**.
+> A term, its meaning here, and the synonyms we avoid.
 >
-> **Czego tu nie ma:** decyzji implementacyjnych, nazw klas i plików, opisu architektury,
-> notatek roboczych. Te należą do `ai/docs/patterns/`, `design.md` i `ai/docs/adr/`.
-> Plik ma zostać czytelny, gdy cały kod zostanie przepisany.
+> **What is not here:** implementation decisions, class and file names, architecture description,
+> working notes. Those belong in `ai/docs/patterns/`, `design.md` and `ai/docs/adr/`.
+> The file must stay readable when all the code gets rewritten.
 >
-> **Kiedy dopisywać:** gdy w rozmowie rozstrzygnie się znaczenie terminu albo wyjdzie na jaw,
-> że dwie osoby rozumiały słowo inaczej. Dopisuj od razu, w trakcie — nie zbieraj na później.
+> **When to add:** when the meaning of a term gets settled in a conversation, or it comes to light
+> that two people understood a word differently. Add right away, as you go — do not save it for later.
 
-## Terminy
+## Terms
 
-Wyłącznie terminy specyficzne dla TEJ domeny. Ogólne pojęcia programistyczne (repozytorium,
-cache, middleware) zostają poza słownikiem.
+Only terms specific to THIS domain. General programming concepts (repository,
+cache, middleware) stay outside the glossary.
 
-**[Termin]** — [definicja w 1-2 zdaniach, w języku domeny, bez odwołań do kodu]
-_Unikaj:_ [synonimy, które pojawiają się w rozmowach lub kodzie, a których nie używamy]
+**[Term]** — [definition in 1-2 sentences, in domain language, without references to code]
+_Avoid:_ [synonyms that come up in conversations or code, which we do not use]
 
-**[Termin]** — [definicja]
-_Unikaj:_ [synonimy]
+**[Term]** — [definition]
+_Avoid:_ [synonyms]
 
-<!-- Przykład:
-**Zlecenie** — pojedyncze żądanie wykonania usługi złożone przez Klienta, od przyjęcia
-do rozliczenia. Ma dokładnie jednego Wykonawcę.
-_Unikaj:_ zamówienie, task, job, order
+<!-- Example:
+**Order** — a single request to perform a service placed by a Client, from acceptance
+to settlement. Has exactly one Contractor.
+_Avoid:_ purchase, task, job, ticket
 -->
 
-## Relacje
+## Relations
 
-Jak terminy łączą się ze sobą — jedno zdanie na relację.
+How terms connect to each other — one sentence per relation.
 
-- [Termin A] zawiera wiele [Termin B]
-- [Termin C] należy do dokładnie jednego [Termin A]
+- [Term A] contains many [Term B]
+- [Term C] belongs to exactly one [Term A]
 
-<!-- Przykład:
-- Klient składa wiele Zleceń
-- Zlecenie ma dokładnie jednego Wykonawcę
+<!-- Example:
+- A Client places many Orders
+- An Order has exactly one Contractor
 -->
 
-## Rozstrzygnięte niejednoznaczności
+## Resolved ambiguities
 
-Zapis sporów terminologicznych, które już zapadły. Chroni przed powrotem do tej samej dyskusji
-i tłumaczy, dlaczego w kodzie jest tak, a nie inaczej.
+A record of terminology disputes that are already settled. Prevents returning to the same discussion
+and explains why the code is the way it is.
 
-- **[słowo]** znaczyło wcześniej zarówno [A], jak i [B]. Rozstrzygnięcie: [A] to **[Termin]**,
-  [B] to **[Termin]**. [Data]
+- **[word]** previously meant both [A] and [B]. Resolution: [A] is **[Term]**,
+  [B] is **[Term]**. [Date]
 
-<!-- Przykład:
-- **"anulowanie"** znaczyło zarówno wycofanie Zlecenia przed przyjęciem, jak i przerwanie
-  w trakcie. Rozstrzygnięcie: przed przyjęciem to **Odwołanie**, w trakcie to **Przerwanie**.
+<!-- Example:
+- **"cancellation"** meant both withdrawing an Order before acceptance and aborting it
+  midway. Resolution: before acceptance it is a **Withdrawal**, midway it is an **Abort**.
   2026-09-13
 -->

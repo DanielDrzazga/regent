@@ -1,71 +1,71 @@
-# ADR-{{NR}}: {{TYTUŁ}}
+# ADR-{{NO}}: {{TITLE}}
 
-## Metadane
+## Metadata
 
-| Pole | Wartość |
-|------|---------|
+| Field | Value |
+|-------|-------|
 | Status | Proposed / Accepted / Deprecated / Superseded by ADR-XX |
-| Data | YYYY-MM-DD |
-| Decydent | [kto podjął decyzję] |
-| Dotyczy | [moduły/komponenty] |
+| Date | YYYY-MM-DD |
+| Decision maker | [who made the decision] |
+| Applies to | [modules/components] |
 
-## Kontekst
+## Context
 
-[Opisz sytuację wymagającą decyzji. Jakie ograniczenia, wymagania, problemy?]
+[Describe the situation requiring a decision. What constraints, requirements, problems?]
 
-## Czynniki decyzyjne
+## Decision drivers
 
-1. [Czynnik 1]
-2. [Czynnik 2]
-3. [Czynnik 3]
+1. [Driver 1]
+2. [Driver 2]
+3. [Driver 3]
 
-## Rozważane opcje
+## Considered options
 
-### Opcja A: [Nazwa]
-- **Opis:** [krótki opis]
-- **Pros:** [zalety]
-- **Cons:** [wady]
+### Option A: [Name]
+- **Description:** [short description]
+- **Pros:** [advantages]
+- **Cons:** [disadvantages]
 - **Effort:** [S/M/L/XL]
 - **Risk:** [Low/Medium/High]
 
-### Opcja B: [Nazwa]
-- **Opis:** [krótki opis]
-- **Pros:** [zalety]
-- **Cons:** [wady]
+### Option B: [Name]
+- **Description:** [short description]
+- **Pros:** [advantages]
+- **Cons:** [disadvantages]
 - **Effort:** [S/M/L/XL]
 - **Risk:** [Low/Medium/High]
 
-## Porównanie
+## Comparison
 
-| Kryterium | Opcja A | Opcja B |
-|-----------|---------|---------|
-| [Kryterium 1] | ⭐⭐⭐ | ⭐⭐ |
-| [Kryterium 2] | ⭐⭐ | ⭐⭐⭐ |
+| Criterion | Option A | Option B |
+|-----------|----------|----------|
+| [Criterion 1] | ⭐⭐⭐ | ⭐⭐ |
+| [Criterion 2] | ⭐⭐ | ⭐⭐⭐ |
 
-## Decyzja
+## Decision
 
-**Wybrana opcja: [X]**
+**Chosen option: [X]**
 
-[Uzasadnienie — dlaczego ta opcja jest najlepsza w naszym kontekście]
+[Rationale — why this option is the best in our context]
 
-## Konsekwencje
+## Consequences
 
-### Pozytywne
-- [Co zyskujemy]
+### Positive
+- [What we gain]
 
-### Negatywne
-- [Czym płacimy]
+### Negative
+- [What we pay with]
 
-### Ryzyka
-| Ryzyko | Mitygacja |
-|--------|-----------|
-| [Opis] | [Plan] |
+### Risks
+| Risk | Mitigation |
+|------|------------|
+| [Description] | [Plan] |
 
-## Plan ewolucji
+## Evolution plan
 
-- **Trigger zmiany:** [kiedy warto zrewidować tę decyzję]
-- **Następne kroki:** [co zrobić po zaakceptowaniu]
+- **Change trigger:** [when it is worth revisiting this decision]
+- **Next steps:** [what to do after acceptance]
 
-## Powiązane dokumenty
+## Related documents
 
-- [Linki do powiązanych ADR, specs, docs]
+- [Links to related ADRs, specs, docs]

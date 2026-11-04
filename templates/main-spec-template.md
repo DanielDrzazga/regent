@@ -1,33 +1,33 @@
-# Spec: {{DOMENA}}
+# Spec: {{DOMAIN}}
 
 <!--
-  INSTRUKCJA: Main spec = PEŁNY, aktualny stan wymagań domeny (źródło prawdy).
-  Tworzony/aktualizowany WYŁĄCZNIE przez /regent:archive (merge delta specs).
-  BEZ nagłówków ADDED/MODIFIED/REMOVED — to format delty, nie main speca.
-  BEZ sekcji INVARIANTS — invarianty dotyczą pojedynczej zmiany (refactoru).
-  ID: REQ-NNN nadany w delcie (numeracja globalna), AC w obrębie REQ — zasady w spec-template.md.
+  INSTRUCTION: Main spec = the FULL, current state of the domain's requirements (source of truth).
+  Created/updated EXCLUSIVELY by /regent:archive (merge of delta specs).
+  NO ADDED/MODIFIED/REMOVED headings — that is the delta format, not the main spec.
+  NO INVARIANTS section — invariants apply to a single change (refactor).
+  ID: REQ-NNN assigned in the delta (global numbering), AC within the REQ — rules in spec-template.md.
 -->
 
-## Wymagania
+## Requirements
 
-### REQ-XXX: [Nazwa wymagania]
+### REQ-XXX: [Requirement name]
 
-**Given** [warunek wstępny]
-**When** [akcja użytkownika lub systemu]
-**Then** [oczekiwany rezultat]
+**Given** [precondition]
+**When** [user or system action]
+**Then** [expected result]
 
 **Acceptance Criteria:**
-- [ ] AC-1: [kryterium testowalne]
-- [ ] AC-2: [kryterium testowalne]
+- [ ] AC-1: [testable criterion]
+- [ ] AC-2: [testable criterion]
 
-**Notes:** [kontekst, edge cases]
+**Notes:** [context, edge cases]
 
 ---
 
 ## History
 
-<!-- Wypełniane przez /regent:archive przy każdym merge delty. -->
+<!-- Filled in by /regent:archive on every delta merge. -->
 
-| Data | Zmiana | Typ | Opis |
-|------|--------|-----|------|
-| YYYY-MM-DD | {nazwa-zmiany} | feature/refactor/bugfix | [krótki opis] |
+| Date | Change | Type | Description |
+|------|--------|------|-------------|
+| YYYY-MM-DD | {change-name} | feature/refactor/bugfix | [short description] |

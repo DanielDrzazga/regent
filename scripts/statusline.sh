@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Statusline: licznik kontekstu z progiem ostrzegawczym.
-# Wejście: JSON na stdin (Claude Code przekazuje context_window.* gotowe policzone).
+# Statusline: context counter with a warning threshold.
+# Input: JSON on stdin (Claude Code passes context_window.* precomputed).
 
 input=$(cat)
 
@@ -11,7 +11,7 @@ OUT=$(echo "$input" | jq -r '.context_window.total_output_tokens // 0')
 MAX=$(echo "$input" | jq -r '.context_window.context_window_size // 0')
 COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 
-# effort: JSON statusline (gdy CC go poda) → env CLAUDE_EFFORT → settings.json modelSettings[id].effortLevel
+# effort: statusline JSON (when CC provides it) → env CLAUDE_EFFORT → settings.json modelSettings[id].effortLevel
 EFFORT=$(echo "$input" | jq -r '(.effort.level // .effort // .model.effort) | strings' 2>/dev/null)
 [ -z "$EFFORT" ] && EFFORT="$CLAUDE_EFFORT"
 if [ -z "$EFFORT" ]; then
@@ -23,15 +23,15 @@ fi
 
 TOTAL=$((IN + OUT))
 
-# Suma narastająca sesji z transkryptu (główna sesja + subagenci), dedup po message.id.
-# NOWE = input + cache write + output (tokeny faktycznie nowe), ALL = z cache read.
-# Szczegóły per prompt: ${CLAUDE_PLUGIN_ROOT}/scripts/session-tokens.sh
+# Cumulative session total from the transcript (main session + subagents), dedup by message.id.
+# NEW = input + cache write + output (truly new tokens), ALL = including cache read.
+# Per-prompt details: ${CLAUDE_PLUGIN_ROOT}/scripts/session-tokens.sh
 TRANSCRIPT=$(echo "$input" | jq -r '.transcript_path // empty')
 NEW=0; ALL=0
 if [ -n "$TRANSCRIPT" ] && [ -f "$TRANSCRIPT" ]; then
   files=("$TRANSCRIPT")
   for s in "${TRANSCRIPT%.jsonl}"/subagents/*.jsonl; do [ -f "$s" ] && files+=("$s"); done
-  # cache: licz ponownie tylko gdy któryś plik urósł (wc -c — stat -f/-c różni się między BSD a GNU)
+  # cache: recount only when some file grew (wc -c — stat -f/-c differs between BSD and GNU)
   key=$(for f in "${files[@]}"; do wc -c < "$f"; done | tr -d ' ' | tr '\n' ' ')
   cache="${TMPDIR:-/tmp}/claude-statusline-$(basename "$TRANSCRIPT" .jsonl)"
   if [ -f "$cache" ] && [ "$(head -1 "$cache")" = "$key" ]; then
@@ -45,7 +45,7 @@ if [ -n "$TRANSCRIPT" ] && [ -f "$TRANSCRIPT" ]; then
   fi
 fi
 
-# tokeny w skrócie (k)
+# tokens in short form (k)
 fmt() { local n=${1:-0}
   if   [ "$n" -ge 1000000 ]; then printf '%d.%dM' $((n/1000000)) $((n%1000000/100000))
   elif [ "$n" -ge 1000 ];    then echo "$((n/1000))k"
@@ -53,13 +53,13 @@ fmt() { local n=${1:-0}
 TOTAL_H=$(fmt "$TOTAL")
 MAX_H=$(fmt "$MAX")
 
-# kolor + etykieta wg BEZWZGLĘDNEJ liczby tokenów (nie % okna — przy 1M % ostrzega za późno).
-# <150k zielony | 150-250k żółty (obserwuj) | >250k czerwony (czas na /clear)
-if   [ "$TOTAL" -ge 250000 ]; then C="\033[31m"; TAG="⛔ czas na /clear"
-elif [ "$TOTAL" -ge 150000 ]; then C="\033[33m"; TAG="⚠ obserwuj"
+# color + label by the ABSOLUTE token count (not window % — at 1M the % warns too late).
+# <150k green | 150-250k yellow (watch) | >250k red (time to /clear)
+if   [ "$TOTAL" -ge 250000 ]; then C="\033[31m"; TAG="⛔ time to /clear"
+elif [ "$TOTAL" -ge 150000 ]; then C="\033[33m"; TAG="⚠ watch"
 else                               C="\033[32m"; TAG=""
 fi
 R="\033[0m"; DIM="\033[2m"
 
-printf "${DIM}%s${R} ${C}ctx %s%% (%s/%s)${R} ${C}%s${R} ${DIM}tokens %s (z cache %s)${R} ${DIM}\$%.2f${R}" \
+printf "${DIM}%s${R} ${C}ctx %s%% (%s/%s)${R} ${C}%s${R} ${DIM}tokens %s (with cache %s)${R} ${DIM}\$%.2f${R}" \
   "$MODEL" "$USED_PCT" "$TOTAL_H" "$MAX_H" "$TAG" "$(fmt "$NEW")" "$(fmt "$ALL")" "$COST"

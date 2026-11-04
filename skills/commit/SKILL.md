@@ -1,65 +1,65 @@
 ---
-description: Atomic commity zgodnie z git workflow (format, pre-commit checks, zatwierdzenie)
+description: Atomic commits following the git workflow (format, pre-commit checks, approval)
 disable-model-invocation: true
 argument-hint: [description]
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
-# /regent:commit — Przygotuj i wykonaj commity
+# /regent:commit — Prepare and make commits
 
-**Cel:** Przygotuj i wykonaj atomic commit(y) zgodnie z git workflow.
+**Goal:** Prepare and make atomic commit(s) following the git workflow.
 
 ```
 /regent:commit [description]
 
-Przykład:
+Example:
 /regent:commit
 /regent:commit "add user registration"
 ```
 
 ---
 
-## Agent (delegacja)
+## Agent (delegation)
 
-Bez delegacji — świadomie. To operacja git (lint/format, `git add`, format i wykonanie
-commita) i żaden z subagentów jej nie ulepsza. Higienę kodu pokrywają `/regent:code-review`
-i Etap 3 w `/regent:verify`. Cała komenda działa w głównej sesji, z zatwierdzeniem użytkownika.
+No delegation — deliberately. This is a git operation (lint/format, `git add`, commit format and
+execution) and none of the subagents improves it. Code hygiene is covered by `/regent:code-review`
+and Stage 3 in `/regent:verify`. The whole command runs in the main session, with user approval.
 
 ---
 
-## Krok 1: Pobierz Jira key z brancha
+## Step 1: Get the Jira key from the branch
 
 ```bash
 git branch --show-current
 ```
 
-Format brancha: `<type>/<JIRA-KEY>-<nazwa>`
-Przykład: `feat/PROJ-123-http-error-handling`
+Branch format: `<type>/<JIRA-KEY>-<name>`
+Example: `feat/PROJ-123-http-error-handling`
 
-**Jeśli branch nie zawiera klucza:**
-→ Weź pole `Ticket` z `proposal.md` zmiany, której dotyczy commit (`ai/changes/{nazwa}/`).
-→ Brak i tam → zapytaj: "Jaki Jira key dla tego commita? (lub NONE jeśli brak)"
+**If the branch does not contain a key:**
+→ Take the `Ticket` field from `proposal.md` of the change the commit belongs to (`ai/changes/{name}/`).
+→ Not there either → ask: "What Jira key for this commit? (or NONE if there is none)"
 
 ---
 
-## Krok 2: Pre-commit checks
+## Step 2: Pre-commit checks
 
 ### 2a. Linting
 ```bash
 make lint
 ```
 
-Jeśli failuje → napraw, potem retry.
+If it fails → fix, then retry.
 
 ### 2b. Code quality
 ```bash
 make type-check
 make format
-make test        # ← twarda bramka: CLAUDE.md „Nie commituj bez testów — nawet w hotfixie"
+make test        # ← hard gate: `context/sdd.md` "Don't commit without tests — not even in a hotfix"
 ```
 
-Brak `Makefile` / celu → natywny odpowiednik ze stacku (kontrakt `make` w CLAUDE.md);
-powiedz jawnie, czego użyłeś. `make test` failuje → **STOP**, nie commituj.
+No `Makefile` / target → native equivalent from the stack (the `make` contract in `context/sdd.md`);
+say explicitly what you used. `make test` fails → **STOP**, don't commit.
 
 ### 2c. Manual review checklist
 ```
@@ -68,14 +68,14 @@ powiedz jawnie, czego użyłeś. `make test` failuje → **STOP**, nie commituj.
 □ No hardcoded secrets?
 □ No .env files staged?
 □ No generated files staged?
-□ Każdy staged plik z kodem produkcyjnym ma test w TYM commicie?
-   → nie ma: powiedz to użytkownikowi i uzasadnij wyjątek (config, docs, czysta
-     zmiana formatowania) albo dopisz test. Nie przemilczaj braku.
+□ Every staged production code file has a test in THIS commit?
+   → it doesn't: tell the user and justify the exception (config, docs, pure
+     formatting change) or add a test. Don't stay silent about the gap.
 ```
 
 ---
 
-## Krok 3: Show status
+## Step 3: Show status
 
 ```bash
 git status
@@ -84,55 +84,55 @@ git diff --stat
 
 ---
 
-## Krok 4: Zaproponuj atomic commits
+## Step 4: Propose atomic commits
 
-**Jeden commit = jedna logiczna zmiana:**
+**One commit = one logical change:**
 
 ```
-Zamiast:
+Instead of:
   git commit -m "feat: add user management"
   (50 changed files)
 
-Rozbij na:
+Split into:
   1. feat: (PROJ-123) add user entity and repository
   2. feat: (PROJ-123) add registration use case
   3. test: (PROJ-123) add user registration tests
   4. docs: (PROJ-123) update API documentation
 ```
 
-Pokaż plan commitów użytkownikowi. **Czekaj na zatwierdzenie.**
+Show the commit plan to the user. **Wait for approval.**
 
 ---
 
-## Krok 5: Commit format
+## Step 5: Commit format
 
-Przeczytaj `ai/docs/conventions/git-workflow.md` jeśli istnieje.
+Read `ai/docs/conventions/git-workflow.md` if it exists.
 
 **Format:**
 ```
-<type>: (<JIRA-KEY>) <opis, imperatyw>
+<type>: (<JIRA-KEY>) <description, imperative>
 ```
 
-**Twarde limity:**
-- **Cała linia commita: max 100 znaków** (łącznie z `type`, kluczem i opisem).
-- **Jedna linia — BEZ body.** Nie dodawaj bloku opisu/detali pod tematem.
-- Jeśli zmiana wymaga długiego opisu → to sygnał, że commit jest za duży → rozbij na atomic commits.
+**Hard limits:**
+- **Whole commit line: max 100 characters** (including `type`, key and description).
+- **One line — NO body.** Do not add a description/details block below the subject.
+- If the change needs a long description → that's a signal the commit is too big → split into atomic commits.
 
-**Typy:**
+**Types:**
 | Type | Usage |
 |------|-------|
-| feat | Nowa funkcjonalność |
-| fix | Naprawa buga |
-| hotfix | Emergency fix na produkcji (tylko z /regent:hotfix) |
-| refactor | Refactoring (bez zmiany zachowania) |
-| test | Dodanie/poprawka testów |
-| chore | Zależności, konfiguracja, CI |
-| docs | Dokumentacja |
-| perf | Optymalizacja wydajności |
+| feat | New functionality |
+| fix | Bug fix |
+| hotfix | Emergency fix in production (only from /regent:hotfix) |
+| refactor | Refactoring (no behavior change) |
+| test | Adding/fixing tests |
+| chore | Dependencies, configuration, CI |
+| docs | Documentation |
+| perf | Performance optimization |
 
-Gdy brak ticketu (Krok 1 → NONE): pomiń `(KEY)` — format `<type>: <opis>`.
+When there is no ticket (Step 1 → NONE): omit `(KEY)` — format `<type>: <description>`.
 
-**Przykłady:**
+**Examples:**
 ```
 feat: (PROJ-123) add global error handling middleware
 fix: (PROJ-124) prevent duplicate user registration
@@ -141,26 +141,26 @@ refactor: (PROJ-125) extract auth service to separate module
 
 ---
 
-## Krok 6: Wykonaj commity
+## Step 6: Make the commits
 
-**Po zatwierdzeniu przez użytkownika:**
+**After user approval:**
 
 ```bash
-# Dodaj KONKRETNE pliki — wymienione z nazwy
+# Add SPECIFIC files — listed by name
 git add src/modules/users/domain/user.entity.ts tests/users/user.entity.test.ts
 
-# Sprawdź co dodałeś
+# Check what you added
 git diff --cached --stat
 
 # Commit
 git commit -m "feat: (PROJ-123) add user entity with validation"
 
-# Powtórz dla każdego atomic commita
+# Repeat for each atomic commit
 ```
 
 ---
 
-## Krok 7: Verify
+## Step 7: Verify
 
 ```bash
 git log --oneline -10
@@ -168,7 +168,7 @@ git log --oneline -10
 
 ---
 
-## Krok 8: Push (TYLKO jeśli user prosi)
+## Step 8: Push (ONLY if the user asks)
 
 ```bash
 # ONLY after explicit user request
@@ -177,18 +177,18 @@ git push origin {branch-name}
 
 ---
 
-## WAŻNE Rules
+## IMPORTANT Rules
 
-✅ **ZAWSZE:**
-- Atomic commits (1 commit = 1 logiczna zmiana)
-- **Jedna linia, max 100 znaków**: `type: (KEY) opis` — opisowa, w formacie
-- Zielony `make test` przed commitem — także w hotfixie (CLAUDE.md)
-- Zgoda użytkownika przed `git commit`
-  (wyjątek: per-taskowe commity w `/regent:apply` — zgoda udzielana raz, w Kroku 3 /regent:apply)
-- `git push` po jawnej prośbie użytkownika
+✅ **ALWAYS:**
+- Atomic commits (1 commit = 1 logical change)
+- **One line, max 100 characters**: `type: (KEY) description` — descriptive, in the format
+- Green `make test` before committing — also in a hotfix (`context/sdd.md`)
+- User consent before `git commit`
+  (exception: per-task commits in `/regent:apply` — consent given once, in Step 3 of /regent:apply)
+- `git push` after an explicit user request
 
-❌ **Barierki** (bez pozytywnego odpowiednika):
-- `git add .` / `git add -A` — dodawaj wskazane pliki
-- `git commit --no-verify` — pre-commit hooks zostają włączone
+❌ **Guardrails** (no positive counterpart):
+- `git add .` / `git add -A` — add the specified files
+- `git commit --no-verify` — pre-commit hooks stay enabled
 
-Timeline: 5-15 minut
+Timeline: 5-15 minutes

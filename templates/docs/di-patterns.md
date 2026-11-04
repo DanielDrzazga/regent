@@ -1,38 +1,38 @@
 # DI Patterns
 
-> Opcjonalny. Wypełnij, jeśli `/regent:init` wykryje kontener DI. Opisuje jak wstrzykiwać zależności.
+> Optional. Fill in if `/regent:init` detects a DI container. Describes how to inject dependencies.
 
-## Kontener
+## Container
 
-| Pole | Wartość |
-|------|---------|
-| Mechanizm | [np. NestJS built-in / InversifyJS / manual] |
-| Rejestracja | [np. moduł `@Module({ providers: [...] })`] |
+| Field | Value |
+|-------|-------|
+| Mechanism | [e.g. NestJS built-in / InversifyJS / manual] |
+| Registration | [e.g. module `@Module({ providers: [...] })`] |
 
-## Zasady wstrzykiwania
+## Injection rules
 
-- Wstrzykiwanie przez **konstruktor** (nie property/setter).
-- Zależność od **abstrakcji** (interfejs/port), nie konkretnej implementacji.
-- Serwisy bezstanowe; stan → dedykowane obiekty.
+- Injection through the **constructor** (not property/setter).
+- Dependency on an **abstraction** (interface/port), not a concrete implementation.
+- Stateless services; state → dedicated objects.
 
 ```typescript
 constructor(
-  private readonly userRepository: UserRepository, // interfejs/port
+  private readonly userRepository: UserRepository, // interface/port
   private readonly logger: CustomLoggerService,
 ) {}
 ```
 
-## Tokeny / porty
+## Tokens / ports
 
-- [Jak definiować i wiązać porty z implementacjami — np. `provide: USER_REPOSITORY, useClass: PrismaUserRepository`]
+- [How to define ports and bind them to implementations — e.g. `provide: USER_REPOSITORY, useClass: PrismaUserRepository`]
 
-## Zasięgi (scopes)
+## Scopes
 
-| Scope | Kiedy |
-|-------|-------|
-| Singleton | [domyślnie] |
-| Request-scoped | [gdy potrzebny kontekst requestu] |
+| Scope | When |
+|-------|------|
+| Singleton | [default] |
+| Request-scoped | [when request context is needed] |
 
-## Testy
+## Tests
 
-- W testach wstrzykuj mocki portów (shared mocks z `tests/helpers/mocks/`).
+- In tests, inject port mocks (shared mocks from `tests/helpers/mocks/`).

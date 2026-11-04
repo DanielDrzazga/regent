@@ -1,41 +1,41 @@
 # Naming Conventions
 
-> Wypełnij na podstawie istniejących plików i kodu wykrytych przez `/regent:init`.
+> Fill in based on the existing files and code detected by `/regent:init`.
 
-## Pliki i katalogi
+## Files and directories
 
-| Element | Konwencja | Przykład |
-|---------|-----------|----------|
-| Pliki | [np. kebab-case] | `user-registration.service.ts` |
-| Katalogi | [np. kebab-case] | `template-management/` |
-| Sufiksy plików | [wg roli] | `*.service.ts`, `*.repository.ts`, `*.entity.ts`, `*.controller.ts` |
-| Pliki testów | [np. `*.spec.ts` / `*.test.ts`] | `user.service.spec.ts` |
+| Element | Convention | Example |
+|---------|------------|---------|
+| Files | [e.g. kebab-case] | `user-registration.service.ts` |
+| Directories | [e.g. kebab-case] | `template-management/` |
+| File suffixes | [by role] | `*.service.ts`, `*.repository.ts`, `*.entity.ts`, `*.controller.ts` |
+| Test files | [e.g. `*.spec.ts` / `*.test.ts`] | `user.service.spec.ts` |
 
-## Kod
+## Code
 
-| Element | Konwencja | Przykład |
-|---------|-----------|----------|
-| Klasy / typy | PascalCase | `UserRepository` |
-| Zmienne / funkcje | camelCase | `findByEmail` |
-| Stałe | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
-| Interfejsy | [np. PascalCase bez `I`] | `UserRepository` |
-| Enumy | [PascalCase + wartości] | `OrderStatus.Pending` |
+| Element | Convention | Example |
+|---------|------------|---------|
+| Classes / types | PascalCase | `UserRepository` |
+| Variables / functions | camelCase | `findByEmail` |
+| Constants | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
+| Interfaces | [e.g. PascalCase without `I`] | `UserRepository` |
+| Enums | [PascalCase + values] | `OrderStatus.Pending` |
 
-## Nazewnictwo domenowe
+## Domain naming
 
-- Nazwy opisują **intencję**, nie implementację (`findActiveUsers`, nie `queryUsers2`).
-- Metody: czasownik + rzeczownik (`createOrder`, `sendNotification`).
-- Booleany: `is`/`has`/`can` (`isActive`, `hasAccess`).
+- Names describe **intent**, not implementation (`findActiveUsers`, not `queryUsers2`).
+- Methods: verb + noun (`createOrder`, `sendNotification`).
+- Booleans: `is`/`has`/`can` (`isActive`, `hasAccess`).
 
-## Schematy nazw klas (wg roli)
+## Class name schemes (by role)
 
-| Rola | Schemat | Przykład |
-|------|---------|----------|
-| Entity (domain) | `{Name}` (l.poj.) | `Order` |
+| Role | Scheme | Example |
+|------|--------|---------|
+| Entity (domain) | `{Name}` (singular) | `Order` |
 | Value Object | `{Concept}` | `Money`, `EmailAddress` |
 | Domain Event | `{VerbPastTense}{Context}Event` | `OrderCreatedEvent` |
 | Exception | `{Description}Exception` | `OrderNotFoundException` |
-| Repository (interfejs) | `{Name}Repository` | `OrderRepository` |
+| Repository (interface) | `{Name}Repository` | `OrderRepository` |
 | Application Service | `{Action/Module}Service` | `CreateOrderService` |
 | Controller | `{Context}Controller` | `OrderController` |
 | Adapter | `{Service}Adapter` | `PaymentGatewayAdapter` |
@@ -43,21 +43,21 @@
 
 ## Database
 
-| Typ | Konwencja | Przykład |
-|-----|-----------|----------|
-| Tabele | snake_case, l.mn. | `order_items` |
-| Kolumny | snake_case | `created_at`, `user_id` |
-| Indeksy | `idx_{table}_{columns}` | `idx_orders_user_id` |
+| Type | Convention | Example |
+|------|------------|---------|
+| Tables | snake_case, plural | `order_items` |
+| Columns | snake_case | `created_at`, `user_id` |
+| Indexes | `idx_{table}_{columns}` | `idx_orders_user_id` |
 
 ## API
 
-| Typ | Konwencja | Przykład |
-|-----|-----------|----------|
+| Type | Convention | Example |
+|------|------------|---------|
 | Endpoints | kebab-case, REST | `/order-items/:id` |
-| Path params | [np. camelCase / UPPER_SNAKE] | `:orderId` |
+| Path params | [e.g. camelCase / UPPER_SNAKE] | `:orderId` |
 | Query params | camelCase | `?pageSize=20` |
 | Body fields | camelCase | `{ "templateName": "..." }` |
 
 ## Log `action`
 
-`RZECZOWNIK_CZASOWNIK`, UPPERCASE, EN (`MESSAGE_SENT`) — zob. `logging-patterns.md`.
+`NOUN_VERB`, UPPERCASE, EN (`MESSAGE_SENT`) — see `logging-patterns.md`.

@@ -1,109 +1,109 @@
-# Proposal: {{NAZWA}}
+# Proposal: {{NAME}}
 
-## Metadane
+## Metadata
 
-| Pole | Wartość |
-|------|---------|
-| Typ | feature / refactor / bugfix |
-| Ticket | [KEY z trackera lub NONE] |
+| Field | Value |
+|-------|-------|
+| Type | feature / refactor / bugfix |
+| Ticket | [KEY from the tracker or NONE] |
 | Status | Draft / Approved / Rejected |
-| Data utworzenia | YYYY-MM-DD |
-| Autor | [kto zaproponował] |
+| Created | YYYY-MM-DD |
+| Author | [who proposed it] |
 
 ## Problem
 
-### Co jest problemem?
-[Opis problemu — max 3 zdania]
+### What is the problem?
+[Problem description — max 3 sentences]
 
-### Dlaczego teraz?
-[Dlaczego to jest ważne teraz]
+### Why now?
+[Why this matters now]
 
-### Kto jest dotknięty?
-[Użytkownicy, zespół, system]
+### Who is affected?
+[Users, team, system]
 
-## Rozwiązanie
+## Solution
 
-### Podsumowanie
-[Opis rozwiązania — max 3 zdania]
+### Summary
+[Solution description — max 3 sentences]
 
 ### User Story
 As [persona], I want [action], so that [benefit].
 
-## Oczekiwany rezultat
+## Expected outcome
 
-- [1-3 punkty: co zyskuje użytkownik / biznes — język efektu, nie kryteriów testowych]
+- [1-3 points: what the user / business gains — outcome language, not test criteria]
 
-Kryteria akceptacji żyją w delcie: `specs/{domena}.md` → `REQ-NNN/AC-n` (jedno źródło AC).
+Acceptance criteria live in the delta: `specs/{domain}.md` → `REQ-NNN/AC-n` (single source of AC).
 
-## Zakres
+## Scope
 
 ### In Scope (MVP)
-1. [Co robimy]
-2. [Co robimy]
+1. [What we do]
+2. [What we do]
 
 ### Out of Scope
-1. [Czego NIE robimy]
+1. [What we do NOT do]
 
 ### Future (nice to have)
-1. [Na później]
+1. [For later]
 
-## Wpływ
+## Impact
 
-| Obszar | Wpływ | Szczegóły |
-|--------|-------|-----------|
-| Moduły | [lista] | [co się zmienia] |
-| API | TAK/NIE | [nowe/zmienione endpointy] |
-| Database | TAK/NIE | [migracje] |
-| UI | TAK/NIE | [nowe/zmienione ekrany] |
-| Users | TAK/NIE | [wpływ na użytkowników] |
+| Area | Impact | Details |
+|------|--------|---------|
+| Modules | [list] | [what changes] |
+| API | YES/NO | [new/changed endpoints] |
+| Database | YES/NO | [migrations] |
+| UI | YES/NO | [new/changed screens] |
+| Users | YES/NO | [impact on users] |
 
-## Zależności
+## Dependencies
 
-### Blokowane przez
-- [Od czego zależy ta zmiana]
+### Blocked by
+- [What this change depends on]
 
-### Blokuje
-- [Co zależy od tej zmiany]
+### Blocks
+- [What depends on this change]
 
-## Decyzje i założenia
+## Decisions and assumptions
 
-<!-- Log rozstrzygnięć, dopisywany na bieżąco (starszych wpisów nie przepisuj). Jedna linia na
-     wpis; zapisuj tylko to, co zmienia AC, design albo zakres.
-     DECYZJA   — rozstrzygnięcie użytkownika (rundy Challenge, OPEN QUESTIONS w /regent:apply)
-     ZAŁOŻENIE — domyślny wybór agenta, którego nikt nie potwierdził (widoczny przy review Draft)
-     AMEND     — zmiana zatwierdzonego planu w trakcie /regent:apply (co, dlaczego; zgoda usera) -->
+<!-- Log of resolutions, appended as you go (do not rewrite older entries). One line per
+     entry; record only what changes AC, design or scope.
+     DECISION   — user's resolution (Challenge rounds, OPEN QUESTIONS in /regent:apply)
+     ASSUMPTION — agent's default choice that nobody confirmed (visible at Draft review)
+     AMEND      — change to the approved plan during /regent:apply (what, why; user consent) -->
 
-| Data | Typ | Kwestia | Rozstrzygnięcie |
-|------|-----|---------|-----------------|
-| YYYY-MM-DD | DECYZJA | [pytanie z rundy Challenge] | [odpowiedź użytkownika] |
-| YYYY-MM-DD | ZAŁOŻENIE | [czego nie ustalono] | [co przyjęto i dlaczego] |
-
----
-
-*Sekcję poniżej dodaj TYLKO, gdy `/regent:propose` (Krok 1b′ Challenge) zgłosił zastrzeżenia.
-Brak zastrzeżeń → pomiń całą sekcję, nie pisz „brak".*
-
-## Zastrzeżenia
-
-| # | Zastrzeżenie | Proponowana alternatywa | Decyzja |
-|---|--------------|-------------------------|---------|
-| Z-1 | [co budzi wątpliwość] | [tańsza/prostsza droga] | uwzględnione / świadomie odrzucone |
-
-**Uzasadnienie decyzji:** [jedno zdanie od użytkownika — dlaczego tak, mimo zastrzeżeń]
+| Date | Type | Issue | Resolution |
+|------|------|-------|------------|
+| YYYY-MM-DD | DECISION | [question from a Challenge round] | [user's answer] |
+| YYYY-MM-DD | ASSUMPTION | [what was not settled] | [what was assumed and why] |
 
 ---
 
-*Dla refactorów dodaj sekcję:*
+*Add the section below ONLY when `/regent:propose` (Step 1b′ Challenge) raised objections.
+No objections → skip the whole section, do not write "none".*
 
-## Motywacja refactoru
+## Objections
 
-### Obecny stan
-[Co jest źle / nieoptymalne]
+| # | Objection | Proposed alternative | Decision |
+|---|-----------|----------------------|----------|
+| O-1 | [what raises doubt] | [cheaper/simpler path] | addressed / consciously rejected |
 
-### Oczekiwany stan
-[Jak powinno wyglądać po refactorze]
+**Decision rationale:** [one sentence from the user — why this way, despite the objections]
 
-### Metryki
-| Metryka | Przed | Po (cel) |
-|---------|-------|----------|
-| [np. complexity] | [wartość] | [cel] |
+---
+
+*For refactors, add the section:*
+
+## Refactor motivation
+
+### Current state
+[What is wrong / suboptimal]
+
+### Target state
+[How it should look after the refactor]
+
+### Metrics
+| Metric | Before | After (target) |
+|--------|--------|----------------|
+| [e.g. complexity] | [value] | [target] |

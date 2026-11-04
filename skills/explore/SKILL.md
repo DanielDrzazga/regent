@@ -1,211 +1,211 @@
 ---
-description: Analiza read-only — zbadaj temat, porównaj opcje, bez plików i commitów
+description: Read-only analysis — investigate a topic, compare options, no files and no commits
 disable-model-invocation: true
-argument-hint: <temat> | --discovery <inicjatywa>
+argument-hint: <topic> | --discovery <initiative>
 allowed-tools: Task, Read, Grep, Glob, AskUserQuestion, SendMessage, Bash(git log:*), Bash(git diff:*), Bash(git show:*), Bash(ls:*)
 ---
 
-# /regent:explore — Zbadaj temat bez commitowania
+# /regent:explore — Investigate a topic without committing
 
-**Cel:** Zbadaj, przeanalizuj, porównaj opcje — bez tworzenia plików czy commitów. Czysto eksploracyjna komenda.
+**Goal:** Investigate, analyze, compare options — without creating files or commits. A purely exploratory command.
 
 ```
-/regent:explore <temat>
-/regent:explore --discovery <inicjatywa>
+/regent:explore <topic>
+/regent:explore --discovery <initiative>
 
-Przykład:
+Example:
 /regent:explore how authentication is implemented
 /regent:explore impact of adding websockets
 /regent:explore compare Redis vs Memcached for caching
-/regent:explore --discovery "koordynacja zleceń terenowych dla firm geodezyjnych"
+/regent:explore --discovery "field job coordination for land surveying companies"
 ```
 
 ---
 
-## Agent (delegacja — WYMAGANE)
+## Agent (delegation — REQUIRED)
 
-Analizę deleguj do subagenta `regent:architect` (model: opus, uruchom narzędziem Task) —
-to najsilniejszy reasoner i właściciel analizy repo (jak w `/regent:init`). Jakość eksploracji
-zależy od modelu, dlatego nie prowadź jej „w miejscu" w głównej sesji.
+Delegate the analysis to the `regent:architect` subagent (model: opus, launch it with the Task tool) —
+it is the strongest reasoner and the owner of repo analysis (as in `/regent:init`). The quality of exploration
+depends on the model, so don't run it "in place" in the main session.
 
-❗ Tryb **read-only**: subagent NIE tworzy plików ani commitów — tylko analizuje i raportuje
-(`regent:architect` nie ma narzędzi Edit/Write, a `allowed-tools` tej komendy wymusza read-only
-także w sesji głównej).
-
----
-
-## Zasady
-
-1. **Read-only** — nie twórz plików, nie modyfikuj kodu
-2. **Analityczny** — zbierz fakty, porównaj opcje, oceń trade-offs
-3. **Konwersacyjny** — output w konwersacji, nie w plikach
+❗ **Read-only** mode: the subagent does NOT create files or commits — it only analyzes and reports
+(`regent:architect` has no Edit/Write tools, and this command's `allowed-tools` enforces read-only
+in the main session too).
 
 ---
 
-## Typy eksploracji
+## Rules
 
-### Analiza kodu
+1. **Read-only** — don't create files, don't modify code
+2. **Analytical** — gather facts, compare options, assess trade-offs
+3. **Conversational** — output in the conversation, not in files
+
+---
+
+## Exploration types
+
+### Code analysis
 ```
-Jak działa [moduł/feature]?
-→ Przeczytaj kod, zrozum flow, opisz architekturę
+How does [module/feature] work?
+→ Read the code, understand the flow, describe the architecture
 ```
 
-### Porównanie opcji
+### Option comparison
 ```
-Opcja A vs Opcja B?
-→ Porównaj: pros/cons, effort, risk, fit z architekturą
+Option A vs Option B?
+→ Compare: pros/cons, effort, risk, fit with the architecture
 ```
 
 ### Impact analysis
 ```
-Co się zmieni jeśli [zmiana]?
-→ Zidentyfikuj affected files, modules, tests
-→ Oszacuj ryzyko i effort
+What changes if [change]?
+→ Identify affected files, modules, tests
+→ Estimate risk and effort
 ```
 
 ### Research
 ```
-Jak zaimplementować [feature]?
-→ Zbadaj opcje, sprawdź docs, zaproponuj podejście
+How to implement [feature]?
+→ Investigate options, check docs, propose an approach
 ```
 
 ### Discovery (`--discovery`)
 ```
-Nowy produkt albo duża inicjatywa — co budujemy i w jakich zmianach?
-→ Wywiad, synteza, kandydaci na zmiany SDD, werdykt — sekcja „Tryb --discovery"
+A new product or a large initiative — what are we building and in which changes?
+→ Interview, synthesis, SDD change candidates, verdict — section "`--discovery` mode"
 ```
 
 ---
 
-## Format output
+## Output format
 
 ```markdown
-## Explore: [temat]
+## Explore: [topic]
 
 ### Findings
-[Co odkryto]
+[What was discovered]
 
-### Options (jeśli porównanie)
-| Aspekt | Opcja A | Opcja B |
+### Options (if comparing)
+| Aspect | Option A | Option B |
 |--------|---------|---------|
 | ... | ... | ... |
 
 ### Recommendation
-[Co polecam i dlaczego]
+[What I recommend and why]
 
-### Werdykt
-BUDUJEMY / DOPRECYZUJ ([czego brakuje do decyzji]) / NIE BUDUJEMY ([dlaczego])
+### Verdict
+BUILD / CLARIFY ([what is missing for a decision]) / DON'T BUILD ([why])
 
-### Wejście do /regent:propose (gdy BUDUJEMY)
-- Problem: [1-2 zdania]
-- Zakres IN / OUT: [...]
-- Rozstrzygnięte w eksploracji: [kwestia → decyzja] — trafiają do logu jako DECYZJA
-- Otwarte: [kwestie] — pierwszy frontier Challenge
+### Input to /regent:propose (when BUILD)
+- Problem: [1-2 sentences]
+- Scope IN / OUT: [...]
+- Resolved during exploration: [issue → decision] — go into the log as DECISION
+- Open: [issues] — the first Challenge frontier
 
-### Następne kroki
-→ /regent:propose ... (BUDUJEMY — wklej blok „Wejście do /regent:propose")
-→ /regent:explore ... (DOPRECYZUJ)
+### Next steps
+→ /regent:propose ... (BUILD — paste the "Input to /regent:propose" block)
+→ /regent:explore ... (CLARIFY)
 ```
 
 ---
 
-## Tryb `--discovery` — nowy produkt lub duża inicjatywa
+## `--discovery` mode — a new product or a large initiative
 
-**Kiedy:** nowy produkt od zera albo inicjatywa o niejasnym zakresie, za którą stoi kilka zmian
-SDD. Pojedyncza, zrozumiała zmiana → od razu `/regent:propose`.
+**When:** a new product from scratch or an initiative with an unclear scope that spans several SDD
+changes. A single, well-understood change → go straight to `/regent:propose`.
 
-### D1. Wywiad (SESJA GŁÓWNA — max 2 rundy)
+### D1. Interview (MAIN SESSION — max 2 rounds)
 
-**Runda 1 — problem i ludzie**
+**Round 1 — problem and people**
 ```
-1. Jaki ból rozwiązujemy i skąd wiesz, że istnieje?
-2. Kto go ma i kogo boli najbardziej? (persony — kim są, w którym momencie ich boli)
-3. Jak radzą sobie dziś? (obejścia, konkurencja)
-4. Dlaczego teraz?
-```
-
-**Runda 2 — zakres i miary**
-```
-1. Co musi być w pierwszej wersji, żeby sprawdzić wartość?
-2. Czego świadomie nie robimy na start?
-3. Ograniczenia: techniczne, czasowe, zależności od innych zespołów i systemów?
-4. Po czym poznamy, że działa? (miara sukcesu)
+1. What pain are we solving and how do you know it exists?
+2. Who has it and who does it hurt the most? (personas — who they are, at which moment it hurts)
+3. How do they cope today? (workarounds, competition)
+4. Why now?
 ```
 
-Po każdej rundzie czekaj na odpowiedzi. Pytanie, na które odpowiada już argument komendy,
-pomijasz; braki dopytujesz konkretnie w rundzie 2.
-
-### D2. Synteza (deleguj → `regent:architect`)
-
-Przekaż w prompcie komplet odpowiedzi, kontekst (`ai/docs/`, `ai/specs/`, kod — jeśli istnieją;
-projekt od zera → sam wywiad), format D3 i checklistę:
-
+**Round 2 — scope and measures**
 ```
-□ Problem przed rozwiązaniem — każdy kandydat ma personę i efekt mierzalny w kategoriach jej
-  bólu z wywiadu; kandydat bez tego → wycięty albo w OPEN QUESTIONS
-□ Kandydat 1 = walking skeleton: najcieńszy przekrój end-to-end, który sprawdza hipotezę MVP
-  na personie z największym bólem
-□ Fundament (auth, tenant, role, schemat) wchodzi w najmniejszym potrzebnym zakresie do
-  pierwszego kandydata, który go używa; jego rozbudowa to kandydat z własnym efektem dla persony
-□ MVP minimalne — reszta do „Out of scope" z powodem
-□ Jeden kandydat = jedna zmiana SDD (propose → archive), przez wszystkie warstwy — warstwy
-  dzielą taski ([BE]/[FE]/[DB]), nie kandydatów; rozmiar S/M/L wg tabeli budżetu
-  w CLAUDE.md — kandydat większy niż L dzielisz
-□ Słabe punkty pomysłu nazwane wprost — założenia bez dowodu z wywiadu to ryzyka
-□ Zakres oceny: wykonalność produktowa i techniczna — pricing, CAC, LTV zostają po stronie użytkownika
+1. What must be in the first version to test the value?
+2. What are we deliberately not doing at the start?
+3. Constraints: technical, time, dependencies on other teams and systems?
+4. How will we know it works? (success measure)
 ```
 
-`OPEN QUESTIONS` z raportu → zadaj je użytkownikowi i kontynuuj tego samego subagenta
-(`SendMessage`) z odpowiedziami.
+After each round, wait for the answers. Skip a question the command argument already answers;
+ask about gaps specifically in round 2.
 
-### D3. Wynik (raport w rozmowie)
+### D2. Synthesis (delegate → `regent:architect`)
+
+Pass in the prompt the full set of answers, the context (`ai/docs/`, `ai/specs/`, code — if they exist;
+project from scratch → the interview alone), the D3 format and the checklist:
+
+```
+□ Problem before solution — every candidate has a persona and an effect measurable in terms of their
+  pain from the interview; a candidate without that → cut or in OPEN QUESTIONS
+□ Candidate 1 = walking skeleton: the thinnest end-to-end slice that tests the MVP hypothesis
+  on the persona with the greatest pain
+□ The foundation (auth, tenant, roles, schema) goes in at the smallest scope needed by the
+  first candidate that uses it; extending it is a candidate with its own effect for a persona
+□ Minimal MVP — the rest goes to "Out of scope" with a reason
+□ One candidate = one SDD change (propose → archive), across all layers — layers
+  split tasks ([BE]/[FE]/[DB]), not candidates; size S/M/L per the budget table
+  in `context/sdd.md` — you split a candidate bigger than L
+□ Weak points of the idea named explicitly — assumptions without evidence from the interview are risks
+□ Assessment scope: product and technical feasibility — pricing, CAC, LTV stay on the user's side
+```
+
+`OPEN QUESTIONS` from the report → ask the user and continue the same subagent
+(`SendMessage`) with the answers.
+
+### D3. Result (report in the conversation)
 
 ```markdown
-## Discovery: [inicjatywa] — Werdykt: BUDUJEMY / DOPRECYZUJ ([czego brakuje]) / NIE BUDUJEMY ([dlaczego])
+## Discovery: [initiative] — Verdict: BUILD / CLARIFY ([what is missing]) / DON'T BUILD ([why])
 
-**Problem:** [1-2 zdania] | **Persony:** [kto] | **Value proposition:** [1-2 zdania]
+**Problem:** [1-2 sentences] | **Personas:** [who] | **Value proposition:** [1-2 sentences]
 
-### Kandydaci na zmiany SDD
-| # | Zmiana (kebab-case) | Dla kogo | Efekt (mierzalny) | Rozmiar | Zależy od |
+### SDD change candidates
+| # | Change (kebab-case) | For whom | Effect (measurable) | Size | Depends on |
 |---|---------------------|----------|-------------------|---------|-----------|
 | 1 | ... | ... | ... | S/M/L | — |
 
-Kolejność: [dlaczego ta — max 3 punkty]
+Order: [why this one — max 3 points]
 
 ### Out of scope
-- [co] — [dlaczego]
+- [what] — [why]
 
-### Ryzyka i słabe punkty
-- [ryzyko] — [co je zmniejsza]
+### Risks and weak points
+- [risk] — [what reduces it]
 
-### Wejście do /regent:propose (kandydat 1, gdy BUDUJEMY)
-[pola jak w „Format output"]
+### Input to /regent:propose (candidate 1, when BUILD)
+[fields as in "Output format"]
 
 ### OPEN QUESTIONS
-- [decyzje użytkownika — lub „brak"]
+- [user decisions — or "none"]
 ```
 
-### D4. Handoff wg werdyktu
+### D4. Handoff by verdict
 
-- **BUDUJEMY** → `/regent:propose {kandydat-1}` z blokiem „Wejście do /regent:propose"; projekt bez
-  `ai/docs/` najpierw przechodzi `/regent:init` (w pustym repo — wywiad o stack).
-  Kandydaci 2..N → tracker, gdy sesja ma go podłączonego — zasady jak w `/regent:propose` Krok 4
-  (zgoda przez `AskUserQuestion`, lista przed utworzeniem); rodzic: ticket inicjatywy, jeśli
-  użytkownik go poda. Klucze utworzonych zadań wypisujesz w raporcie. Bez trackera lista zostaje
-  w raporcie.
-- **DOPRECYZUJ** → braki, które użytkownik rozstrzyga od ręki, zamykasz przez `OPEN QUESTIONS`
-  (kontynuacja subagenta, D2); braki wymagające danych z zewnątrz (rozmowy z użytkownikami,
-  pomiary) → ponów `/regent:explore --discovery`, gdy dane będą.
-- **NIE BUDUJEMY** → koniec; uzasadnienie zostaje w rozmowie.
+- **BUILD** → `/regent:propose {candidate-1}` with the "Input to /regent:propose" block; a project without
+  `ai/docs/` first goes through `/regent:init` (in an empty repo — an interview about the stack).
+  Candidates 2..N → tracker, when the session has one connected — rules as in `/regent:propose` Step 4
+  (consent via `AskUserQuestion`, list before creation); parent: the initiative ticket, if
+  the user provides it. You list the keys of the created issues in the report. Without a tracker the list stays
+  in the report.
+- **CLARIFY** → gaps the user can resolve right away, you close via `OPEN QUESTIONS`
+  (continuing the subagent, D2); gaps requiring outside data (conversations with users,
+  measurements) → rerun `/regent:explore --discovery` once the data is available.
+- **DON'T BUILD** → end; the rationale stays in the conversation.
 
 ---
 
-## WAŻNE
+## IMPORTANT
 
-- **Tryb read-only** — analiza kończy się raportem w rozmowie; pliki i commity powstają
-  dopiero w `/regent:propose` (to barierka: `allowed-tools` nie zawiera Write/Edit)
-- Jedyna akcja poza rozmową — eksport kandydatów do trackera w `--discovery` — dzieje się
-  poza repo i za zgodą użytkownika
-- Eksploracja jest bezpieczna i odwracalna
+- **Read-only mode** — the analysis ends with a report in the conversation; files and commits are created
+  only in `/regent:propose` (this is a guardrail: `allowed-tools` does not include Write/Edit)
+- The only action outside the conversation — exporting candidates to the tracker in `--discovery` — happens
+  outside the repo and with the user's consent
+- Exploration is safe and reversible
 
-Timeline: 5-30 minut
+Timeline: 5-30 minutes

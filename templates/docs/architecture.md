@@ -1,73 +1,73 @@
 # Architecture Patterns
 
-> Wypełnij na podstawie struktury katalogów i importów wykrytych przez `/regent:init`.
+> Fill in based on the directory structure and imports detected by `/regent:init`.
 
-## Typ architektury
+## Architecture type
 
-[Modular Monolith / Microservices / Monolith] — [1-2 zdania uzasadnienia]
+[Modular Monolith / Microservices / Monolith] — [1-2 sentences of rationale]
 
-## Warstwy
+## Layers
 
-| Warstwa | Odpowiedzialność | Może zależeć od |
-|---------|------------------|-----------------|
-| Domain | Encje, value objects, reguły biznesowe | (nic) |
-| Application | Use cases, serwisy aplikacyjne | Domain |
-| Infrastructure | Repozytoria, integracje zewnętrzne | Domain, Application |
-| Interface | Kontrolery, API, CLI | Application |
+| Layer | Responsibility | May depend on |
+|-------|----------------|---------------|
+| Domain | Entities, value objects, business rules | (nothing) |
+| Application | Use cases, application services | Domain |
+| Infrastructure | Repositories, external integrations | Domain, Application |
+| Interface | Controllers, API, CLI | Application |
 
-**Kierunek zależności:** Domain ← Application ← Infrastructure/Interface (Domain nie zależy od nikogo).
+**Dependency direction:** Domain ← Application ← Infrastructure/Interface (Domain depends on nothing).
 
-## Struktura modułów
+## Module structure
 
 ```
 src/
 └── modules/
-    └── {moduł}/
+    └── {module}/
         ├── domain/
         ├── application/
         ├── infrastructure/
         └── interface/
 ```
 
-## Granice modułów
+## Module boundaries
 
-- [Zasada komunikacji między modułami — np. tylko przez porty/API, nie bezpośrednio przez repo]
-- [Współdzielony kod → gdzie, np. `src/core/` / `src/shared/`]
+- [Rule for communication between modules — e.g. only through ports/API, not directly through the repo]
+- [Shared code → where, e.g. `src/core/` / `src/shared/`]
 
-## Wzorce przekrojowe
+## Cross-cutting patterns
 
-| Wzorzec | Zastosowanie |
-|---------|--------------|
-| DI | [np. NestJS built-in] |
+| Pattern | Usage |
+|---------|-------|
+| DI | [e.g. NestJS built-in] |
 | Error handling | [→ exception-patterns.md] |
 | Logging | [→ logging-patterns.md] |
 
 ## Reference Implementations
 
-> Dla każdego kluczowego wzorca wskaż 1-2 REALNE, wzorcowe implementacje w kodzie.
-> To źródło prawdy „naśladuj to", które pozwala `regent:architect`/`regent:backend-dev` czytać
-> JEDEN wskazany plik zamiast skanować `src/` w poszukiwaniu wzorca (`/regent:propose`, `/regent:apply`).
-> Wypełnia `/regent:init`; aktualizuj przez `/regent:revise`, gdy pojawi się czystszy egzemplarz.
+> For each key pattern, point to 1-2 REAL, exemplary implementations in the code.
+> This is the "imitate this" source of truth that lets `regent:architect`/`regent:backend-dev` read
+> ONE indicated file instead of scanning `src/` in search of the pattern (`/regent:propose`, `/regent:apply`).
+> Filled in by `/regent:init`; update through `/regent:revise` when a cleaner example appears.
 
-| Wzorzec | Wzorcowa implementacja (ścieżki od `src/`) | Co pokazuje |
-|---------|--------------------------------------------|-------------|
-| [np. AMQP consumer] | [pełna ścieżka pliku] | [1 zdanie: walidacja, delegacja, error handling] |
-| [np. Domain event + handler] | [ścieżka eventu + ścieżka handlera] | [1 zdanie] |
-| [np. Repository] | [interfejs + implementacja] | [1 zdanie] |
+| Pattern | Exemplary implementation (paths from `src/`) | What it shows |
+|---------|----------------------------------------------|---------------|
+| [e.g. AMQP consumer] | [full file path] | [1 sentence: validation, delegation, error handling] |
+| [e.g. Domain event + handler] | [event path + handler path] | [1 sentence] |
+| [e.g. Repository] | [interface + implementation] | [1 sentence] |
 
-## Zasady nienegocjowalne (MUST)
+## Non-negotiable principles (MUST)
 
-> 3-7 reguł, które w projekcie JUŻ obowiązują i da się je sprawdzić (reguła lintera, bramka CI,
-> ADR, ustalenie zespołu). Reguła „na wyrost" to szum, który każdy agent czyta przy każdej
-> zmianie — brak takich reguł → usuń sekcję. Odstępstwo w konkretnej zmianie idzie do
-> design.md → „Odstępstwa od zasad", z uzasadnieniem; bez tego wpisu `regent:code-reviewer` daje 🔴.
+> 3-7 rules that ALREADY apply in the project and can be checked (lint rule, CI gate,
+> ADR, team agreement). A "just in case" rule is noise that every agent reads on every
+> change — no such rules → remove the section. A deviation in a specific change goes to
+> design.md → "Deviations from principles", with a rationale; without that entry `regent:code-reviewer` gives 🔴.
 
-| ID | Zasada (MUST) | Jak sprawdzić |
-|----|---------------|---------------|
-| MUST-1 | [np. Domain nie importuje z Infrastructure] | [np. reguła lint / review] |
-| MUST-2 | [np. każdy publiczny endpoint waliduje wejście] | [np. test integracyjny → 400] |
+| ID | Principle (MUST) | How to check |
+|----|------------------|--------------|
+| MUST-1 | [e.g. Domain does not import from Infrastructure] | [e.g. lint rule / review] |
+| MUST-2 | [e.g. every public endpoint validates input] | [e.g. integration test → 400] |
 
-## Wskazówki projektowe
+## Design guidelines
 
-- Najprostsze rozwiązanie spełniające wymagania (YAGNI).
-- Ważne decyzje → ADR w `ai/docs/adr/` (tworzy `regent:architect`).
+- The simplest solution that meets the requirements (YAGNI).
+- Important decisions → ADR in `ai/docs/adr/` (created by `regent:architect`).

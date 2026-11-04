@@ -1,23 +1,23 @@
 ---
-description: Peer code review zmian (architektura, jakość, testy, wydajność) przez agenta code-reviewer
+description: Peer code review of changes (architecture, quality, tests, performance) by the code-reviewer agent
 disable-model-invocation: true
-argument-hint: [--branch <branch>] [--scope <path>] [--files <lista>]
+argument-hint: [--branch <branch>] [--scope <path>] [--files <list>]
 allowed-tools: Task, Read, Grep, Glob, Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(git status:*), Bash(git symbolic-ref:*), Bash(git branch:*)
 ---
 
-# /regent:code-review — Przegląd zmian w kodzie
+# /regent:code-review — Code change review
 
-**Cel:** Przeprowadź peer code review sprawdzając architekturę, jakość, testy, wydajność.
+**Goal:** Run a peer code review checking architecture, quality, tests, performance.
 
 ```
-/regent:code-review [opcje]
+/regent:code-review [options]
 
-Opcje:
-  --branch <branch>     Review konkretnego brancha
-  --scope <path>        Review konkretnego katalogu/pliku
-  --files <lista>       Review konkretnych plików
+Options:
+  --branch <branch>     Review a specific branch
+  --scope <path>        Review a specific directory/file
+  --files <list>        Review specific files
 
-Przykład:
+Example:
 /regent:code-review
 /regent:code-review --branch feat/PROJ-123-user-registration
 /regent:code-review --scope src/modules/users/
@@ -25,79 +25,79 @@ Przykład:
 
 ---
 
-## Agent (delegacja — WYMAGANE)
+## Agent (delegation — REQUIRED)
 
-Cały przegląd deleguj do subagenta `regent:code-reviewer` (model: opus, uruchom narzędziem Task).
-Nie rób review „w miejscu" w głównej sesji — inaczej model z `agents/code-reviewer.md`
-nie zostanie użyty.
+Delegate the whole review to the `regent:code-reviewer` subagent (model: opus, launch it with the Task tool).
+Do not do the review "in place" in the main session — otherwise the model from `agents/code-reviewer.md`
+will not be used.
 
 ---
 
-## Krok 1: Określ zakres
+## Step 1: Determine the scope
 
 ```bash
-# Baza porównania: default branch z ai/docs/conventions/git-workflow.md;
-# fallback: git symbolic-ref refs/remotes/origin/HEAD (main LUB master — nie zakładaj)
+# Comparison base: default branch from ai/docs/conventions/git-workflow.md;
+# fallback: git symbolic-ref refs/remotes/origin/HEAD (main OR master — don't assume)
 
-# Jeśli --branch
+# If --branch
 git diff {default-branch}..{branch} --stat
 
-# Jeśli --scope
+# If --scope
 git diff --stat -- {scope}
 
-# Jeśli brak opcji
+# If no options
 git diff --stat                    # unstaged
 git diff --cached --stat           # staged
 ```
 
 ---
 
-## Krok 2: Przeczytaj kontekst
+## Step 2: Read the context
 
-Subagent `regent:code-reviewer` czyta **bezpośrednio przez Read**:
+The `regent:code-reviewer` subagent reads **directly via Read**:
 ```
 1. ai/docs/patterns/architecture.md
 2. ai/docs/conventions/naming.md
 3. ai/docs/conventions/code-style.md
-4. ai/docs/patterns/testing-patterns.md (jeśli istnieje)
+4. ai/docs/patterns/testing-patterns.md (if it exists)
 ```
 
-Następnie czytaj **tylko zmienione pliki** z `git diff --name-only` — NIE skanuj całego src/.
+Then read **only the changed files** from `git diff --name-only` — do NOT scan the whole src/.
 
-**Plan zmiany** (sekcja 7 checklisty `regent:code-reviewer` — zgodność z planem):
-- własna zmiana SDD → agent czyta `ai/changes/{nazwa}/` (design, delta, tasks);
-- cudzy MR, `ai/` autora osobisty (domyślny tryb) → przekaż agentowi w prompcie **opis MR** (cel,
-  wymagania z AC, decyzje, odstępstwa) jako plan; brak opisu → review bez sekcji 7 i jedno
-  zdanie o tym w raporcie.
-
----
-
-## Krok 3: Review checklist
-
-Checklista (architektura, jakość, security sanity-check, spec compliance, wydajność,
-git hygiene) jest w definicji agenta `regent:code-reviewer` — **jedno źródło, nie duplikuj jej
-tutaj**. Głęboki przegląd bezpieczeństwa to `/regent:verify` Etap 6 (`regent:security-auditor`),
-a strategia testów — `/regent:testing` (`regent:qa-engineer`).
+**Change plan** (section 7 of the `regent:code-reviewer` checklist — compliance with the plan):
+- own SDD change → the agent reads `ai/changes/{name}/` (design, delta, tasks);
+- someone else's MR → the plan is `ai/changes/{name}/` from the MR branch; an MR without it →
+  pass the **MR description** (goal, requirements with AC, decisions, deviations) in the prompt as
+  the plan; no description either → review without section 7 and one sentence about it in the report.
 
 ---
 
-## Krok 4: Raport
+## Step 3: Review checklist
+
+The checklist (architecture, quality, security sanity-check, spec compliance, performance,
+git hygiene) lives in the `regent:code-reviewer` agent definition — **one source, do not duplicate it
+here**. A deep security review is `/regent:verify` Stage 6 (`regent:security-auditor`),
+and the test strategy — `/regent:testing` (`regent:qa-engineer`).
+
+---
+
+## Step 4: Report
 
 ```markdown
 ## Code Review: [branch/scope]
 
-### 🔴 CRITICAL (musi być naprawione przed merge)
+### 🔴 CRITICAL (must be fixed before merge)
 1. **[Issue]** — `file:line`
-   Sugestia: [jak naprawić]
+   Suggestion: [how to fix]
 
-### 🟡 WARNING (powinno być naprawione)
-1. **[Issue]** — `file:line`
-
-### 🔵 SUGGESTION (opcjonalne ulepszenie)
+### 🟡 WARNING (should be fixed)
 1. **[Issue]** — `file:line`
 
-### ✅ PRAISE (co jest dobrze zrobione)
-1. [Co dobrze]
+### 🔵 SUGGESTION (optional improvement)
+1. **[Issue]** — `file:line`
+
+### ✅ PRAISE (what is done well)
+1. [What is good]
 
 ---
 
@@ -108,8 +108,8 @@ a strategia testów — `/regent:testing` (`regent:qa-engineer`).
 
 ## Tips
 
-- **Be constructive** — sugeruj rozwiązania, nie tylko krytykuj
-- **Pick battles** — nie komentuj każdego drobiazgu
-- **Security first** — zawsze sprawdzaj security issues
+- **Be constructive** — suggest solutions, don't just criticize
+- **Pick battles** — don't comment on every trifle
+- **Security first** — always check security issues
 
-Timeline: 15-30 minut
+Timeline: 15-30 minutes

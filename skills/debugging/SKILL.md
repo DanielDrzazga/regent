@@ -1,20 +1,20 @@
 ---
-description: Systematyczna diagnoza problemu — reprodukcja, analiza, root cause; fix przez /regent:bugfix
+description: Systematic problem diagnosis — reproduction, analysis, root cause; fix via /regent:bugfix
 disable-model-invocation: true
-argument-hint: <opis-problemu>
+argument-hint: <problem-description>
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
-# /regent:debugging — Systematyczne diagnozowanie problemów
+# /regent:debugging — Systematic problem diagnosis
 
-**Cel:** Systematyczne podejście do debugowania — ciasna pętla pass/fail, hipotezy, root cause.
-**Granica:** ta komenda DIAGNOZUJE. Naprawa idzie przez `/regent:bugfix` (dev/staging) lub
-`/regent:hotfix` (produkcja) — tam są artefakty, test regresji i zamknięcie przez `/regent:archive`.
+**Goal:** A systematic approach to debugging — a tight pass/fail loop, hypotheses, root cause.
+**Boundary:** this command DIAGNOSES. The fix goes through `/regent:bugfix` (dev/staging) or
+`/regent:hotfix` (production) — that's where the artifacts, the regression test and closing via `/regent:archive` live.
 
 ```
-/regent:debugging <opis-problemu>
+/regent:debugging <problem-description>
 
-Przykład:
+Example:
 /regent:debugging "API returns 500 on user creation"
 /regent:debugging "tests pass locally but fail in CI"
 /regent:debugging "memory usage grows over time"
@@ -22,173 +22,173 @@ Przykład:
 
 ---
 
-## Agent (delegacja)
+## Agent (delegation)
 
-Brak dedykowanego subagenta „debugger" — reprodukcja, zbieranie informacji i testowanie
-hipotez (kroki 1-4) prowadzone są w głównej sesji. Zakres komendy kończy się na
-potwierdzonym root cause — dalej handoff do `/regent:bugfix` (Krok 5).
-
----
-
-## Krok 1: Zbuduj ciasną pętlę (BRAMKA — to jest sedno tej komendy)
-
-> **Dlaczego:** mając sygnał pass/fail, który świeci na czerwono na **tym** bugu, przyczynę
-> znajdziesz — bisekcja, hipotezy i instrumentacja tylko go konsumują. Bez niego czytanie kodu
-> nie zastąpi pomiaru. Tu wkładasz nieproporcjonalnie dużo wysiłku; reszta komendy jest mechaniczna.
-
-**Pętla to jedna komenda**, którą już uruchomiłeś i której wyjście pokazujesz. Czterech cech
-szuka się w tej kolejności:
-
-```
-□ CZERWONA   — świeci na TYM bugu (a nie „testy przechodzą, ale coś nie działa")
-□ DETERMINISTYCZNA — ten sam wynik w kółko
-□ SZYBKA     — sekundy, nie minuty
-□ AGENT-RUNNABLE — uruchamialna bez klikania w UI
-```
-
-**Drabina — sięgaj po kolejne szczeble, aż pętla powstanie:**
-
-```
-1.  Failing test (wąsko: pojedynczy plik/pattern)     ← zacznij tutaj
-2.  curl / żądanie HTTP z zapisanym wyjściem
-3.  CLI + fixture + diff snapshotu
-4.  Headless browser (E2E na jednym scenariuszu)
-5.  Replay zapisanego trace'u / requestu z logów
-6.  Jednorazowy harness (skrypt wołający moduł wprost)
-7.  Pętla property/fuzz — 1000 losowych wejść, szukasz pierwszego czerwonego
-8.  Harness pod `git bisect run`
-9.  Pętla różnicowa: wersja działająca vs zepsuta, to samo wejście
-10. Skrypt bash z krokami dla człowieka                ← ostateczność
-```
-
-**Bug niedeterministyczny:** celem jest **wyższy wskaźnik powtarzalności**, nie czysta
-reprodukcja. Bug 50% jest debugowalny, 1% nie jest — podnieś go pętlą (powtórzenia,
-zrównoleglenie, sztuczne opóźnienia), zanim ruszysz dalej.
-
-**Sekrety:** pętlę buduj na zmiennych środowiskowych — poświadczenie zostaje w środowisku,
-poza tym, co pokazujesz w raporcie.
-
-### Bramka wyjścia z Kroku 1
-
-```
-□ Potrafię nazwać JEDNĄ komendę
-□ Uruchomiłem ją co najmniej raz
-□ Pokazuję wywołanie i jego wyjście (zredagowane)
-□ Jest czerwona na tym bugu
-```
-
-❗ **Dopóki ta komenda nie istnieje, zostajesz w Kroku 1.** Przyłapanie się na czytaniu kodu
-w poszukiwaniu teorii przed zbudowaniem pętli jest sygnałem, że trzeba wrócić tutaj —
-skok do hipotezy jest dokładnie tym błędem, któremu ta komenda zapobiega.
+No dedicated "debugger" subagent — reproduction, information gathering and hypothesis testing
+(steps 1-4) run in the main session. The command's scope ends at a
+confirmed root cause — then handoff to `/regent:bugfix` (Step 5).
 
 ---
 
-## Krok 1.5: Zminimalizuj pętlę
+## Step 1: Build a tight loop (GATE — this is the core of this command)
 
-Tnij po jednym elemencie: krok, pole payloadu, zależność, plik konfiguracyjny.
+> **Why:** with a pass/fail signal that lights up red on **this** bug, you will find the cause
+> — bisection, hypotheses and instrumentation only consume it. Without it, reading code
+> won't replace measurement. This is where you put in disproportionate effort; the rest of the command is mechanical.
 
-**Gotowe, gdy każdy pozostały element jest nośny** — usunięcie któregokolwiek gasi czerwone
-światło. Minimalna pętla kurczy przestrzeń hipotez w Kroku 3 i staje się czystym testem
-regresji w `/regent:bugfix`.
+**The loop is one command** that you have already run and whose output you show. Look for four
+properties in this order:
+
+```
+□ RED           — lights up on THIS bug (not "tests pass, but something doesn't work")
+□ DETERMINISTIC — the same result over and over
+□ FAST          — seconds, not minutes
+□ AGENT-RUNNABLE — runnable without clicking in the UI
+```
+
+**Ladder — reach for the next rungs until the loop exists:**
+
+```
+1.  Failing test (narrow: single file/pattern)        ← start here
+2.  curl / HTTP request with saved output
+3.  CLI + fixture + snapshot diff
+4.  Headless browser (E2E on one scenario)
+5.  Replay of a saved trace / request from the logs
+6.  One-off harness (script calling the module directly)
+7.  Property/fuzz loop — 1000 random inputs, you look for the first red
+8.  Harness for `git bisect run`
+9.  Differential loop: working vs broken version, same input
+10. Bash script with steps for a human                ← last resort
+```
+
+**Nondeterministic bug:** the goal is a **higher reproduction rate**, not a clean
+reproduction. A 50% bug is debuggable, a 1% one is not — raise it with the loop (repetitions,
+parallelization, artificial delays) before moving on.
+
+**Secrets:** build the loop on environment variables — the credential stays in the environment,
+outside what you show in the report.
+
+### Exit gate of Step 1
+
+```
+□ I can name ONE command
+□ I have run it at least once
+□ I show the invocation and its output (redacted)
+□ It is red on this bug
+```
+
+❗ **Until this command exists, you stay in Step 1.** Catching yourself reading code
+in search of a theory before building the loop is a signal to come back here —
+jumping to a hypothesis is exactly the mistake this command prevents.
 
 ---
 
-## Krok 2: Reprodukcja i kontekst
+## Step 1.5: Minimize the loop
 
-Pętla z Kroku 1 jest już wykonywalnym zapisem reprodukcji — tu dopisujesz to, czego nie niesie.
+Cut one element at a time: step, payload field, dependency, config file.
+
+**Done when every remaining element is load-bearing** — removing any of them turns off the red
+light. A minimal loop shrinks the hypothesis space in Step 3 and becomes a clean regression
+test in `/regent:bugfix`.
+
+---
+
+## Step 2: Reproduction and context
+
+The loop from Step 1 is already an executable record of the reproduction — here you add what it doesn't carry.
 
 ```
-### Expected: [co powinno się stać]
-### Actual:   [co się dzieje]
-### Error:    [dokładny komunikat / stack trace]
+### Expected: [what should happen]
+### Actual:   [what happens]
+### Error:    [exact message / stack trace]
 
-### Powtarzalność: [zawsze | X% prób | tylko gdy: ...]
+### Reproducibility: [always | X% of attempts | only when: ...]
 
-### Środowisko (gdy ma znaczenie dla buga)
-- Runtime / wersje zależności istotnych dla ścieżki
-- Różnica lokalnie vs CI vs produkcja
+### Environment (when it matters for the bug)
+- Runtime / versions of dependencies relevant to the path
+- Difference local vs CI vs production
 
-### Ostatnie zmiany
-git log --oneline -10   → czy pętla jest zielona na commicie sprzed zmiany?
+### Recent changes
+git log --oneline -10   → is the loop green on the commit before the change?
 ```
 
 ---
 
-## Krok 3: Hipotezy
+## Step 3: Hypotheses
 
-### 3a. Wygeneruj 3-5 hipotez NARAZ
+### 3a. Generate 3-5 hypotheses AT ONCE
 
-> **Dlaczego naraz:** pojedyncza hipoteza zakotwicza na pierwszym prawdopodobnym pomyśle
-> i reszta diagnozy szuka już tylko jej potwierdzenia.
+> **Why at once:** a single hypothesis anchors on the first plausible idea
+> and the rest of the diagnosis only looks for its confirmation.
 
-Każda hipoteza **falsyfikowalna**, w formacie z przewidywaniem:
-
-```
-H1: [przyczyna]
-    Jeśli H1, to [zmiana X] zgasi czerwone światło pętli.
-    Ranking: [wysoki | średni | niski]   Uzasadnienie: [1 zdanie]
-```
-
-Hipoteza bez dającego się sformułować przewidywania to przeczucie — zaostrz ją albo odrzuć.
-
-### 3b. Checkpoint u użytkownika (nieblokujący)
-
-Pokaż listę rankowaną **zanim** zaczniesz testować. Użytkownik często zna domenę na tyle,
-by przestawić kolejność w jednym zdaniu. Brak odpowiedzi → testujesz wg własnego rankingu.
-
-### 3c. Testuj po kolei — pętlą, nie czytaniem kodu
+Each hypothesis **falsifiable**, in a format with a prediction:
 
 ```
-H1 → [zmiana testowa] → pętla: czerwona/zielona → POTWIERDZONA | ODRZUCONA
+H1: [cause]
+    If H1, then [change X] will turn off the loop's red light.
+    Ranking: [high | medium | low]   Rationale: [1 sentence]
 ```
 
-**Logi debugowe taguj unikalnym prefiksem**, np. `[DEBUG-a4f2]`. Sprzątanie na końcu to
-jeden `grep`: otagowane znikają, nieotagowane zostają w kodzie na zawsze.
+A hypothesis without a statable prediction is a hunch — sharpen it or drop it.
+
+### 3b. Checkpoint with the user (non-blocking)
+
+Show the ranked list **before** you start testing. The user often knows the domain well enough
+to reorder it in one sentence. No answer → you test by your own ranking.
+
+### 3c. Test one by one — with the loop, not by reading code
+
+```
+H1 → [test change] → loop: red/green → CONFIRMED | REJECTED
+```
+
+**Tag debug logs with a unique prefix**, e.g. `[DEBUG-a4f2]`. Cleanup at the end is
+one `grep`: tagged ones disappear, untagged ones stay in the code forever.
 
 ---
 
-## Krok 4: Root Cause
+## Step 4: Root Cause
 
 ```
 ## Root Cause Analysis
 
 ### Direct Cause
-[Co bezpośrednio powoduje problem]
+[What directly causes the problem]
 
 ### Contributing Factors
-[Co przyczynia się do problemu — np. brak walidacji, race condition]
+[What contributes to the problem — e.g. missing validation, race condition]
 
 ### Why Not Caught Earlier
-[Dlaczego nie zostało wykryte wcześniej — brak testu, edge case]
+[Why it wasn't detected earlier — missing test, edge case]
 ```
 
 ---
 
-## Krok 5: Handoff do naprawy
+## Step 5: Handoff to the fix
 
 ```
-Root cause potwierdzony → przekaż diagnozę dalej:
+Root cause confirmed → pass the diagnosis on:
 
-→ /regent:bugfix "{opis}" — standardowa ścieżka (artefakty, test regresji, /regent:archive)
-→ /regent:hotfix "{opis}" — gdy problem jest NA PRODUKCJI i krytyczny
+→ /regent:bugfix "{description}" — standard path (artifacts, regression test, /regent:archive)
+→ /regent:hotfix "{description}" — when the problem is IN PRODUCTION and critical
 
-Przekaż do komendy naprawczej — diagnoza jest już zrobiona, `/regent:bugfix` zaczyna od gotowego:
-- **komendę pętli** (Krok 1, po minimalizacji) → staje się tam testem regresji
-- **root cause** (Krok 4) i listę zaangażowanych plików
+Pass to the fix command — the diagnosis is already done, `/regent:bugfix` starts from what's ready:
+- **the loop command** (Step 1, after minimization) → becomes the regression test there
+- **root cause** (Step 4) and the list of involved files
 
-Naprawa należy do `/regent:bugfix` / `/regent:hotfix` — tam powstają artefakty, test regresji
-i zamknięcie przez `/regent:archive`.
+The fix belongs to `/regent:bugfix` / `/regent:hotfix` — that's where the artifacts, the regression test
+and closing via `/regent:archive` happen.
 ```
 
 ---
 
-## Gdy diagnoza utyka
+## When the diagnosis gets stuck
 
-- **Pętla za wolna lub migocząca** → wróć do Kroku 1 i zaciśnij ją. Pętla 30-sekundowa i
-  migocząca jest ledwie lepsza od żadnej; 2-sekundowa deterministyczna to zupełnie inna praca.
-- **Wszystkie hipotezy odrzucone** → przestrzeń szukania jest za wąska. Rozszerz o warstwę
-  niżej (runtime, zależność, konfiguracja środowiska), wygeneruj nowe 3-5.
-- **Bug znika przy obserwacji** → race condition albo zależność od czasu; pętla różnicowa
-  (szczebel 9) i sztuczne opóźnienia zamiast logów.
+- **Loop too slow or flaky** → go back to Step 1 and tighten it. A 30-second flaky
+  loop is barely better than none; a 2-second deterministic one is a completely different job.
+- **All hypotheses rejected** → the search space is too narrow. Extend it one layer
+  down (runtime, dependency, environment configuration), generate a new 3-5.
+- **Bug disappears when observed** → race condition or time dependency; differential loop
+  (rung 9) and artificial delays instead of logs.
 
-Timeline: 30-120 minut
+Timeline: 30-120 minutes

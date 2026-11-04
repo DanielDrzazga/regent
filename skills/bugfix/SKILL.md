@@ -1,41 +1,41 @@
 ---
-description: Strukturalna naprawa buga w dev/staging — reprodukcja, root cause, test regresji
+description: Structured bug fix in dev/staging — reproduction, root cause, regression test
 disable-model-invocation: true
-argument-hint: <opis-buga>
+argument-hint: <bug-description>
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---
 
-# /regent:bugfix — Regularna naprawa buga
+# /regent:bugfix — Regular bug fix
 
-**Cel:** Strukturalna naprawa buga z reprodukcją, root cause analysis, i testem regresji.
+**Goal:** Structured bug fix with reproduction, root cause analysis, and a regression test.
 
 ```
-/regent:bugfix <opis-buga>
+/regent:bugfix <bug-description>
 
-Przykład:
+Example:
 /regent:bugfix "users can register with duplicate email"
 /regent:bugfix "login redirect loop on expired session"
 ```
 
 ---
 
-## Agent (delegacja — WYMAGANE)
+## Agent (delegation — REQUIRED)
 
-Analizę root cause, test regresji i minimalny fix deleguj do dev-agenta **wg obszaru buga**:
-kod backendu → `regent:backend-dev`, kod frontendu → `regent:frontend-dev` (wymaga `frontend-patterns.md`);
-bug na styku → najpierw ustal, po której stronie jest root cause i napraw po JEDNEJ stronie;
-gdy naprawdę obie → dwie delegacje, BE najpierw. Subagent sam uruchamia testy (wąsko)
-i zwraca raport — **commituje sesja główna**. Opcjonalny `/regent:verify` deleguje własnych subagentów.
+Delegate the root cause analysis, regression test and minimal fix to a dev agent **by bug area**:
+backend code → `regent:backend-dev`, frontend code → `regent:frontend-dev` (requires `frontend-patterns.md`);
+bug at the boundary → first establish which side the root cause is on and fix on ONE side;
+when it really is both → two delegations, BE first. The subagent runs the tests itself (narrowly)
+and returns a report — **the main session commits**. The optional `/regent:verify` delegates its own subagents.
 
 ---
 
-## Krok 1: Analiza buga
+## Step 1: Bug analysis
 
 ```
 ## Bug Analysis
 
-### Opis
-[Co się dzieje vs co powinno się dziać]
+### Description
+[What happens vs what should happen]
 
 ### Severity
 - 🔴 CRITICAL — system down, data loss, security breach
@@ -49,130 +49,129 @@ i zwraca raport — **commituje sesja główna**. Opcjonalny `/regent:verify` de
 - Workaround: [exists/none]
 
 ### Root Cause Hypothesis
-[Wstępna hipoteza — co może być przyczyną]
+[Initial hypothesis — what may be the cause]
 ```
 
 ---
 
-## Krok 2: Zlokalizuj plik z bugiem (celowo, nie przez skan)
+## Step 2: Locate the buggy file (targeted, not by scanning)
 
-Użyj precyzyjnych narzędzi zamiast szerokiego skanu:
+Use precise tools instead of a broad scan:
 
 ```bash
-# Szukaj po słowie kluczowym z opisu buga (rozszerzenia plików wg stacku z technology.md)
+# Search by a keyword from the bug description (file extensions per stack from technology.md)
 grep -r "registerUser\|duplicate.*email" src/ -l
 
-# Lub przez historię git
+# Or through git history
 git log --oneline --all -20
 git log --oneline -- src/modules/users/
 
-# Następnie: Read tylko znaleziony plik — NIE skanuj całego src/
+# Then: Read only the file you found — do NOT scan the whole src/
 ```
 
-**Reprodukcja:**
+**Reproduction:**
 ```
-Kroki:
+Steps:
 1. [Step 1]
 2. [Step 2]
 
-Expected: [co powinno się stać]
-Actual: [co się dzieje]
+Expected: [what should happen]
+Actual: [what happens]
 ```
 
-> **Wejście z `/regent:debugging`:** gdy diagnoza szła tamtędy, masz już komendę pętli czerwoną
-> na tym bugu — użyj jej zamiast budować reprodukcję od nowa.
+> **Coming from `/regent:debugging`:** when the diagnosis went that way, you already have a loop
+> command that is red on this bug — use it instead of building the reproduction from scratch.
 
-**Napisz failing test reprodukujący buga:**
+**Write a failing test that reproduces the bug:**
 ```bash
-# Test MUSI failować — potwierdza bug
+# The test MUST fail — it confirms the bug
 make test-unit
 ```
 
-**Zminimalizuj go, zanim przejdziesz dalej.** Tnij po jednym elemencie (pole payloadu, krok
-setupu, zależność); gotowe, gdy **każdy pozostały element jest nośny** — usunięcie
-któregokolwiek sprawia, że test przechodzi. Minimalny test celuje w przyczynę zamiast
-w scenariusz, w którym bug został zauważony, i to on zostaje w repo jako test regresji.
+**Minimize it before moving on.** Cut one element at a time (payload field, setup step,
+dependency); done when **every remaining element is load-bearing** — removing any of them
+makes the test pass. A minimal test targets the cause rather than the scenario in which the
+bug was noticed, and it stays in the repo as the regression test.
 
 ---
 
-## Krok 3: Minimalne artefakty
+## Step 3: Minimal artifacts
 
-Utwórz lekką propozycję (uproszczone wersje szablonów z `${CLAUDE_PLUGIN_ROOT}/templates/`):
+Create a lightweight proposal (simplified versions of the templates from `${CLAUDE_PLUGIN_ROOT}/templates/`):
 
 ```
-ai/changes/fix-{nazwa}/
-├── proposal.md (uproszczony — tylko: problem, root cause, fix; Status: Approved po zgodzie usera)
-├── specs/{domena}.md (delta — MODIFIED pełnym blokiem REQ z AC na poprawne zachowanie;
-│                      zachowanie bez specyfikacji w ai/specs/ → ADDED)
-├── design.md (uproszczony — root cause, Affected Files, podejście; wymagany przez /regent:verify)
-└── tasks.md (2-5 tasków max)
+ai/changes/fix-{name}/
+├── proposal.md (simplified — only: problem, root cause, fix; Status: Approved after user consent)
+├── specs/{domain}.md (delta — MODIFIED with a full REQ block with AC for the correct behavior;
+│                      behavior without a spec in ai/specs/ → ADDED)
+├── design.md (simplified — root cause, Affected Files, approach; required by /regent:verify)
+└── tasks.md (2-5 tasks max)
 ```
 
 ---
 
-## Krok 4: Implementacja
+## Step 4: Implementation
 
 ```bash
 # Branch
 git checkout -b fix/{KEY}-{short-description}
 
-# Fix (deleguj → backend-dev LUB frontend-dev — wg obszaru root cause z Kroku 2):
-# 1. Napisz failing test (reprodukcja) i uruchom — musi failować
-# 2. Napraw bug (minimalnie!)
-# 3. Verify: test przechodzi
-# 4. Verify: testy modułu nadal przechodzą
+# Fix (delegate → backend-dev OR frontend-dev — by the root cause area from Step 2):
+# 1. Write the failing test (reproduction) and run it — it must fail
+# 2. Fix the bug (minimally!)
+# 3. Verify: the test passes
+# 4. Verify: the module tests still pass
 
-# Commit (SESJA GŁÓWNA, po raporcie z potwierdzonym GREEN) — tylko kod i testy;
-# po commicie ślad przy tasku jak w /regent:apply 4c: (commit: <hash> · testy: <test regresji>)
+# Commit (MAIN SESSION, after a report with confirmed GREEN) — code and tests only;
+# after the commit, the trace on the task as in /regent:apply 4c: (commit: <hash> · tests: <regression test>)
 git add [specific files]
 git commit -m "fix: (KEY) prevent duplicate email registration"
 
-# ai/ osobisty (git check-ignore -q --no-index ai/, exit 0) → tasks.md zostaje lokalnie, bez git add.
-# ai/ współdzielony (exit 1) → po edycji tasks.md drugi, krótki commit:
-# git add ai/changes/fix-{nazwa}/tasks.md && git commit -m "docs: odhacz T-01 w tasks.md"
+# ai/ is tracked → after editing tasks.md a second, short commit:
+# git add ai/changes/fix-{name}/tasks.md && git commit -m "docs: check off T-01 in tasks.md"
 ```
 
 ---
 
-## Krok 5: Weryfikacja
+## Step 5: Verification
 
 ```bash
-make check   # brak Makefile → natywny odpowiednik ze stacku (kontrakt `make` w CLAUDE.md)
+make check   # no Makefile → native equivalent from the stack (the `make` contract in `context/sdd.md`)
 ```
 
-**Odtwórz oryginalny symptom** — kroki reprodukcji z Kroku 2 wykonane na kodzie po fixie.
-Test regresji sprawdza przyczynę; reprodukcja sprawdza, że użytkownik przestał widzieć błąd.
+**Reproduce the original symptom** — the reproduction steps from Step 2 executed on the code after the fix.
+The regression test checks the cause; the reproduction checks that the user no longer sees the error.
 
-| Wynik | Kiedy | Verdict w verification.md |
+| Result | When | Verdict in verification.md |
 |---|---|---|
-| **verified** | symptom nie występuje, test regresji i `make check` zielone | PASS |
-| **partial** | symptom zniknął, ale reprodukcji nie dało się wykonać w pełni albo wyszły niezwiązane regresje | FAIL + czego nie potwierdzono |
-| **failed** | symptom wciąż występuje albo fix psuje testy | FAIL → wróć do Kroku 2 z nowymi obserwacjami |
+| **verified** | the symptom does not occur, the regression test and `make check` are green | PASS |
+| **partial** | the symptom is gone, but the reproduction could not be fully executed or unrelated regressions showed up | FAIL + what was not confirmed |
+| **failed** | the symptom still occurs or the fix breaks tests | FAIL → back to Step 2 with new observations |
 
-Zielone testy bez wykonanej reprodukcji to najwyżej **partial**. Archiwizacja przy partial
-to decyzja użytkownika (`/regent:archive --force`, wpis UNVERIFIED).
+Green tests without an executed reproduction are at most **partial**. Archiving at partial
+is the user's decision (`/regent:archive --force`, UNVERIFIED entry).
 
-Zapisz `ai/changes/fix-{nazwa}/verification.md` (wymagane przez /regent:archive):
-- uproszczony: verdict + wynik reprodukcji (verified/partial/failed) + test regresji (plik:linia)
-  + data + commit HEAD
-- dla ważniejszych bugów (HIGH/CRITICAL): pełny `/regent:verify fix-{nazwa}`
-
----
-
-## Krok 6: Archive
-
-Po merge — **przez `/regent:archive fix-{nazwa}`** (NIE gołe `mv`!):
-delta spec z Kroku 3 musi zostać zmergowana do `ai/specs/{domena}.md`,
-inaczej main specs rozjeżdżają się z kodem przy każdym bugu.
+Write `ai/changes/fix-{name}/verification.md` (required by /regent:archive):
+- simplified: verdict + reproduction result (verified/partial/failed) + regression test (file:line)
+  + date + commit HEAD
+- for more important bugs (HIGH/CRITICAL): full `/regent:verify fix-{name}`
 
 ---
 
-## WAŻNE
+## Step 6: Archive
 
-- **Reproduce first** — failing test PRZED fixem
-- **Minimal fix** — napraw bug, nie refaktoruj
-- **Root cause** — nie łataj symptomów
-- **Regression test** — test musi zostać na zawsze
-- **Zamknięcie przez /regent:archive** — merge delty do main specs to sens SDD
+After the merge — **via `/regent:archive fix-{name}`** (NOT a bare `mv`!):
+the delta spec from Step 3 must be merged into `ai/specs/{domain}.md`,
+otherwise the main specs drift from the code with every bug.
 
-Timeline: 30-60 minut
+---
+
+## IMPORTANT
+
+- **Reproduce first** — failing test BEFORE the fix
+- **Minimal fix** — fix the bug, don't refactor
+- **Root cause** — don't patch symptoms
+- **Regression test** — the test must stay forever
+- **Closing via /regent:archive** — merging the delta into the main specs is the point of SDD
+
+Timeline: 30-60 minutes

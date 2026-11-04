@@ -1,100 +1,103 @@
-# Regent — framework SDD dla Claude Code
+# Regent — SDD framework for Claude Code
 
-> Plugin Claude Code: zestaw skilli, agentów i szablonów, które zamieniają Claude Code w **ustrukturyzowanego
-> partnera inżynierskiego**. Praca z projektami odbywa się metodą **SDD (Spec-Driven Development)**
-> + **TDD**: najpierw specyfikacja, potem testy, potem kod, na końcu weryfikacja i archiwizacja.
+> A Claude Code plugin: a set of skills, agents and templates that turn Claude Code into a **structured
+> engineering partner**. Work on projects follows **SDD (Spec-Driven Development)**
+> + **TDD**: specification first, then tests, then code, and finally verification and archiving.
 
-Framework wymusza powtarzalny, kontrolowany proces zmian: każda funkcjonalność przechodzi
-przez ten sam cykl, każdy krok ma dedykowanego agenta z dobranym modelem, a dokumentacja
-projektu (`ai/docs/`) jest jedynym źródłem prawdy dla AI.
-
----
-
-## Spis treści
-
-- [Dla kogo](#dla-kogo)
-- [Filozofia](#filozofia)
-- [Wymagania](#wymagania)
-- [Użycie](#użycie)
-- [Struktura repo](#struktura-repo)
-- [Szybki start](#szybki-start)
-- [Która komenda kiedy](#która-komenda-kiedy)
-- [Przepływ pracy](#przepływ-pracy)
-- [Komendy](#komendy)
-- [Agenci i modele](#agenci-i-modele)
-- [Szablony](#szablony)
-- [Observability (opcjonalnie)](#observability-opcjonalnie)
-- [Agent teams (opcjonalnie)](#agent-teams-opcjonalnie)
-- [Optymalizacja skilli (opcjonalnie)](#optymalizacja-skilli-opcjonalnie)
-- [Konwencje](#konwencje)
-- [Bezpieczeństwo danych](#bezpieczeństwo-danych)
-- [Dokumentacja rozszerzona](#dokumentacja-rozszerzona)
+The framework enforces a repeatable, controlled change process: every feature goes
+through the same cycle, every step has a dedicated agent with a matched model, and the project
+documentation (`ai/docs/`) is the single source of truth for the AI.
 
 ---
 
-## Dla kogo
+## Table of contents
 
-Dla zespołów i osób, które chcą pracować z AI nad realnym kodem **w sposób przewidywalny**:
-bez „vibe codingu”, ze specyfikacją jako kontraktem, z testami przed kodem i z weryfikacją
-przed mergem. Framework jest **agnostyczny wobec stacku** i obsługuje projekty **full-stack**
-(backend + frontend) — konkretne realia projektu (framework backendu, framework UI, wzorce)
-opisuje `/regent:init` w `ai/docs/`, a komendy/agenci z nich korzystają.
+- [Who it's for](#who-its-for)
+- [Philosophy](#philosophy)
+- [Requirements](#requirements)
+- [Usage](#usage)
+- [Repo structure](#repo-structure)
+- [Quick start](#quick-start)
+- [Which command when](#which-command-when)
+- [Workflow](#workflow)
+- [Commands](#commands)
+- [Agents and models](#agents-and-models)
+- [Templates](#templates)
+- [Observability (optional)](#observability-optional)
+- [Conventions](#conventions)
+- [Data security](#data-security)
+- [Extended documentation](#extended-documentation)
 
-## Filozofia
+---
 
-1. **Spec przed kodem** — `/regent:propose` tworzy delta-specyfikację (ADDED/MODIFIED/REMOVED/INVARIANTS)
-   z kryteriami akceptacji w Given-When-Then. Zły spec = zły kontrakt, więc spec się kwestionuje.
-2. **TDD** — `/regent:apply` implementuje w cyklu 🔴 Red → 🟢 Green → 🔵 Refactor. Refactor jest obowiązkowy.
-3. **Agent jako współodpowiedzialny partner** — kwestionuje złe decyzje, ostrzega przed ryzykiem,
-   nie rozszerza zakresu (patrz `context/role.md`).
-4. **Weryfikacja przed zamknięciem** — `/regent:verify` to 9-etapowa kontrola (testy, zgodność ze specem,
-   code review, weryfikacja testów, DB, security, gotowość repo do wydania) + warunkowo observability;
-   wynik utrwalany w `verification.md` (bramka dla `/regent:archive`).
-5. **Oszczędność tokenów** — agenci czytają dokumentację **bezpośrednio** (Read), nie skanują `src/`;
-   testy w pętli TDD uruchamiane **wąsko** (moduł/pattern), pełny `make check` tylko w bramkach.
-6. **Liczy skrypt, nie model** — format delty, pokrycie AC przez taski, kolizje numerów REQ,
-   utrata AC przy merge i dryf kodu sprawdza deterministycznie `scripts/sdd-check.sh`
-   ([docs/sdd-check.md](docs/sdd-check.md)); model ocenia to, czego skrypt nie policzy.
+## Who it's for
 
-## Wymagania
+For teams and individuals who want to work with AI on real code **predictably**:
+without "vibe coding", with the specification as a contract, with tests before code and with verification
+before merge. The framework is **stack-agnostic** and supports **full-stack** projects
+(backend + frontend) — the project's concrete realities (backend framework, UI framework, patterns)
+are described by `/regent:init` in `ai/docs/`, and the commands/agents use them.
 
-- [Claude Code](https://docs.anthropic.com/claude-code) z obsługą pluginów (skille, subagenci, hooki).
-- Opcjonalnie `make` w projektach docelowych (generowany przez `/regent:init`).
+## Philosophy
 
-## Użycie
+1. **Spec before code** — `/regent:propose` creates a delta specification (ADDED/MODIFIED/REMOVED/INVARIANTS)
+   with acceptance criteria in Given-When-Then. Bad spec = bad contract, so the spec gets challenged.
+2. **TDD** — `/regent:apply` implements in the 🔴 Red → 🟢 Green → 🔵 Refactor cycle. Refactor is mandatory.
+3. **The agent as a co-responsible partner** — challenges bad decisions, warns about risks,
+   does not extend the scope (see `context/role.md`).
+4. **Verification before closing** — `/regent:verify` is a 9-stage check (tests, spec compliance,
+   code review, test verification, DB, security, repo release readiness) + conditionally observability;
+   the result is persisted in `verification.md` (the gate for `/regent:archive`).
+5. **Token economy** — agents read documentation **directly** (Read), they do not scan `src/`;
+   tests in the TDD loop run **narrowly** (module/pattern), the full `make check` only at gates.
+6. **The script counts, not the model** — delta format, AC coverage by tasks, REQ number collisions,
+   AC loss on merge and code drift are checked deterministically by `scripts/sdd-check.sh`
+   ([docs/sdd-check.md](docs/sdd-check.md)); the model judges what the script cannot count.
 
-Regent jest **pluginem Claude Code w budowie** — do czasu ukończenia nie jest publikowany w żadnym
-marketplace (repo nie ma `marketplace.json`). Ładuje się wprost z klonu repo, na czas jednej sesji:
+## Requirements
+
+- [Claude Code](https://docs.anthropic.com/claude-code) with plugin support (skills, subagents, hooks).
+- Optionally `make` in target projects (generated by `/regent:init`).
+
+## Usage
+
+The plugin installs from a local marketplace in a clone of this repo (`.claude-plugin/marketplace.json`,
+`source: "./"`). Once per machine, in the clone:
 
 ```bash
-claude --plugin-dir <klon repo regent>
+make plugin-marketplace-add plugin-install
 ```
 
-Żeby plugin działał w każdej sesji z terminala, dodaj alias do konfiguracji powłoki:
-`alias claude='claude --plugin-dir "<klon repo regent>"'`.
+The installation is a copy of the clone's commit, so after pulling changes from `main`:
 
-Skille i agenci dostają prefiks `regent:` (`/regent:propose`, `regent:architect`). Jeśli na maszynie
-jest stary framework w `~/.claude` (`CLAUDE.md`, `commands/*-sdd.md`, `agents/`), reguły i komendy
-są w sesji z pluginem podwójnie (`-sdd` i `regent:`). Odłóż go wtedy do osobnego katalogu
-w `~/.claude/` — Claude Code go nie wczyta, a powrót to przeniesienie z powrotem.
-Skille wołają skrypty przez `${CLAUDE_PLUGIN_ROOT}/scripts/…` — Claude Code podstawia katalog
-pluginu w treści skilli i agentów.
+```bash
+git pull && make plugin-update
+```
 
-Po instalacji wpisz `/regent:` i Tab — lista pokazuje cały framework. Skille poza `/regent:status`
-uruchamiasz sam: Claude ich nie wywoła i zamiast tego poda polecenie do wpisania (ich opisy nie
-zajmują też kontekstu sesji).
+and start a new session. All targets (installation, status, quality gate): `make help`.
 
-Plugin rejestruje hooki (`hooks/hooks.json`): kontekst `context/` w sesji i subagentach, git-guard
-w projektach z `ai/docs/` oraz kopię statusline do stałej ścieżki
+Working on the plugin itself: `claude --plugin-dir <regent clone>` loads it straight from the clone
+for one session.
+
+Skills and agents get the `regent:` prefix (`/regent:propose`, `regent:architect`). Skills call
+scripts via `${CLAUDE_PLUGIN_ROOT}/scripts/…` — Claude Code substitutes the plugin directory in the content
+of skills and agents.
+
+After installation type `/regent:` and Tab — the list shows the whole framework. Skills other than `/regent:status`
+are run by you: Claude will not invoke them and will give you the command to type instead (their descriptions
+also take no session context).
+
+The plugin registers hooks (`hooks/hooks.json`): the `context/` context in the session and subagents, git-guard
+in projects with `ai/docs/`, and a copy of the statusline to a fixed path
 ([`docs/statusline.md`](docs/statusline.md)).
 
-## Struktura repo
+## Repo structure
 
 ```
 regent/
-├── .claude-plugin/        # plugin.json (manifest)
-├── context/               # role.md (rola partnera), sdd.md (reguły SDD), sdd-map.md (mapa skilli i agentów), subagent.md (kontrakt subagenta)
-├── agents/                # 9 subagentów (każdy z polem model:)
+├── .claude-plugin/        # plugin.json (manifest), marketplace.json (local marketplace)
+├── context/               # role.md (partner role), sdd.md (SDD rules), sdd-map.md (map of skills and agents), subagent.md (subagent contract)
+├── agents/                # 9 subagents (each with a model: field)
 │   ├── architect.md              (opus)
 │   ├── spec-writer.md            (sonnet)
 │   ├── backend-dev.md            (sonnet)
@@ -104,57 +107,55 @@ regent/
 │   ├── dba.md                    (sonnet)
 │   ├── security-auditor.md       (opus)
 │   └── logging-engineer.md       (sonnet)
-├── skills/                # 19 skilli (/regent:propose, /regent:apply, ..., /regent:archive)
-├── templates/             # Szablony artefaktów zmian + Makefile
-│   └── docs/              # Szablony plików ai/docs/ (wypełniane przez /regent:init)
-├── scripts/               # sdd-check.sh (walidacja artefaktów), framework-lint.sh, statusline.sh, session-tokens.sh
-├── evals/                 # Zestawy evali skilli dla /regent:optimize (claude plugin eval, projekty testowe)
-├── docs/                  # Dokumentacja frameworka i plany zmian
-├── .claude/               # reguły pracy nad tym repo (nie są częścią pluginu)
-└── README.md · CONTRIBUTING.md
+├── skills/                # 18 skills (/regent:propose, /regent:apply, ..., /regent:archive)
+├── templates/             # Change artifact templates + Makefile
+│   └── docs/              # ai/docs/ file templates (filled in by /regent:init)
+├── scripts/               # sdd-check.sh (artifact validation), framework-lint.sh, statusline.sh, session-tokens.sh
+├── docs/                  # Framework documentation
+├── .claude/               # rules for working on this repo (not part of the plugin)
+└── README.md · CONTRIBUTING.md · Makefile (plugin installation)
 ```
 
-`context/` wstrzykują hooki pluginu (plugin nie wczytuje `CLAUDE.md`): `role.md` zawsze, a w projektach
-z `ai/docs/` `sdd.md` i `subagent.md` w sesji i w subagentach, `sdd-map.md` tylko w sesji (subagent
-nie potrzebuje mapy skilli — to ok. 4 KB mniej w kontekście każdego subagenta). Każdy plik
-idzie osobnym hookiem, bo wyjście jednego hooka Claude Code obcina do 10 000 znaków; lint
-pilnuje limitu 9000 bajtów na plik.
+`context/` is injected by the plugin's hooks (the plugin does not load `CLAUDE.md`): `role.md` always, and in projects
+with `ai/docs/` `sdd.md` and `subagent.md` in the session and in subagents, `sdd-map.md` only in the session (a subagent
+does not need the skill map — that is about 4 KB less in every subagent's context). Each file
+goes through a separate hook, because Claude Code truncates a single hook's output to 10,000 characters; the lint
+enforces a 9000-byte limit per file.
 
-## Szybki start
+## Quick start
 
 ```text
-1. /regent:init                     # wykryj stack i wygeneruj ai/docs/ (+ Makefile)
+1. /regent:init                     # detect the stack and generate ai/docs/ (+ Makefile)
 2. /regent:propose user-registration  # spec: proposal, specs (delta), design, tasks
 3. /regent:apply user-registration    # TDD: Red → Green → Refactor, atomic commits
-4. /regent:verify user-registration   # 9-etapowa weryfikacja
-5. /regent:archive user-registration  # merge delta → ai/specs/, retrospektywa, archiwum
+4. /regent:verify user-registration   # 9-stage verification
+5. /regent:archive user-registration  # merge delta → ai/specs/, retrospective, archive
 ```
 
-Pomocniczo: `/regent:status` (stan projektu), `/regent:explore` (analiza read-only), `/regent:logging`
-(instrumentacja logami), `/regent:commit` (atomic commity), `/regent:testing`, `/regent:code-review`.
+Supporting: `/regent:status` (project state), `/regent:explore` (read-only analysis), `/regent:logging`
+(log instrumentation), `/regent:commit` (atomic commits), `/regent:testing`, `/regent:code-review`.
 
-## Która komenda kiedy
+## Which command when
 
-| Sytuacja | Komenda |
+| Situation | Command |
 |----------|---------|
-| Pierwszy raz w projekcie | `/regent:init` |
-| Nie wiem, czy i jak to zrobić — chcę zbadać opcje | `/regent:explore` |
-| Nowy produkt albo duża inicjatywa — co budujemy i w jakich zmianach | `/regent:explore --discovery` |
-| Nowa funkcjonalność albo zmiana zachowania | `/regent:propose` → `/regent:apply` → `/regent:verify` → `/regent:archive` |
-| Zmiana struktury kodu bez zmiany zachowania | `/regent:refactor` |
-| Coś nie działa i nie wiem dlaczego | `/regent:debugging` |
-| Bug w dev/staging | `/regent:bugfix` |
-| Krytyczny bug na produkcji | `/regent:hotfix` |
-| Wracam po przerwie — gdzie jestem? | `/regent:status` |
-| Testy do istniejącego kodu | `/regent:testing` |
-| Review zmian (np. cudzego MR) | `/regent:code-review` |
-| Logi w istniejącym kodzie | `/regent:logging` |
-| Aktualizacja zależności / security patch | `/regent:dependency-update` |
-| Zmienia się podejście, stack albo konwencja projektu | `/regent:revise` |
-| Wiedza biznesowa: po co system istnieje | `/regent:wiki` |
-| Skill pluginu zużywa za dużo tokenów albo czasu | `/regent:optimize` |
+| First time in a project | `/regent:init` |
+| I don't know whether and how to do it — I want to explore options | `/regent:explore` |
+| A new product or a large initiative — what we build and in which changes | `/regent:explore --discovery` |
+| A new feature or a behavior change | `/regent:propose` → `/regent:apply` → `/regent:verify` → `/regent:archive` |
+| Changing code structure without changing behavior | `/regent:refactor` |
+| Something doesn't work and I don't know why | `/regent:debugging` |
+| A bug in dev/staging | `/regent:bugfix` |
+| A critical bug in production | `/regent:hotfix` |
+| Back after a break — where am I? | `/regent:status` |
+| Tests for existing code | `/regent:testing` |
+| Review of changes (e.g. a colleague's MR) | `/regent:code-review` |
+| Logs in existing code | `/regent:logging` |
+| Dependency update / security patch | `/regent:dependency-update` |
+| The project's approach, stack or convention changes | `/regent:revise` |
+| Business knowledge: why the system exists | `/regent:wiki` |
 
-## Przepływ pracy
+## Workflow
 
 ```mermaid
 flowchart LR
@@ -168,131 +169,106 @@ flowchart LR
   R --> A
 ```
 
-Skróty poza pełnym cyklem:
+Shortcuts outside the full cycle:
 
-- **`/regent:bugfix`** — bug w dev/staging (reprodukcja → failing test → minimalny fix → regresja);
-  zamknięcie przez `/regent:archive`.
-- **`/regent:hotfix`** — krytyczny bug na produkcji (max 30 min, max 3 pliki, plan rollbacku),
-  follow-up przez `/regent:bugfix`.
-- **`/regent:refactor`** — zmiana bez zmiany zachowania, zawsze z sekcją INVARIANTS w delta spec,
-  przez pełny cykl (to nie skrót).
+- **`/regent:bugfix`** — a bug in dev/staging (reproduction → failing test → minimal fix → regression);
+  closed with `/regent:archive`.
+- **`/regent:hotfix`** — a critical bug in production (max 30 min, max 3 files, rollback plan),
+  follow-up via `/regent:bugfix`.
+- **`/regent:refactor`** — a change without a behavior change, always with an INVARIANTS section in the delta spec,
+  through the full cycle (not a shortcut).
 
-## Komendy
+## Commands
 
-| Komenda | Rola |
+| Command | Role |
 |---------|------|
-| `/regent:init` | Inicjalizacja `ai/docs/` (stack, wzorce, konwencje) + Makefile |
-| `/regent:propose` | Spec przed kodem (proposal, specs, design, tasks) |
-| `/regent:apply` | Implementacja TDD (Red → Green → Refactor) |
-| `/regent:verify` | 9-etapowa weryfikacja (etapy 5-8 warunkowe) |
-| `/regent:archive` | Merge delta specs → main, przeniesienie do archiwum (`--abandon` — porzucenie zmiany) |
-| `/regent:bugfix` | Naprawa buga w dev/staging (z testem regresji) |
-| `/regent:hotfix` | Krytyczny fix na produkcji (max 30 min, 3 pliki) |
-| `/regent:refactor` | Refactoring bez zmiany zachowania (INVARIANTS) |
-| `/regent:revise` | Aktualizacja `ai/docs/` gdy podejście się zmienia |
-| `/regent:logging` | Instrumentacja kodu logami wg `logging-patterns.md` |
-| `/regent:testing` | Pisanie i weryfikacja testów |
-| `/regent:code-review` | Peer review zmian |
-| `/regent:commit` | Atomic commity wg git-workflow (jedna linia, max 100 znaków) |
-| `/regent:debugging` | Systematyczna diagnoza (fix przez `/regent:bugfix`) |
-| `/regent:dependency-update` | Aktualizacja zależności i security patches |
-| `/regent:status` | Przegląd stanu projektu |
-| `/regent:explore` | Analiza read-only bez commitów |
-| `/regent:wiki` | Wiki biznesowa w Obsidian (`ai/wiki/`) — poza cyklem SDD |
-| `/regent:optimize` | Pętla optymalizacji skilla (eval, keep/discard) — poza cyklem SDD, w repo pluginu |
+| `/regent:init` | Initialization of `ai/docs/` (stack, patterns, conventions) + Makefile |
+| `/regent:propose` | Spec before code (proposal, specs, design, tasks) |
+| `/regent:apply` | TDD implementation (Red → Green → Refactor) |
+| `/regent:verify` | 9-stage verification (stages 5-8 conditional) |
+| `/regent:archive` | Merge delta specs → main, move to archive (`--abandon` — abandon the change) |
+| `/regent:bugfix` | Bug fix in dev/staging (with a regression test) |
+| `/regent:hotfix` | Critical fix in production (max 30 min, 3 files) |
+| `/regent:refactor` | Refactoring without behavior change (INVARIANTS) |
+| `/regent:revise` | Update of `ai/docs/` when the approach changes |
+| `/regent:logging` | Code instrumentation with logs per `logging-patterns.md` |
+| `/regent:testing` | Writing and verifying tests |
+| `/regent:code-review` | Peer review of changes |
+| `/regent:commit` | Atomic commits per git-workflow (one line, max 100 characters) |
+| `/regent:debugging` | Systematic diagnosis (fix via `/regent:bugfix`) |
+| `/regent:dependency-update` | Dependency updates and security patches |
+| `/regent:status` | Overview of the project state |
+| `/regent:explore` | Read-only analysis without commits |
+| `/regent:wiki` | Business wiki in Obsidian (`ai/wiki/`) — outside the SDD cycle |
 
-Definicja każdego skilla: `skills/<nazwa>/SKILL.md`.
+Definition of each skill: `skills/<name>/SKILL.md`.
 
-## Agenci i modele
+## Agents and models
 
-Model dobrany do wagi zadania (koszt vs. wymagane rozumowanie):
+The model matched to the weight of the task (cost vs. required reasoning):
 
-| Agent | Model | Zastosowanie |
+| Agent | Model | Use |
 |-------|-------|--------------|
-| `regent:architect` | **opus** | Architektura, ADR, design review |
-| `regent:security-auditor` | **opus** | OWASP, przegląd bezpieczeństwa |
-| `regent:code-reviewer` | **opus** | Review + zgodność AC↔kod↔test |
+| `regent:architect` | **opus** | Architecture, ADR, design review |
+| `regent:security-auditor` | **opus** | OWASP, security review |
+| `regent:code-reviewer` | **opus** | Review + AC↔code↔test compliance |
 | `regent:spec-writer` | **sonnet** | Delta specs, proposals |
-| `regent:backend-dev` | **sonnet** | Implementacja TDD — backend (taski `[BE]`) |
-| `regent:frontend-dev` | **sonnet** | Implementacja TDD — UI (taski `[FE]`, wg `frontend-patterns.md`) |
-| `regent:qa-engineer` | **sonnet** | Strategia i pisanie testów |
-| `regent:dba` | **sonnet** | Schematy, migracje, optymalizacja |
-| `regent:logging-engineer` | **sonnet** | Instrumentacja logami wg wzorca |
+| `regent:backend-dev` | **sonnet** | TDD implementation — backend (`[BE]` tasks) |
+| `regent:frontend-dev` | **sonnet** | TDD implementation — UI (`[FE]` tasks, per `frontend-patterns.md`) |
+| `regent:qa-engineer` | **sonnet** | Test strategy and writing tests |
+| `regent:dba` | **sonnet** | Schemas, migrations, optimization |
+| `regent:logging-engineer` | **sonnet** | Log instrumentation per pattern |
 
-Definicja każdego agenta (rola, model, narzędzia, format raportu): `agents/<nazwa>.md`.
-Agenci analityczni (`regent:code-reviewer`, `regent:security-auditor`) i `regent:architect` są
-**read-only** (bez Edit/Write) — artefakty do akceptacji zwracają w raporcie, zapisuje sesja
-główna. Agenci weryfikujący używają jednego słownika werdyktów: `PASS / WARN / BLOCK`.
+Definition of each agent (role, model, tools, report format): `agents/<name>.md`.
+The analytical agents (`regent:code-reviewer`, `regent:security-auditor`) and `regent:architect` are
+**read-only** (no Edit/Write) — they return artifacts for approval in their report, the main session
+writes them. Verifying agents use one verdict vocabulary: `PASS / WARN / BLOCK`.
 
-## Szablony
+## Templates
 
-- **Artefakty zmian** (`templates/`): `proposal-template.md`, `spec-template.md` (delta),
-  `main-spec-template.md` (main spec — cel merge w `/regent:archive`), `design-template.md`,
+- **Change artifacts** (`templates/`): `proposal-template.md`, `spec-template.md` (delta),
+  `main-spec-template.md` (main spec — the merge target in `/regent:archive`), `design-template.md`,
   `adr-template.md`, `user-story-template.md`,
-  `test-plan-template.md`, `Makefile.node.template` (inne stacki: `/regent:init` generuje Makefile
-  ad hoc z tym samym zestawem celów).
-- **Pliki `ai/docs/`** (`templates/docs/`): `technology`, `architecture`, `naming`, `code-style`,
+  `test-plan-template.md`, `Makefile.node.template` (other stacks: `/regent:init` generates the Makefile
+  ad hoc with the same set of targets).
+- **`ai/docs/` files** (`templates/docs/`): `technology`, `architecture`, `naming`, `code-style`,
   `git-workflow`, `di-patterns`, `testing-patterns`, `exception-patterns`, `logging-patterns`,
-  `frontend-patterns` (gdy projekt ma frontend), `glossary` (słownik domeny — gdy projekt ma
-  własne słownictwo) — wypełniane przez `/regent:init` konkretami wykrytymi w projekcie.
+  `frontend-patterns` (when the project has a frontend), `glossary` (domain glossary — when the project has
+  its own vocabulary) — filled in by `/regent:init` with specifics detected in the project.
 
-## Observability (opcjonalnie)
+## Observability (optional)
 
-Jeśli projekt utrzymuje dashboardy/alerty (np. Kibana) w `ai/docs/observability/`, framework
-pilnuje, by **zmiana logowanej `action` nie rozjechała się z dashboardem**:
+If the project maintains dashboards/alerts (e.g. Kibana) in `ai/docs/observability/`, the framework
+makes sure that **a change of a logged `action` does not drift apart from the dashboard**:
 
-- `/regent:logging` (Krok 4.5) i `regent:logging-engineer` sygnalizują zmianę `action`/`type`/`module`.
-- `/regent:verify` (Etap 7) uruchamia warunkową checklistę z `observability/maintenance.md`.
+- `/regent:logging` (Step 4.5) and `regent:logging-engineer` flag a change of `action`/`type`/`module`.
+- `/regent:verify` (Stage 7) runs the conditional checklist from `observability/maintenance.md`.
 
-Framework **nie buduje** dashboardów — tylko wymusza refleksję. Brak `observability/` → kroki N/A.
+The framework **does not build** dashboards — it only forces reflection. No `observability/` → steps N/A.
 
-## Agent teams (opcjonalnie)
+## Conventions
 
-Praca agentów widoczna na żywo w tmux: natywne agent teams Claude Code w trybie split-pane,
-każdy członek zespołu we własnym panelu. Teams włączasz **tylko w wybranym projekcie**
-(`.claude/settings.local.json`), bo zmieniają delegację: nazwany agent startuje jako członek
-zespołu, nie subagent. Szczegóły, koszt i ograniczenia: [docs/agent-teams.md](docs/agent-teams.md).
+- **Commits:** `<type>: (<KEY>) <description>` — **one line, max 100 characters, no body**. A long description =
+  the commit is too big → split it into atomic ones. Never `git add .`, never a commit without tests, never `--no-verify`.
+- **Logs:** `action` in the `NOUN_VERB` format (UPPERCASE, EN); only entity IDs in `context`
+  (zero PII/secrets); we do not log in `domain/`.
+- **Specifications:** delta (not the full state); every AC testable; INVARIANTS mandatory for refactors.
+- **`ai/` in the repo:** the whole `ai/` (docs, specs, changes, archive, wiki) is tracked in the product
+  repo and goes into the MR together with code and tests. REQ/AC numbers are local and do not go
+  into the code.
 
-## Optymalizacja skilli (opcjonalnie)
+## Data security
 
-`/regent:optimize <skill>` to pętla wzorowana na `karpathy/autoresearch`. W osobnym worktree zmienia
-jeden plik promptu skilla albo agenta, uruchamia stały zestaw evali z `evals/<skill>/` (`claude plugin
-eval` na syntetycznym projekcie testowym) i zachowuje zmianę tylko wtedy, gdy jakość nie spada,
-a koszt tokenów, czas albo długość promptu spadają ponad szum. O `keep`/`discard` decyduje
-`scripts/optimize-score.sh`, nie model. Na końcu sprawdza przypadki kontrolne (holdout) i daje raport;
-merge robi użytkownik. Działa w repo pluginu. Zestaw jest dziś dla `apply`. Szczegóły:
-[docs/optimize.md](docs/optimize.md).
+The repo holds only the plugin and its documentation — no data from `~/.claude` (history,
+transcripts, sessions).
 
-## Konwencje
+- Before pushing check `git status` — `git add` only with a list of specific files.
+- Never commit secrets or real logs/payloads.
 
-- **Commity:** `<type>: (<KEY>) <opis>` — **jedna linia, max 100 znaków, bez body**. Długi opis =
-  commit za duży → rozbij na atomic. Nigdy `git add .`, nigdy commit bez testów, nigdy `--no-verify`.
-- **Logi:** `action` w formacie `RZECZOWNIK_CZASOWNIK` (UPPERCASE, EN); tylko ID encji w `context`
-  (zero PII/sekretów); nie logujemy w `domain/`.
-- **Specyfikacje:** delta (nie pełny stan); każde AC testowalne; INVARIANTS obowiązkowe dla refactorów.
-- **`ai/` — osobisty albo współdzielony:** wybór przy `/regent:init` (Krok 0.5), wykrywany przez
-  `git check-ignore -q --no-index ai/`. Osobisty (domyślny) — `ai/` (docs, specs, changes, wiki)
-  jest globalnie ignorowany (`/ai/` w `core.excludesfile`) i nie trafia do repo produktu; do MR
-  idzie kod i testy, plan niesie opis MR z `/regent:verify`. Współdzielony — cały `ai/` jest
-  śledzony w repo, razem z `changes/archive/`. Numery REQ/AC są lokalne i nie trafiają do kodu
-  w obu trybach.
+## Extended documentation
 
-## Bezpieczeństwo danych
-
-Repo jest publiczne i zawiera wyłącznie plugin i jego dokumentację — bez danych z `~/.claude`
-(historia, transkrypty, sesje), bez notatek osobistych.
-
-- Przed pushem sprawdź `git status` — `git add` tylko z listą konkretnych plików.
-- Nigdy nie commituj sekretów ani realnych logów/payloadów.
-- Dane, które plugin zapisuje w przyszłości (np. kronika), trafiają do `${CLAUDE_PLUGIN_DATA}`
-  na danej maszynie, nie do repo.
-
-## Dokumentacja rozszerzona
-
-- [`docs/getting-started.md`](docs/getting-started.md) — pierwsze uruchomienie krok po kroku
-- [`docs/workflow.md`](docs/workflow.md) — pełny cykl SDD + skróty
-- [`docs/writing-docs.md`](docs/writing-docs.md) — `ai/docs/`, logowanie, observability
-- [`docs/agent-teams.md`](docs/agent-teams.md) — agent teams w tmux
-- [`docs/optimize.md`](docs/optimize.md) — `/regent:optimize`: pętla optymalizacji skilli, zestawy evali, metryka
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) — jak dodać skill/agenta/szablon
-- [`docs/`](docs/README.md) — indeks całej dokumentacji (m.in. `statusline.md` — konfiguracja statusline)
+- [`docs/getting-started.md`](docs/getting-started.md) — first run step by step
+- [`docs/workflow.md`](docs/workflow.md) — the full SDD cycle + shortcuts
+- [`docs/writing-docs.md`](docs/writing-docs.md) — `ai/docs/`, logging, observability
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to add a skill/agent/template
+- [`docs/`](docs/README.md) — index of all documentation (incl. `statusline.md` — statusline configuration)

@@ -1,53 +1,51 @@
 # Git Workflow
 
-> Wypełnij na podstawie historii git i konfiguracji wykrytych przez `/regent:init`.
+> Fill in based on the git history and configuration detected by `/regent:init`.
 
 ## Branching
 
-| Element | Wartość |
-|---------|---------|
+| Element | Value |
+|---------|-------|
 | Model | [trunk-based / gitflow] |
-| Gałąź główna | [main / master] |
-| Format brancha | `<type>/<KEY>-<short-description>` |
+| Main branch | [main / master] |
+| Branch format | `<type>/<KEY>-<short-description>` |
 
-Przykłady: `feat/PROJ-123-user-registration`, `fix/PROJ-124-duplicate-email`, `hotfix/2025-03-20-payment-500`.
+Examples: `feat/PROJ-123-user-registration`, `fix/PROJ-124-duplicate-email`, `hotfix/2025-03-20-payment-500`.
 
-## Commity (Conventional Commits)
+## Commits (Conventional Commits)
 
-**Format:** `<type>: (<KEY>) <opis, imperatyw>`
+**Format:** `<type>: (<KEY>) <description, imperative>`
 
-**Limity:** cała linia **max 100 znaków**, **jedna linia — bez body**. Długi opis = commit za duży → rozbij.
+**Limits:** the whole line **max 100 characters**, **one line — no body**. A long description = commit too big → split it.
 
-| Type | Zastosowanie |
-|------|--------------|
-| feat | Nowa funkcjonalność |
-| fix | Naprawa buga |
-| refactor | Refactoring (bez zmiany zachowania) |
-| test | Testy |
-| chore | Zależności, konfiguracja, CI |
-| docs | Dokumentacja |
-| perf | Wydajność |
+| Type | Usage |
+|------|-------|
+| feat | New functionality |
+| fix | Bug fix |
+| refactor | Refactoring (no behavior change) |
+| test | Tests |
+| chore | Dependencies, configuration, CI |
+| docs | Documentation |
+| perf | Performance |
 
-Przykład: `feat: (PROJ-123) add global error handling middleware`
+Example: `feat: (PROJ-123) add global error handling middleware`
 
-## Zasady
+## Rules
 
-- Atomic commits — 1 commit = 1 logiczna zmiana.
-- Wiadomość commita: **jedna linia, max 100 znaków, bez body**.
-- **NIGDY** `git add .` / `git add -A` — zawsze konkretne pliki.
-- **NIGDY** commit bez przejścia testów; **NIGDY** `--no-verify`.
-- `git push` tylko na wyraźną prośbę.
-- Klucz zadania (Jira/inny) w każdym commicie; jeśli brak → `NONE`.
+- Atomic commits — 1 commit = 1 logical change.
+- Commit message: **one line, max 100 characters, no body**.
+- **NEVER** `git add .` / `git add -A` — always specific files.
+- **NEVER** commit without passing tests; **NEVER** `--no-verify`.
+- `git push` only on explicit request.
+- Task key (Jira/other) in every commit; if none → `NONE`.
 
 ## Pull Requests / Merge
 
-- [Strategia — np. squash / merge commit]
-- [Wymagane review / CI green przed merge]
-- `ai/` jest osobisty i globalnie ignorowany (domyślny tryb) albo współdzielony i śledzony w repo
-  (wybór przy `/regent:init`). Osobisty — do MR trafia kod i testy, a plan (cel, wymagania z AC,
-  decyzje) niesie opis MR generowany w `/regent:verify` Etap 9. Reviewer czyta najpierw opis
-  (czy plan jest dobry), potem kod (czy go realizuje). Współdzielony — `ai/changes/{nazwa}/`
-  jest częścią MR, opis MR z Etapu 9 i tak ułatwia review w samym UI.
-- `/regent:archive` po merge MR — twoje `ai/specs/` rośnie tylko o kod, który wszedł.
-- Temat commita squash zawiera klucz ticketu (`feat: (KEY) …`) — po nim `sdd-check stale`
-  rozpoznaje pracę z cyklu SDD.
+- [Strategy — e.g. squash / merge commit]
+- [Required review / CI green before merge]
+- `ai/` is tracked in the repo — `ai/changes/{name}/` is part of the MR, and the MR description
+  from `/regent:verify` Stage 9 makes review easier in the MR UI. The reviewer reads the plan first
+  (is it good), then the code (does it implement the plan).
+- `/regent:archive` after the MR merge — your `ai/specs/` grows only by code that got in.
+- The squash commit subject contains the ticket key (`feat: (KEY) …`) — by it `sdd-check stale`
+  recognizes work from the SDD cycle.

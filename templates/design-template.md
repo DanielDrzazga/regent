@@ -1,45 +1,45 @@
-# Design: {{NAZWA}}
+# Design: {{NAME}}
 
 <!--
-  INSTRUKCJA: USUŃ sekcje, które nie dotyczą tej zmiany (np. Database Changes bez zmian
-  w DB, Frontend bez UI). Obecność sekcji "Database Changes" / "Security Considerations"
-  triggeruje Etap 5 / 6 w /regent:verify — nie zostawiaj pustych nagłówków.
+  INSTRUCTION: REMOVE sections that do not apply to this change (e.g. Database Changes with no
+  DB changes, Frontend with no UI). The presence of the "Database Changes" / "Security Considerations"
+  section triggers Stage 5 / 6 in /regent:verify — do not leave empty headings.
 -->
 
 ## Overview
 
-[1-2 zdania opisujące podejście techniczne]
+[1-2 sentences describing the technical approach]
 
-## Architektura
+## Architecture
 
-### Diagram systemu
+### System diagram
 
 ```
-[ASCII lub mermaid diagram]
+[ASCII or mermaid diagram]
 ```
 
 ### Affected Files
 
-<!-- Ta sekcja to kontrakt czytania dla /regent:apply i /regent:verify — wymień KONKRETNE pliki. -->
+<!-- This section is the read contract for /regent:apply and /regent:verify — list SPECIFIC files. -->
 
-| Warstwa | Zmiany | Pliki |
-|---------|--------|-------|
-| Domain | [co się zmienia] | [lista plików] |
-| Application | [co się zmienia] | [lista plików] |
-| Infrastructure | [co się zmienia] | [lista plików] |
-| Interface | [co się zmienia] | [lista plików] |
-| Frontend (jeśli dotyczy) | [co się zmienia] | [lista plików] |
+| Layer | Changes | Files |
+|-------|---------|-------|
+| Domain | [what changes] | [file list] |
+| Application | [what changes] | [file list] |
+| Infrastructure | [what changes] | [file list] |
+| Interface | [what changes] | [file list] |
+| Frontend (if applicable) | [what changes] | [file list] |
 
 ### Component Breakdown
 
 **Backend:**
-- [Komponent 1] — [odpowiedzialność]
+- [Component 1] — [responsibility]
 
-**Frontend:** <!-- usuń, jeśli zmiana nie dotyka UI; obecność = zmiana full-stack
-     (taski [FE] w tasks.md, kontrakt API↔UI wiążący dla frontend-dev) -->
-- Komponenty UI: [lista — wg `ai/docs/patterns/frontend-patterns.md` i biblioteki z technology.md]
-- Custom feature components: [lista z opisem kompozycji]
-- State / routing impact: [nowy stan globalny? nowe trasy? — wg frontend-patterns.md]
+**Frontend:** <!-- remove if the change does not touch the UI; presence = full-stack change
+     ([FE] tasks in tasks.md, API↔UI contract binding for frontend-dev) -->
+- UI components: [list — per `ai/docs/patterns/frontend-patterns.md` and the library from technology.md]
+- Custom feature components: [list with a description of the composition]
+- State / routing impact: [new global state? new routes? — per frontend-patterns.md]
 
 ## API / Interface Contract
 
@@ -48,60 +48,60 @@
 **Request:**
 ```json
 {
-  "field": "type — opis"
+  "field": "type — description"
 }
 ```
 
 **Response (200):**
 ```json
 {
-  "field": "type — opis"
+  "field": "type — description"
 }
 ```
 
 **Errors:**
-| Status | Kiedy | Response |
-|--------|-------|----------|
+| Status | When | Response |
+|--------|------|----------|
 | 400 | Invalid input | `{ "error": "..." }` |
 | 401 | Unauthorized | `{ "error": "..." }` |
 
 ## Database Changes
 
-<!-- USUŃ sekcję, jeśli brak zmian w DB — jej obecność triggeruje Etap 5 (dba) w /regent:verify. -->
+<!-- REMOVE the section if there are no DB changes — its presence triggers Stage 5 (dba) in /regent:verify. -->
 
 ```sql
--- Migration: [opis]
+-- Migration: [description]
 CREATE TABLE ... (
   ...
 );
 ```
 
-## Decyzje techniczne
+## Technical decisions
 
-| Decyzja | Wybór | Alternatywy | Uzasadnienie |
-|---------|-------|-------------|--------------|
-| [Co] | [Wybrane] | [Inne opcje] | [Dlaczego] |
+| Decision | Choice | Alternatives | Rationale |
+|----------|--------|--------------|-----------|
+| [What] | [Chosen] | [Other options] | [Why] |
 
-## Odstępstwa od zasad
+## Deviations from principles
 
-<!-- USUŃ sekcję, gdy zmiana mieści się w zasadach MUST z ai/docs/patterns/architecture.md.
-     Odstępstwo bez wpisu tutaj code-reviewer traktuje jako 🔴. -->
+<!-- REMOVE the section when the change fits within the MUST principles from ai/docs/patterns/architecture.md.
+     code-reviewer treats a deviation without an entry here as 🔴. -->
 
-| Zasada | Odstępstwo | Uzasadnienie | Dlaczego prostsza droga nie wystarczyła |
-|--------|------------|--------------|-----------------------------------------|
-| MUST-N | [co] | [dlaczego] | [odrzucona alternatywa] |
+| Principle | Deviation | Rationale | Why the simpler path was not enough |
+|-----------|-----------|-----------|-------------------------------------|
+| MUST-N | [what] | [why] | [rejected alternative] |
 
-## Ryzyka
+## Risks
 
-| Ryzyko | Prawdopodobieństwo | Wpływ | Mitygacja |
-|--------|-------------------|-------|-----------|
-| [Opis] | Low/Medium/High | Low/Medium/High | [Plan] |
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| [Description] | Low/Medium/High | Low/Medium/High | [Plan] |
 
 ## Error Handling
 
-| Scenariusz | Status | Response | Recovery |
-|------------|--------|----------|----------|
-| [Błąd] | [kod] | [odpowiedź] | [co dalej] |
+| Scenario | Status | Response | Recovery |
+|----------|--------|----------|----------|
+| [Error] | [code] | [response] | [what next] |
 
 ## Performance Considerations
 
@@ -111,35 +111,35 @@ CREATE TABLE ... (
 
 ## Observability / Logging
 
-> Wzorzec: `ai/docs/patterns/logging-patterns.md`. Zaplanuj logi już w designie — nie doklejaj po fakcie.
+> Pattern: `ai/docs/patterns/logging-patterns.md`. Plan logs already in the design — do not bolt them on after the fact.
 
-| Punkt (operacja / błąd) | level | type (business/technical) | action |
-|-------------------------|-------|---------------------------|--------|
-| [np. use case OK] | info | business | [np. ORDER_CREATED] |
-| [np. integracja w catch] | error | technical | [np. PAYMENT_API_ERROR] |
+| Point (operation / error) | level | type (business/technical) | action |
+|---------------------------|-------|---------------------------|--------|
+| [e.g. use case OK] | info | business | [e.g. ORDER_CREATED] |
+| [e.g. integration in catch] | error | technical | [e.g. PAYMENT_API_ERROR] |
 
-- [ ] Kluczowe operacje domenowe mają log `info`/`business`
-- [ ] Bloki `catch` / integracje zewnętrzne mają log `error`/`technical`
-- [ ] Brak PII/sekretów w `context` (tylko ID encji)
+- [ ] Key domain operations have an `info`/`business` log
+- [ ] `catch` blocks / external integrations have an `error`/`technical` log
+- [ ] No PII/secrets in `context` (entity IDs only)
 
 ## Testing Strategy
 
-- **Unit:** [co testować]
-- **Component (UI):** [zmienione komponenty — usuń, jeśli zmiana nie dotyka frontendu]
-- **Integration:** [jakie integracje]
-- **E2E:** [krytyczne ścieżki — API i/lub przeglądarkowe]
-- **Smoke (Etap 8 `/regent:verify`):** [kroki głównej ścieżki w uruchomionej aplikacji + oczekiwany
-  wynik — np. `curl -X POST /api/users …` → 201 + `id`; usuń, gdy zmiana nie ma uruchamialnego wejścia]
+- **Unit:** [what to test]
+- **Component (UI):** [changed components — remove if the change does not touch the frontend]
+- **Integration:** [which integrations]
+- **E2E:** [critical paths — API and/or browser]
+- **Smoke (Stage 8 `/regent:verify`):** [main path steps in the running application + expected
+  result — e.g. `curl -X POST /api/users …` → 201 + `id`; remove when the change has no runnable entry point]
 
 ## Security Considerations
 
-<!-- USUŃ sekcję, jeśli zmiana nie dotyka auth/user input/danych wrażliwych —
-     jej obecność triggeruje Etap 6 (security-auditor) w /regent:verify. -->
+<!-- REMOVE the section if the change does not touch auth/user input/sensitive data —
+     its presence triggers Stage 6 (security-auditor) in /regent:verify. -->
 
 - [ ] Authentication required?
 - [ ] Authorization (role-based)?
 - [ ] Input validation
-- [ ] GDPR/RODO impact
+- [ ] GDPR impact
 
 ## Deployment Notes
 

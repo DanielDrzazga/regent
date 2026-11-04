@@ -1,88 +1,87 @@
-# Spec: {{DOMENA}} — Delta dla {{NAZWA_ZMIANY}}
+# Spec: {{DOMAIN}} — Delta for {{CHANGE_NAME}}
 
 <!--
-  INSTRUKCJA: Ten plik opisuje TYLKO zmiany (delta), nie pełny stan specyfikacji.
-  Sekcje: ADDED (nowe), MODIFIED (zmienione), REMOVED (usunięte), INVARIANTS (niezmienne).
-  Format AC: Given-When-Then.
-  ID: REQ-NNN — numeracja globalna w projekcie (kolejny wolny numer z ai/specs/, aktywnych
-  ai/changes/, archiwum i delt innych gałęzi — sdd-check next-req). Numer ADDED jest roboczy do
-  /regent:archive: kolizję z równoległą gałęzią naprawia sdd-check renumber. AC numerowane w obrębie REQ (AC-1, AC-2…),
-  nowe AC dostaje numer po najwyższym w bloku. Odwołanie w taskach, raportach i verification.md:
-  REQ-012/AC-2 (lista: REQ-012/AC-1, AC-3; zakres: REQ-012/AC-1..3).
-  Numery są lokalną numeracją projektu (niezależną od tego, czy `ai/` jest osobisty czy
-  współdzielony w repo), więc nie trafiają do kodu:
-  test nazywa się wg konwencji projektu, a powiązanie AC → test zapisuje się przy tasku
-  w tasks.md („testy: plik › nazwa testu") i w verification.md → Pokrycie AC.
-  Delta to jedyne miejsce AC w zmianie — proposal.md do nich odsyła.
-  USUŃ sekcje, które nie dotyczą tej zmiany (np. REMOVED bez usunięć) — nie zostawiaj
-  nagłówków z placeholderami. INVARIANTS są OBOWIĄZKOWE dla refactorów.
+  INSTRUCTION: This file describes ONLY the changes (delta), not the full state of the specification.
+  Sections: ADDED (new), MODIFIED (changed), REMOVED (deleted), INVARIANTS (unchanged).
+  AC format: Given-When-Then.
+  ID: REQ-NNN — global numbering in the project (next free number from ai/specs/, active
+  ai/changes/, the archive and deltas on other branches — sdd-check next-req). An ADDED number is provisional until
+  /regent:archive: sdd-check renumber fixes a collision with a parallel branch. AC numbered within the REQ (AC-1, AC-2…),
+  a new AC gets the number after the highest in the block. Reference in tasks, reports and verification.md:
+  REQ-012/AC-2 (list: REQ-012/AC-1, AC-3; range: REQ-012/AC-1..3).
+  The numbers are the project's local numbering, so they do not go into the code:
+  a test is named per the project convention, and the AC → test link is recorded at the task
+  in tasks.md ("tests: file › test name") and in verification.md → AC coverage.
+  The delta is the only place for AC in a change — proposal.md refers to them.
+  REMOVE sections that do not apply to this change (e.g. REMOVED with no removals) — do not leave
+  headings with placeholders. INVARIANTS are MANDATORY for refactors.
 -->
 
 ## ADDED
 
-### REQ-XXX: [Nazwa nowego wymagania]
+### REQ-XXX: [Name of the new requirement]
 
-**Given** [warunek wstępny]
-**When** [akcja użytkownika lub systemu]
-**Then** [oczekiwany rezultat]
+**Given** [precondition]
+**When** [user or system action]
+**Then** [expected result]
 
 **Acceptance Criteria:**
-- [ ] AC-1: [kryterium testowalne]
-- [ ] AC-2: [kryterium testowalne]
+- [ ] AC-1: [testable criterion]
+- [ ] AC-2: [testable criterion]
 
-**Notes:** [kontekst, edge cases]
+**Notes:** [context, edge cases]
 
 ---
 
 ## MODIFIED
 
-<!-- Skopiuj z ai/specs/{domena}.md CAŁY blok REQ (nagłówek, Given-When-Then, WSZYSTKIE AC)
-     i przeredaguj go do nowego zachowania. /regent:archive podmienia blok w main spec w całości:
-     AC nieobecne w bloku zniknęłoby, więc AC usuwane celowo wypisz w „Usunięte AC".
-     AC przepisane bez zmian oznacz „(bez zmian)" na końcu linii — nie potrzebują nowego taska
-     ani testu z ID (verify sprawdza je regresyjnie); /regent:archive usuwa znacznik przy merge.
-     Nowe zachowanie obok niezmienionego istniejącego → to ADDED, nie MODIFIED.
-     Zmiana samej nazwy wymagania → MODIFIED z nową nazwą: numer REQ zostaje, więc
-     odwołania w taskach i raportach się nie psują (sdd-check preflight pokaże INFO o zmianie). -->
+<!-- Copy the WHOLE REQ block from ai/specs/{domain}.md (heading, Given-When-Then, ALL AC)
+     and rewrite it to the new behavior. /regent:archive replaces the block in the main spec in full:
+     an AC missing from the block would disappear, so list AC removed on purpose in "Removed AC".
+     Mark AC copied without changes with "(unchanged)" at the end of the line — they need no new task
+     or test with an ID (verify checks them as regression); /regent:archive removes the marker on merge.
+     New behavior next to unchanged existing behavior → that is ADDED, not MODIFIED.
+     Renaming only the requirement → MODIFIED with the new name: the REQ number stays, so
+     references in tasks and reports do not break (sdd-check preflight shows an INFO about the change). -->
 
-### REQ-YYY: [Nazwa wymagania — jak w main spec]
+### REQ-YYY: [Requirement name — as in the main spec]
 
-**Given** [warunek wstępny — po zmianie]
-**When** [akcja użytkownika lub systemu]
-**Then** [oczekiwany rezultat — po zmianie]
+**Given** [precondition — after the change]
+**When** [user or system action]
+**Then** [expected result — after the change]
 
 **Acceptance Criteria:**
-- [ ] AC-1: [kryterium przepisane z main spec] (bez zmian)
-- [ ] AC-2: [kryterium zmienione]
-- [ ] AC-4: [kryterium nowe — kolejny numer w tym REQ]
+- [ ] AC-1: [criterion copied from the main spec] (unchanged)
+- [ ] AC-2: [changed criterion]
+- [ ] AC-4: [new criterion — next number in this REQ]
 
-**Usunięte AC:** AC-3 — [powód] <!-- tylko gdy usuwasz AC; inaczej usuń linię -->
-**Było:** [1-2 zdania o starym zachowaniu — dla recenzenta, nie trafia do main spec]
-**Powód:** [dlaczego zmiana jest konieczna]
+**Removed AC:** AC-3 — [reason] <!-- only when you remove an AC; otherwise delete the line -->
+**Was:** [1-2 sentences about the old behavior — for the reviewer, does not go into the main spec]
+**Reason:** [why the change is necessary]
 
 ---
 
 ## REMOVED
 
-### REQ-ZZZ: [Nazwa usuniętego wymagania]
+### REQ-ZZZ: [Name of the removed requirement]
 
-**Powód:** [dlaczego usunięte]
-**Wpływ:** [co się zmienia po usunięciu]
+**Reason:** [why it was removed]
+**Impact:** [what changes after the removal]
 
 ---
 
 ## INVARIANTS
 
-<!-- Obowiązkowe dla refactorów. Opisz co MUSI pozostać niezmienione. -->
+<!-- Mandatory for refactors. Describe what MUST stay unchanged. -->
 
-- **INV-1:** [Co nie może się zmienić i jak to zweryfikować]
-- **INV-2:** [Co nie może się zmienić i jak to zweryfikować]
+- **INV-1:** [What must not change and how to verify it]
+- **INV-2:** [What must not change and how to verify it]
 
 ---
 
 ## Notes
 
-- [Kontekst, założenia, edge cases, otwarte pytania]
+- [Context, assumptions, edge cases, open questions]
 
-<!-- Tabela History żyje w MAIN spec (ai/specs/{domena}.md — patrz main-spec-template.md),
-     nie w delcie. /regent:archive aktualizuje History podczas merge. -->
+<!-- The History table lives in the MAIN spec (ai/specs/{domain}.md — see main-spec-template.md),
+     not in the delta. /regent:archive updates History during the merge. -->

@@ -1,36 +1,36 @@
 # Exception Patterns
 
-> Opcjonalny. Wypełnij, jeśli `/regent:init` wykryje własne klasy wyjątków / globalny error handler.
+> Optional. Fill in if `/regent:init` detects custom exception classes / a global error handler.
 
-## Hierarchia wyjątków
+## Exception hierarchy
 
-| Wyjątek | Kiedy | HTTP status |
-|---------|-------|-------------|
-| [np. `DomainError`] | Naruszenie reguły biznesowej | 422 / 400 |
-| [np. `NotFoundError`] | Zasób nie istnieje | 404 |
-| [np. `ValidationError`] | Nieprawidłowe dane wejściowe | 400 |
-| [np. `UnauthorizedError`] | Brak autoryzacji | 401 / 403 |
+| Exception | When | HTTP status |
+|-----------|------|-------------|
+| [e.g. `DomainError`] | Business rule violation | 422 / 400 |
+| [e.g. `NotFoundError`] | Resource does not exist | 404 |
+| [e.g. `ValidationError`] | Invalid input data | 400 |
+| [e.g. `UnauthorizedError`] | No authorization | 401 / 403 |
 
-## Zasady
+## Rules
 
-- Rzucaj **typowane** wyjątki domenowe, nie generyczne `Error`.
-- Wyjątki domenowe w `domain/`/`application/`; mapowanie na HTTP w `interface/`.
-- Globalny handler mapuje wyjątki → odpowiedź (kod + bezpieczny komunikat).
-- **Nie ujawniaj** szczegółów wewnętrznych/stack trace w odpowiedzi do klienta.
-- Błędy loguj `technical()` + `error` z `{ message, stack, code }` (→ `logging-patterns.md`).
+- Throw **typed** domain exceptions, not a generic `Error`.
+- Domain exceptions in `domain/`/`application/`; mapping to HTTP in `interface/`.
+- A global handler maps exceptions → response (code + safe message).
+- **Do not expose** internal details/stack trace in the response to the client.
+- Log errors with `technical()` + `error` with `{ message, stack, code }` (→ `logging-patterns.md`).
 
-## Globalny handler
+## Global handler
 
-- [Mechanizm — np. NestJS `ExceptionFilter` / Express error middleware]
-- [Ścieżka — np. `src/core/exceptions/`]
+- [Mechanism — e.g. NestJS `ExceptionFilter` / Express error middleware]
+- [Path — e.g. `src/core/exceptions/`]
 
-## Format odpowiedzi błędu
+## Error response format
 
 ```json
 {
   "error": {
     "code": "VALIDATION_ERROR",
-    "message": "Bezpieczny komunikat dla klienta"
+    "message": "Safe message for the client"
   }
 }
 ```

@@ -1,459 +1,458 @@
 ---
-description: Formalna propozycja zmiany — proposal, delta specs, design, tasks (spec przed kodem)
+description: Formal change proposal — proposal, delta specs, design, tasks (spec before code)
 disable-model-invocation: true
-argument-hint: <nazwa-zmiany> [--type feature|refactor|bugfix]
+argument-hint: <change-name> [--type feature|refactor|bugfix]
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, AskUserQuestion, SendMessage, Bash
 ---
 
-# /regent:propose — Zaproponuj zmianę
+# /regent:propose — Propose a change
 
-**Cel:** Stwórz formalną propozycję zmiany z pełną specyfikacją (proposal, delta specs, design, tasks).
+**Goal:** Create a formal change proposal with a full specification (proposal, delta specs, design, tasks).
 
 ```
-/regent:propose <nazwa-zmiany> [--type feature|refactor|bugfix]
+/regent:propose <change-name> [--type feature|refactor|bugfix]
 
-Przykład:
+Example:
 /regent:propose user-registration
 /regent:propose extract-auth-service --type refactor
 ```
 
 ---
 
-## Agenci (delegacja — WYMAGANE)
+## Agents (delegation — REQUIRED)
 
-Ta komenda MUSI działać przez subagentów (uruchom je narzędziem Task), aby użyć ich modeli:
+This command MUST run through subagents (launch them with the Task tool) to use their models:
 
-| Subagent (`name`) | Model | Rola w komendzie |
-|-------------------|-------|------------------|
+| Subagent (`name`) | Model | Role in the command |
+|-------------------|-------|---------------------|
 | `regent:spec-writer` | sonnet | proposal, delta specs, tasks |
-| `regent:architect` | opus | design.md — podejście, warstwy, ryzyka |
+| `regent:architect` | opus | design.md — approach, layers, risks |
 
-❗ Nie realizuj kroków „w miejscu" w głównej sesji — **deleguj do subagenta po dokładnym `name`**.
-Inaczej modele z `agents/*.md` nie zostaną użyte.
+❗ Do not carry out the steps "in place" in the main session — **delegate to the subagent by its exact `name`**.
+Otherwise the models from `agents/*.md` will not be used.
 
-**Budżet:** S: 1-2 uruchomienia subagentów, M: 2-3, L: 3-5 (tabela w CLAUDE.md).
-Przekroczenie → jedno zdanie uzasadnienia dla użytkownika.
+**Budget:** S: 1-2 subagent runs, M: 2-3, L: 3-5 (table in `context/sdd.md`).
+Exceeding it → one sentence of justification for the user.
 
-**Podział ról sesja główna ↔ subagent:** wywiad z użytkownikiem i bramki akceptacji prowadzi
-SESJA GŁÓWNA (subagent nie może rozmawiać z użytkownikiem). Subagenci dostają odpowiedzi
-w prompcie i **zwracają treść artefaktów w raporcie** — pliki zapisuje sesja główna po
-akceptacji.
+**Split of roles main session ↔ subagent:** the user interview and the acceptance gates are run by
+the MAIN SESSION (a subagent cannot talk to the user). Subagents get the answers
+in the prompt and **return the artifact content in their report** — the main session writes the
+files after acceptance.
 
 ---
 
-## Krok 0: Walidacja konfiguracji
+## Step 0: Configuration validation
 
 ```
-WYMAGANE pliki (nie puste):
+REQUIRED files (not empty):
 □ ai/docs/stack/technology.md
 □ ai/docs/patterns/architecture.md
 □ ai/docs/conventions/naming.md
 □ ai/docs/conventions/code-style.md
 □ ai/docs/conventions/git-workflow.md
 
-Jeśli brakuje → "Uruchom /regent:init przed /regent:propose"
+If missing → "Run /regent:init before /regent:propose"
 ```
 
-**Konflikt z inną aktywną zmianą (twardy punkt, nie ostrzeżenie ogólne)** — gdy `ai/` jest osobisty
-(domyślny tryb), widzisz tylko własne zmiany; pracę kolegów ujawni dopiero merge MR. Dla każdej
-zmiany w swoim `ai/changes/` (bez `archive/`) porównaj z zakresem tej propozycji:
+**Conflict with another active change (hard checkpoint, not a general warning)** — your working tree shows
+only changes merged into your branch; colleagues' changes on other branches show up after their MR
+is merged. For every change in your `ai/changes/` (excluding `archive/`) compare it with the scope of this proposal:
 ```
-□ ta sama domena w specs/{domena}.md?   (obie delty wejdą do tego samego main spec)
-□ wspólne pliki w design.md → „Affected Files"?
+□ same domain in specs/{domain}.md?   (both deltas will go into the same main spec)
+□ shared files in design.md → "Affected Files"?
 ```
-Pokrycie → wypisz kolidującą zmianę i zapytaj (`AskUserQuestion`): kontynuować równolegle /
-poczekać na jej zamknięcie / poszerzyć zakres tamtej zmiany. **Decyzję zapisz w `proposal.md`**
-(sekcja `## Zależności`) — `/regent:archive` mergujący drugą deltę do tego samego main spec musi
-wiedzieć, że pierwsza już go zmieniła.
+Overlap → list the conflicting change and ask (`AskUserQuestion`): continue in parallel /
+wait for it to close / widen the scope of that change. **Record the decision in `proposal.md`**
+(section `## Dependencies`) — `/regent:archive` merging the second delta into the same main spec must
+know that the first one already changed it.
 
 ---
 
-## Krok 1: Zrozum zmianę (wywiad 1 runda, Challenge w rundach)
+## Step 1: Understand the change (interview in 1 round, Challenge in rounds)
 
-### 1a. Detekcja typu
+### 1a. Type detection
 
 ```
-Na podstawie nazwy / opisu (PL i EN):
-- "add", "create", "implement", "dodaj", "utwórz" → feature
-- "extract", "refactor", "reorganize", "wydziel", "uporządkuj" → refactor
+Based on the name / description (PL and EN):
+- "add", "create", "implement", "dodaj", "utworz" → feature
+- "extract", "refactor", "reorganize", "wydziel", "uporzadkuj" → refactor
 - "fix", "repair", "correct", "napraw", "popraw" → bugfix
 
-Jeśli nie jasne → zapytaj użytkownika
+If unclear → ask the user
 ```
 
-### 1b. Wywiad (SESJA GŁÓWNA — jedna runda, oszczędność tokenów!)
+### 1b. Interview (MAIN SESSION — one round, save tokens!)
 
-Sesja główna zadaje użytkownikowi wszystko w jednym pytaniu:
-
-```
-Opisz zmianę:
-1. Problem i cel — co i dlaczego?
-2. Zachowanie — happy path + error scenarios?
-3. Zakres — co IN scope, co OUT of scope?
-4. Ograniczenia — techniczne, czasowe?
-```
-
-Wejście z `/regent:explore` (blok „Wejście do /regent:propose") zastępuje pytania, na które już
-odpowiada — rozstrzygnięcia z eksploracji to gotowe wpisy `DECYZJA`, a „Otwarte" to pierwszy
-frontier Challenge.
-
-**Czekaj na odpowiedzi.** Jeśli odpowiedzi wystarczające → Krok 1b′. Jeśli nie → dopytaj
-KONKRETNIE o brakujące elementy (nie powtarzaj całego wywiadu).
-
-### 1b′. Challenge — drzewo decyzyjne w rundach (BRAMKA JAKOŚCI)
-
-> **Dlaczego:** CLAUDE.md stawia Cię w roli **współodpowiedzialnego partnera**, nie wykonawcy.
-> Bez tego kroku ta rola zależy od tego, czy akurat coś Ci się nasunie. Tu jest egzekwowana.
-> To jedyne miejsce w cyklu, gdzie zły pomysł kosztuje jeszcze zero linii kodu — i jedyne,
-> w którym wszystkie pytania do użytkownika padają, ZANIM ruszy pierwszy subagent.
-
-Zmiana to **drzewo decyzji**: każde rozstrzygnięcie odsłania kolejne, które od niego zależały.
-Nie da się sensownie zapytać o kształt API, zanim wiadomo, czy w ogóle budujemy nowy moduł.
-Dlatego pracujesz **rundami**, nie jedną listą pytań i nie pytaniem po pytaniu.
-
-**Frontier** = wszystkie decyzje, których przesłanki są już rozstrzygnięte — czyli pytania,
-które możesz zadać TERAZ, nie zgadując odpowiedzi, których jeszcze nie usłyszałeś.
-
-#### Zasada podziału pracy (nie do negocjacji)
+The main session asks the user everything in a single question:
 
 ```
-FAKTY znajdujesz SAM — nigdy nie pytasz o nie użytkownika.
-  Czy ten helper już istnieje? Jaki wzorzec jest w kodzie? Co mówi ADR?
-  → Grep/Glob/Read, a przy szerokim zakresie JEDEN subagent Explore.
-
-DECYZJE oddajesz UŻYTKOWNIKOWI — nigdy nie rozstrzygasz ich za niego.
-  Czy budujemy to? Który wariant? Co jest OUT of scope?
-  → AskUserQuestion, z Twoją rekomendacją jako pierwszą opcją.
+Describe the change:
+1. Problem and goal — what and why?
+2. Behavior — happy path + error scenarios?
+3. Scope — what is IN scope, what is OUT of scope?
+4. Constraints — technical, time?
 ```
 
-Pytanie o fakt, który mogłeś sprawdzić sam, to błąd — marnuje turę użytkownika.
-Decyzja podjęta za użytkownika to złamanie roli partnera.
+Input from `/regent:explore` (the "Input to /regent:propose" block) replaces the questions it already
+answers — the resolutions from exploration are ready `DECISION` entries, and "Open" is the first
+Challenge frontier.
 
-#### Runda 0: zbierz fakty i otwórz drzewo
+**Wait for the answers.** If the answers are sufficient → Step 1b′. If not → ask
+SPECIFICALLY about the missing elements (do not repeat the whole interview).
 
-Rozpoznaj kod **read-only** (Grep/Glob/Read; JEDEN `Explore`, gdy zakres niejasny) i sprawdź
-korzenie drzewa — to są zawsze pierwszy frontier, bo nic od nich nie zależy w drugą stronę:
+### 1b′. Challenge — decision tree in rounds (QUALITY GATE)
+
+> **Why:** `context/role.md` puts you in the role of a **co-responsible partner**, not an executor.
+> Without this step that role depends on whether something happens to occur to you. Here it is enforced.
+> This is the only place in the cycle where a bad idea still costs zero lines of code — and the only one
+> where all questions to the user are asked BEFORE the first subagent starts.
+
+A change is a **decision tree**: every resolution reveals further decisions that depended on it.
+You cannot sensibly ask about the shape of an API before you know whether a new module is being built at all.
+That is why you work in **rounds**, not with one list of questions and not question by question.
+
+**Frontier** = all decisions whose premises are already resolved — i.e. the questions
+you can ask NOW without guessing answers you have not heard yet.
+
+#### Division of labor (non-negotiable)
 
 ```
-□ PROBLEM — czy problem jest realny i nazwany?
-  Czerwona flaga: uzasadnienie to „bo tak będzie lepiej" / „przyda się" / „inni tak mają",
-  bez konkretnego bólu użytkownika lub kosztu, który znika.
+FACTS you find YOURSELF — you never ask the user about them.
+  Does this helper already exist? What pattern is in the code? What does the ADR say?
+  → Grep/Glob/Read, and for a broad scope ONE Explore subagent.
 
-□ PROPORCJA — czy rozwiązanie jest proporcjonalne do problemu?
-  Czerwona flaga: nowa warstwa abstrakcji / nowa zależność / nowy moduł dla problemu,
-  który rozwiązuje się w istniejącym kodzie.
-
-□ ZAKRES — czy zakres nie jest przerostem względem problemu?
-  Czerwona flaga: AC opisujące przypadki, których nikt nie zgłosił; „skoro już to robimy, to…".
-
-□ PROSTSZA DROGA — czy istnieje wyraźnie tańsze rozwiązanie o tym samym efekcie?
-  Czerwona flaga: nie rozważyłeś ani jednej alternatywy.
-
-□ JĘZYK — (gdy istnieje `ai/docs/domain/glossary.md`) czy opis zmiany używa terminów
-  ze słownika w ich ustalonym znaczeniu?
-  Czerwona flaga: termin użyty w innym znaczeniu niż w słowniku, albo synonim z `_Unikaj_`.
-  Rozbieżność jest pytaniem do frontiera („czy X znaczy tu A czy B?"), a po rozstrzygnięciu —
-  wpisem do sekcji „Rozstrzygnięte niejednoznaczności" w glosariuszu.
-
-□ ZASADY — (gdy architecture.md ma „Zasady nienegocjowalne") czy kierunek mieści się w MUST?
-  Czerwona flaga: rozwiązanie wymaga odstępstwa — to pytanie do frontiera, a po decyzji
-  wpis w design.md → „Odstępstwa od zasad".
-
-□ LUKI — czy opis zachowania odpowiada na to, o co i tak zapyta tester?
-  Przejdź kategorie: stany błędu / pusty / ładowanie · mierzalne NFR (czas, limity, wolumen) ·
-  uprawnienia (kto może, kto nie) · współbieżność i idempotencja (dwa razy, naraz) · cykl życia
-  danych (edycja, usunięcie, archiwizacja) · awaria integracji zewnętrznej.
-  Czerwona flaga: kategoria dotyczy zmiany, opis milczy, a odpowiedź zmieniłaby AC albo test.
-  Luka o małym wpływie to nie pytanie — spec-writer przyjmie rozsądną wartość jako ZAŁOŻENIE.
+DECISIONS you hand to the USER — you never resolve them for them.
+  Do we build this? Which variant? What is OUT of scope?
+  → AskUserQuestion, with your recommendation as the first option.
 ```
 
-**Zero czerwonych flag i zero rozwidleń technicznych** → powiedz `AKCEPTUJĘ` jednym zdaniem
-i idź do Kroku 2. Nie szukaj problemów na siłę — większość zmian ma tu po prostu przejść,
-a runda pytań bez pytań to strata tury.
+Asking about a fact you could have checked yourself is a mistake — it wastes the user's turn.
+A decision made for the user breaks the partner role.
 
-#### Rundy 1..N: pytaj cały frontier naraz
+#### Round 0: gather facts and open the tree
 
-Każda runda to **jedna tura `AskUserQuestion`** (do 4 pytań), zadana przez SESJĘ GŁÓWNĄ.
-Format pytania: tytuł, treść, **Twoja rekomendacja jako pierwsza opcja** z dopiskiem
+Survey the code **read-only** (Grep/Glob/Read; ONE `Explore` when the scope is unclear) and check
+the roots of the tree — they are always the first frontier, because nothing depends on them in the other direction:
+
+```
+□ PROBLEM — is the problem real and named?
+  Red flag: the justification is "because it will be better" / "it will come in handy" / "others have it",
+  without a concrete user pain or a cost that goes away.
+
+□ PROPORTION — is the solution proportional to the problem?
+  Red flag: a new abstraction layer / new dependency / new module for a problem
+  that can be solved in the existing code.
+
+□ SCOPE — is the scope not overgrown relative to the problem?
+  Red flag: AC describing cases nobody reported; "since we're at it anyway…".
+
+□ SIMPLICITY — is there a clearly cheaper solution with the same effect?
+  Red flag: you have not considered a single alternative.
+
+□ LANGUAGE — (when `ai/docs/domain/glossary.md` exists) does the change description use terms
+  from the glossary in their established meaning?
+  Red flag: a term used in a meaning different from the glossary, or a synonym from `_Avoid_`.
+  A discrepancy is a frontier question ("does X mean A or B here?"), and once resolved —
+  an entry in the "Resolved ambiguities" section of the glossary.
+
+□ PRINCIPLES — (when architecture.md has "Non-negotiable principles") does the direction fit within the MUST?
+  Red flag: the solution requires a deviation — that is a frontier question, and after the decision
+  an entry in design.md → "Deviations from principles".
+
+□ GAPS — does the behavior description answer what a tester will ask anyway?
+  Go through the categories: error / empty / loading states · measurable NFRs (time, limits, volume) ·
+  permissions (who can, who cannot) · concurrency and idempotency (twice, at once) · data
+  lifecycle (edit, delete, archive) · external integration failure.
+  Red flag: a category applies to the change, the description is silent, and the answer would change an AC or a test.
+  A low-impact gap is not a question — the spec-writer will adopt a reasonable value as an ASSUMPTION.
+```
+
+**Zero red flags and zero technical forks** → say `ACCEPT` in one sentence
+and go to Step 2. Do not hunt for problems by force — most changes should simply pass here,
+and a round of questions without questions is a wasted turn.
+
+#### Rounds 1..N: ask the whole frontier at once
+
+Each round is **one `AskUserQuestion` turn** (up to 4 questions), asked by the MAIN SESSION.
+Question format: title, body, **your recommendation as the first option** with the suffix
 `(Recommended)`.
 
-Do frontiera tej rundy trafiają zarówno zastrzeżenia z Rundy 0 (czy budować), jak i
-rozwidlenia techniczne, które zmieniłyby treść artefaktów, gdyby subagent zgadł źle:
-- **Podejście:** rozszerzyć istniejący komponent vs stworzyć nowy; wzorzec X vs Y.
-- **Zakres:** co dokładnie IN/OUT, gdy opis jest szeroki lub wieloznaczny.
-- **Kształt kontraktu/API:** sygnatury, typy, format danych — gdy jest więcej niż jedna
-  rozsądna opcja.
-- **Rozbieżność z dokumentem źródłowym:** ticket/standard zakłada inny stack niż projekt.
+The frontier of this round includes both the objections from Round 0 (whether to build) and
+the technical forks that would change the artifact content if the subagent guessed wrong:
+- **Approach:** extend an existing component vs create a new one; pattern X vs Y.
+- **Scope:** what exactly is IN/OUT, when the description is broad or ambiguous.
+- **Contract/API shape:** signatures, types, data format — when there is more than one
+  reasonable option.
+- **Divergence from the source document:** the ticket/standard assumes a different stack than the project.
 
-❗ **Pytanie, którego odpowiedź zależy od innego pytania otwartego w TEJ rundzie, należy do
-rundy PÓŹNIEJSZEJ.** To jest cała mechanika — łamiąc ją, wracasz do zgadywania.
+❗ **A question whose answer depends on another question open in THIS round belongs to a
+LATER round.** That is the whole mechanism — break it and you are back to guessing.
 
-Po odpowiedziach: rozstrzygnięte decyzje przesuwają frontier na zewnątrz i odblokowują
-pytania, które od nich zależały. Przelicz frontier i zadaj następną rundę.
+After the answers: resolved decisions push the frontier outward and unlock the
+questions that depended on them. Recompute the frontier and ask the next round.
 
-**Gdy frontier wymaga faktu ze środowiska** — odpal rozpoznanie, ale **nie blokuj na nim
-całej rundy**: czeka tylko ta gałąź, resztę frontiera pytasz teraz.
+**When the frontier needs a fact from the environment** — launch the survey, but **do not block
+the whole round on it**: only that branch waits, the rest of the frontier you ask now.
 
-#### Koniec: frontier pusty
+#### End: frontier empty
 
-Sesja kończy się, gdy **żadna gałąź nie została z cichym założeniem**. Wtedy werdykt:
+The session ends when **no branch is left with a silent assumption**. Then the verdict:
 
-- **`AKCEPTUJĘ`** — drzewo przeszło bez zastrzeżeń (lub zastrzeżenia zostały rozwiane
-  w rundach). Jedno zdanie i Krok 2.
-- **`MAM ZASTRZEŻENIA`** — użytkownik podtrzymał kierunek mimo czerwonych flag.
-  Wypisz je **zwięźle** (1-3 punkty, każdy: zastrzeżenie + konkretna alternatywa).
+- **`ACCEPT`** — the tree passed without objections (or the objections were dispelled
+  in the rounds). One sentence and Step 2.
+- **`OBJECTIONS`** — the user upheld the direction despite the red flags.
+  List them **concisely** (1-3 points, each: objection + a concrete alternative).
 
-**Każde rozstrzygnięcie z rund trafia do `proposal.md`** — sekcja `## Decyzje i założenia`,
-wpis `DECYZJA` (kwestia → odpowiedź, jedna linia). Zbieraj je po każdej rundzie i przekaż
-kompletną listę `regent:spec-writer` w Kroku 2. Po kompaktowaniu kontekstu, przerwanej sesji albo
-za pół roku to jedyny ślad, dlaczego plan wygląda tak, a nie inaczej.
+**Every resolution from the rounds goes into `proposal.md`** — section `## Decisions and assumptions`,
+a `DECISION` entry (issue → answer, one line). Collect them after every round and pass the
+complete list to `regent:spec-writer` in Step 2. After context compaction, an interrupted session or
+half a year later, it is the only trace of why the plan looks the way it does.
 
-**Zastrzeżenia zawsze trafiają do `proposal.md`** — sekcja `## Zastrzeżenia` z werdyktem
-użytkownika (`uwzględnione` / `świadomie odrzucone`). Powód: decyzja ma zostać udokumentowana
-także wtedy, gdy ją odrzucisz — za pół roku nikt nie pamięta, że temat był podnoszony.
+**Objections always go into `proposal.md`** — section `## Objections` with the user's
+verdict (`addressed` / `knowingly rejected`). Reason: the decision must be documented
+even when you reject it — half a year later nobody remembers the topic was raised.
 
-❗ **Jeśli użytkownik podtrzymuje decyzję po Twoich zastrzeżeniach — to jego decyzja.
-Zapisz ją i buduj pełny zakres bez wracania do tematu.** Zgłaszasz raz, nie marudzisz.
+❗ **If the user upholds the decision after your objections — it is their decision.
+Record it and build the full scope without returning to the topic.** You raise it once, you do not nag.
 
-#### Budżet rund (sufit, nie cel)
+#### Round budget (a ceiling, not a target)
 
-| Rozmiar | Rund `AskUserQuestion` | Uwaga |
+| Size | `AskUserQuestion` rounds | Note |
 |---|---|---|
-| **S** | 0-1 | zwykle `AKCEPTUJĘ` po Rundzie 0 |
+| **S** | 0-1 | usually `ACCEPT` after Round 0 |
 | **M** | 1-2 | |
-| **L** | 2-3 | 4. runda → powiedz, dlaczego drzewo jest aż tak głębokie |
+| **L** | 2-3 | 4th round → say why the tree is that deep |
 
-Rozpoznanie read-only liczy się do budżetu subagentów (`Explore`), rundy pytań — nie.
+The read-only survey counts toward the subagent budget (`Explore`), question rounds do not.
 
-❗ **Nie deleguj, dopóki frontier nie jest pusty.** Każda re-delegacja po fakcie (bo „wyszła"
-decyzja o loggerze, scope albo kształcie API) to pełny re-run kontekstu. Pomiar realnego
-`/regent:propose` pokazał 6 subagentów zamiast 2, bo 3 decyzje padły SEKWENCYJNIE po raportach.
-Lepiej jedna dodatkowa runda tutaj niż jedna re-delegacja później.
+❗ **Do not delegate until the frontier is empty.** Every re-delegation after the fact (because a
+decision about the logger, scope or API shape "came up") is a full context re-run. A measurement of a real
+`/regent:propose` showed 6 subagents instead of 2, because 3 decisions came SEQUENTIALLY after the reports.
+Better one extra round here than one re-delegation later.
 
 ---
 
-## Krok 2: Generuj artefakty (subagenci zwracają TREŚĆ, nie zapisują plików)
+## Step 2: Generate artifacts (subagents return CONTENT, do not write files)
 
-Deleguj (Task) z odpowiedziami z wywiadu w prompcie — w tej kolejności, każdy krok bierze
-wynik poprzedniego:
+Delegate (Task) with the interview answers in the prompt — in this order, each step takes
+the result of the previous one:
 
-1. `regent:spec-writer` → treść **proposal.md** i **specs/{domena}.md**
-2. `regent:architect` → treść **design.md** (przekaż mu proposal + specs z raportu spec-writera)
-3. **resume tego samego `regent:spec-writer`** (SendMessage po agentId) z treścią `design.md` →
-   treść **tasks.md**. Taski wynikają z „Affected Files" i decyzji architekta, nie z samego
-   speca. Resume to nie nowe uruchomienie (budżet), a spec-writer ma już kontekst speca.
+1. `regent:spec-writer` → content of **proposal.md** and **specs/{domain}.md**
+2. `regent:architect` → content of **design.md** (pass it the proposal + specs from the spec-writer's report)
+3. **resume the same `regent:spec-writer`** (SendMessage by agentId) with the `design.md` content →
+   content of **tasks.md**. Tasks follow from "Affected Files" and the architect's decisions, not from the
+   spec alone. A resume is not a new run (budget), and the spec-writer already has the spec context.
 
-W prompcie do `regent:spec-writer` przekaż listę `DECYZJA` z Kroku 1b′ oraz zastrzeżenia (jeśli były),
-a także dwa fakty policzone skryptem (sesja główna, przed delegacją):
-- `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh next-req` → następny wolny numer REQ (tryb
-  współdzielony — `git check-ignore -q --no-index ai/` daje exit 1 — najpierw `git fetch -q`:
-  skrypt dolicza numery z delt na gałęziach zdalnych),
-- `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh index` → spis wymagań z `ai/specs/` — spec-writer czyta w całości tylko main specs
-  domen, których dotyczy zmiana.
+In the prompt to `regent:spec-writer` pass the `DECISION` list from Step 1b′ and the objections (if any),
+plus two facts computed by the script (main session, before delegation):
+- `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh next-req` → the next free REQ number (run
+  `git fetch -q` first: the script also counts numbers from deltas on remote branches),
+- `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh index` → index of requirements from `ai/specs/` — the spec-writer reads in full only the main specs
+  of the domains the change touches.
 
-W promptach zaznacz jawnie: **„NIE zapisuj plików — zwróć pełną treść artefaktów w raporcie"**.
+In the prompts state explicitly: **"DO NOT write files — return the full artifact content in the report"**.
 
-W prompcie do `regent:architect` przypomnij: **wzorce bierz z `ai/docs/patterns/` + sekcji
-Reference Implementations w `architecture.md`; `src/` skanuj tylko do ZLOKALIZOWANIA plików
-do "Affected Files", nie do nauki wzorca od zera.** Jeśli potrzebny wzorzec nie ma Reference
-Implementation → niech zgłosi to w raporcie (kandydat do dopisania przez `/regent:revise`).
+In the prompt to `regent:architect` remind it: **take patterns from `ai/docs/patterns/` + the
+Reference Implementations section in `architecture.md`; scan `src/` only to LOCATE files
+for "Affected Files", not to learn a pattern from scratch.** If a needed pattern has no Reference
+Implementation → it should report that in its report (a candidate to add via `/regent:revise`).
 
-**Zawężaj kontekst przekazywany subagentom (oszczędność tokenów):**
-> Które pliki `ai/docs/` czytać wiedzą już same definicje `regent:spec-writer`/`regent:architect` — NIE powtarzaj
-> tego w prompcie. Poniżej tylko logika orkiestracji, której agenci nie mają:
-- Duże dokumenty źródłowe (specyfikacje, standardy, `.docx.md`): niech przeczyta je JEDEN
-  subagent RAZ i zwróci wnioski w raporcie. W kolejnych promptach/iteracjach przekazuj
-  **streszczenie z raportu**, nie każ czytać dokumentu ponownie.
-- Przekazuj subagentowi tylko te wyniki rozpoznania kodu (z Kroku 1b′), które są mu potrzebne —
-  nie cały dump eksploracji.
+**Narrow the context passed to subagents (save tokens):**
+> Which `ai/docs/` files to read is already known from the `regent:spec-writer`/`regent:architect` definitions — DO NOT repeat
+> it in the prompt. Below is only the orchestration logic the agents do not have:
+- Large source documents (specifications, standards, `.docx.md`): let ONE
+  subagent read them ONCE and return the conclusions in its report. In later prompts/iterations pass
+  **the summary from the report**, do not have the document read again.
+- Pass the subagent only those code survey results (from Step 1b′) it needs —
+  not the whole exploration dump.
 
 ### 2a. proposal.md
-Szablon: `${CLAUDE_PLUGIN_ROOT}/templates/proposal-template.md`
-- Metadane, problem, rozwiązanie, oczekiwany rezultat, zakres, wpływ, Decyzje i założenia
-  (AC żyją w delcie — proposal do nich odsyła)
+Template: `${CLAUDE_PLUGIN_ROOT}/templates/proposal-template.md`
+- Metadata, problem, solution, expected outcome, scope, impact, Decisions and assumptions
+  (AC live in the delta — the proposal refers to them)
 
-### 2b. specs/{domena}.md
-Szablon: `${CLAUDE_PLUGIN_ROOT}/templates/spec-template.md`
+### 2b. specs/{domain}.md
+Template: `${CLAUDE_PLUGIN_ROOT}/templates/spec-template.md`
 - ADDED / MODIFIED / REMOVED / INVARIANTS
-- Jeden plik per domena
+- One file per domain
 
 ### 2c. design.md
-Szablon: `${CLAUDE_PLUGIN_ROOT}/templates/design-template.md`
-- Podejście, Affected Files, API, DB changes, ryzyka
-- Sekcje nieużywane (np. Database Changes, gdy brak zmian w DB) USUŃ — ich obecność
-  triggeruje etapy w /regent:verify
+Template: `${CLAUDE_PLUGIN_ROOT}/templates/design-template.md`
+- Approach, Affected Files, API, DB changes, risks
+- REMOVE unused sections (e.g. Database Changes when there are no DB changes) — their presence
+  triggers stages in /regent:verify
 
 ### 2d. tasks.md
 
-Tagi warstw (`[BE]`/`[FE]`/`[DB]`, brak tagu = `[BE]`) nadaje `regent:spec-writer` wg swojej
-definicji. Twoja rola orkiestracyjna: **przy zmianie BE+FE dopilnuj, by `design.md` zawierał
-kontrakt API↔UI** (kontrakt-first — FE mockuje HTTP wg kontraktu, domyślnie BE najpierw).
+Layer tags (`[BE]`/`[FE]`/`[DB]`, no tag = `[BE]`) are assigned by `regent:spec-writer` per its
+definition. Your orchestration role: **for a BE+FE change make sure `design.md` contains
+the API↔UI contract** (contract-first — FE mocks HTTP per the contract, BE first by default).
 
-Format taska (REQ/AC, pliki, weryfikacja) definiuje `regent:spec-writer` — przykład:
+The task format (REQ/AC, files, verification) is defined by `regent:spec-writer` — example:
 
 ```markdown
-# Tasks: [nazwa]
+# Tasks: [name]
 
 ## Setup
-- [ ] T-01: [task] — pliki: [...] — weryfikacja: [komenda / obserwowalny efekt]
+- [ ] T-01: [task] — files: [...] — verification: [command / observable effect]
 
 ## Implementation
-- [ ] T-02: [DB] Migration: users table — REQ-001 — pliki: [...] — weryfikacja: migracja up/down/up
-- [ ] T-03: [BE] Create user endpoint — REQ-001/AC-1, AC-2 — pliki: [...] — weryfikacja: testy REQ-001/AC-1, AC-2 zielone (po T-02)
-- [ ] T-04: [FE] Registration form component — REQ-001/AC-3 — pliki: [...] — weryfikacja: test komponentu REQ-001/AC-3 (po T-03)
+- [ ] T-02: [DB] Migration: users table — REQ-001 — files: [...] — verification: migration up/down/up
+- [ ] T-03: [BE] Create user endpoint — REQ-001/AC-1, AC-2 — files: [...] — verification: tests REQ-001/AC-1, AC-2 green (after T-02)
+- [ ] T-04: [FE] Registration form component — REQ-001/AC-3 — files: [...] — verification: component test REQ-001/AC-3 (after T-03)
 
-## Integracja / E2E
-- [ ] T-05: [BE] E2E rejestracji — REQ-001, REQ-002 — pliki: [...] — weryfikacja: test E2E zielony
+## Integration / E2E
+- [ ] T-05: [BE] Registration E2E — REQ-001, REQ-002 — files: [...] — verification: E2E test green
 
 ---
 Total: X tasks | Size: [S/M/L]
 ```
 
-Testy jednego taska powstają w tym tasku (cykl TDD). Grupa `## Integracja / E2E` jest tylko
-na testy przekrojowe — sprawdzające kilka tasków naraz.
+The tests of a single task are written in that task (TDD cycle). The `## Integration / E2E` group is only
+for cross-cutting tests — ones that check several tasks at once.
 
-Jeśli raport subagenta zawiera `OPEN QUESTIONS` → zadaj je użytkownikowi (jedną turą
-`AskUserQuestion`) i **kontynuuj TEGO SAMEGO subagenta** (SendMessage / resume po agentId)
-z odpowiedziami. **Resume jest ścieżką DOMYŚLNĄ** — subagent zachowuje kontekst, nie płacisz
-ponownie za jego system-prompt ani za wczytane dokumenty. Re-delegacja od zera (nowy Task) TYLKO
-gdy resume jest niedostępne.
+If the subagent's report contains `OPEN QUESTIONS` → ask them to the user (in one
+`AskUserQuestion` turn) and **continue THE SAME subagent** (SendMessage / resume by agentId)
+with the answers. **Resume is the DEFAULT path** — the subagent keeps its context, you do not pay
+again for its system prompt or for the documents it loaded. Re-delegation from scratch (new Task) ONLY
+when resume is unavailable.
 
 ---
 
-## Krok 2.5: Kontrola spójności artefaktów (SESJA GŁÓWNA)
+## Step 2.5: Consistency check of the artifacts (MAIN SESSION)
 
-Zanim pokażesz Draft, porównaj raporty, które już masz w kontekście — bez nowego subagenta.
-Rozjazd między artefaktami wychodzi dziś dopiero w kodzie; tu kosztuje jedną poprawkę tekstu.
-Pokrycie AC↔task i poprawność odwołań policzy skrypt w 3a — tu sprawdzasz to, czego skrypt
-nie oceni:
+Before you show the Draft, compare the reports you already have in context — without a new subagent.
+A divergence between artifacts today surfaces only in the code; here it costs one text fix.
+AC↔task coverage and reference correctness are computed by the script in 3a — here you check what the script
+cannot judge:
 
-| Kontrola | Rozjazd → działanie |
+| Check | Divergence → action |
 |---|---|
-| Pliki z tasków mieszczą się w „Affected Files" z design.md | popraw tasks albo design (resume) |
-| Decyzje techniczne i kontrakt API z design.md zgodne z AC | sprzeczność → pytanie do użytkownika |
-| Każda `DECYZJA` z Challenge odbita w artefaktach | uzupełnij artefakt |
-| Terminy zgodne z `glossary.md` (gdy istnieje) | synonim z `_Unikaj_` → popraw |
+| Files from the tasks fit within "Affected Files" from design.md | fix tasks or design (resume) |
+| Technical decisions and the API contract from design.md consistent with the AC | contradiction → question to the user |
+| Every `DECISION` from Challenge reflected in the artifacts | complete the artifact |
+| Terms consistent with `glossary.md` (when it exists) | synonym from `_Avoid_` → fix |
 
-Rozjazd drobny poprawiasz sam w treści przed zapisem; koncepcyjny → resume właściwego
-subagenta. Wynik (liczba rozjazdów i co z nimi zrobiono) pokazujesz w 3b jedną linią.
+You fix a minor divergence yourself in the content before writing; a conceptual one → resume the right
+subagent. You show the result (number of divergences and what was done with them) in 3b in one line.
 
 ---
 
-## Krok 3: Zapisz jako Draft + prezentacja do review
+## Step 3: Save as Draft + presentation for review
 
-> **Filozofia:** user ocenia PEŁNE pliki, nie skrócony obraz w czacie — poprawki (błędne AC,
-> zły scope, nietrafiony design) często widać dopiero po przeczytaniu artefaktów. Dlatego
-> zapisujemy je NAJPIERW jako `Draft`, a `Approved` ustawiamy dopiero po akceptacji.
+> **Philosophy:** the user judges the FULL files, not a shortened picture in the chat — fixes (wrong AC,
+> bad scope, off-target design) often become visible only after reading the artifacts. That is why
+> we save them FIRST as `Draft`, and set `Approved` only after acceptance.
 
-### 3a. Zapis Draft (SESJA GŁÓWNA)
+### 3a. Saving the Draft (MAIN SESSION)
 
-Sesja główna zapisuje pełną treść z raportów subagentów do `ai/changes/{nazwa}/`:
+The main session writes the full content from the subagents' reports to `ai/changes/{name}/`:
 ```
-ai/changes/{nazwa}/
+ai/changes/{name}/
 ├── proposal.md      ← Status: Draft
-├── specs/{domena}.md
+├── specs/{domain}.md
 ├── design.md
 └── tasks.md
 ```
-- W `proposal.md` ustaw **`Status: Draft`**.
+- In `proposal.md` set **`Status: Draft`**.
 
-Po zapisie sprawdź artefakty skryptem (fakty liczy skrypt, nie model):
+After writing, check the artifacts with the script (the script computes facts, not the model):
 ```
-bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh change {nazwa}      # format delty, tasks, pokrycie AC przez taski
-bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh preflight {nazwa}   # delta vs ai/specs/: kolizje numerów, MODIFIED bez REQ, utrata AC
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh change {name}      # delta format, tasks, AC coverage by tasks
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh preflight {name}   # delta vs ai/specs/: number collisions, MODIFIED without REQ, AC loss
 ```
-ERROR → popraw przed prezentacją (drobne — sam, koncepcyjne — resume subagenta). WARN
-pokrycia (AC bez taska, task bez AC) → popraw albo uzasadnij wpisem w Decyzjach.
+ERROR → fix before the presentation (minor — yourself, conceptual — resume the subagent). Coverage WARN
+(AC without a task, task without an AC) → fix or justify with an entry in Decisions.
 
-### 3b. Prezentacja (ścieżki + zwięzłe podsumowanie)
+### 3b. Presentation (paths + concise summary)
 
 ```markdown
-## Proposal: [nazwa] ([type]) — zapisano jako Draft
+## Proposal: [name] ([type]) — saved as Draft
 
-Pliki do przeglądu (w tej kolejności — od „czy to właściwy problem" do „jak"):
-- ai/changes/[nazwa]/proposal.md
-- ai/changes/[nazwa]/specs/[domena].md
-- ai/changes/[nazwa]/tasks.md
-- ai/changes/[nazwa]/design.md
+Files to review (in this order — from "is this the right problem" to "how"):
+- ai/changes/[name]/proposal.md
+- ai/changes/[name]/specs/[domain].md
+- ai/changes/[name]/tasks.md
+- ai/changes/[name]/design.md
 
-AC: X | Tasks: Y | Size: S/M/L | Modules: [lista] | Specs: [X ADDED, Y MODIFIED]
-Założenia do potwierdzenia: N (proposal.md → Decyzje i założenia, wpisy ZAŁOŻENIE)
-Spójność (Krok 2.5): [N rozjazdów — poprawione / do decyzji: …] | sdd-check: [RESULT]
-Kluczowe ryzyka / OPEN QUESTIONS: [1-2 zdania, jeśli są]
+AC: X | Tasks: Y | Size: S/M/L | Modules: [list] | Specs: [X ADDED, Y MODIFIED]
+Assumptions to confirm: N (proposal.md → Decisions and assumptions, ASSUMPTION entries)
+Consistency (Step 2.5): [N divergences — fixed / for decision: …] | sdd-check: [RESULT]
+Key risks / OPEN QUESTIONS: [1-2 sentences, if any]
 
-Checklista recenzenta (2 minuty):
-□ Problem i zakres to to, o co prosiłem — nic ponad to nie dopełzło
-□ Każde AC da się sprawdzić testem; przypadek, na którym mi najbardziej zależy, ma swoje AC
-□ Założenia (ZAŁOŻENIE) są do przyjęcia
-□ Każdy task wskazuje swoje AC i weryfikację — żaden nie jest zagadką
-□ Byłbym spokojny, gdyby AI zbudowało dokładnie to i nic więcej
+Reviewer checklist (2 minutes):
+□ The problem and scope are what I asked for — nothing beyond that crept in
+□ Every AC can be checked by a test; the case I care about most has its own AC
+□ The assumptions (ASSUMPTION) are acceptable
+□ Every task points to its AC and verification — none is a riddle
+□ I would be at ease if the AI built exactly this and nothing more
 
-Przeczytaj pliki, potem: `zatwierdzam` / `popraw: [opis]` / `odrzuć`
+Read the files, then: `approve` / `revise: [description]` / `reject`
 ```
 
-**CZEKAJ NA DECYZJĘ.**
+**WAIT FOR THE DECISION.**
 
-### 3c. Obsługa odpowiedzi:
+### 3c. Handling the response:
 
-**`zatwierdzam` / `tak`** → Krok 4 (flip statusu).
+**`approve` / `yes`** → Step 4 (status flip).
 
-**`odrzuć` / `nie`** → ustaw w proposal.md `Status: Rejected` (zostaw pliki jako ślad decyzji;
-user może ręcznie usunąć katalog). Nie kontynuuj.
+**`reject` / `no`** → set `Status: Rejected` in proposal.md (leave the files as a trace of the decision;
+the user can delete the directory manually). Do not continue.
 
-**`popraw: [opis]`** → nanieś poprawki, pliki pozostają `Draft`; uruchom ponownie `sdd-check change`
-i `preflight` (3a), potem pokaż sekcję 3b z aktualnym wynikiem.
-Wybór ścieżki **zależnie od skali poprawki**:
-- **Drobne / mechaniczne** (literówki, formatowanie, pojedyncze AC, nazwa `action`, korekta
-  ścieżki/typu) → **sesja główna edytuje pliki Draft wprost** (Edit). NIE budź subagenta — to
-  najtańsze i najszybsze dla iteracji na tekście. Napisz krótko co zmieniłeś.
-- **Koncepcyjne** (zmiana podejścia technicznego, scope, wielu AC/tasków naraz, przeprojektowanie
-  design) → **kontynuuj TEGO SAMEGO subagenta** (SendMessage / resume po agentId), on aktualizuje
-  treść, sesja nadpisuje pliki. Chroni spójność proposal↔specs↔design↔tasks. Re-delegacja od zera
-  TYLKO gdy resume niedostępne. Zbieraj powiązane poprawki w jedną turę.
+**`revise: [description]`** → apply the fixes, the files stay `Draft`; rerun `sdd-check change`
+and `preflight` (3a), then show section 3b with the current result.
+Choice of path **depending on the scale of the fix**:
+- **Minor / mechanical** (typos, formatting, single AC, `action` name, correction of a
+  path/type) → **the main session edits the Draft files directly** (Edit). DO NOT wake the subagent — this is
+  the cheapest and fastest for iterating on text. Say briefly what you changed.
+- **Conceptual** (change of technical approach, scope, many AC/tasks at once, redesign of the
+  design) → **continue THE SAME subagent** (SendMessage / resume by agentId), it updates
+  the content, the session overwrites the files. Protects proposal↔specs↔design↔tasks consistency. Re-delegation from scratch
+  ONLY when resume is unavailable. Collect related fixes into one turn.
 
-Jeśli nie masz pewności do której kategorii należy poprawka → potraktuj jako koncepcyjną (subagent).
+If you are unsure which category a fix belongs to → treat it as conceptual (subagent).
 
-**Iteruj do `zatwierdzam`.** Pliki są już na dysku jako Draft przez cały czas iteracji.
+**Iterate until `approve`.** The files are on disk as Draft throughout the iteration.
 
 ---
 
-## Krok 4: Zatwierdzenie (SESJA GŁÓWNA)
+## Step 4: Approval (MAIN SESSION)
 
-Po `zatwierdzam` — pliki już istnieją (zapisane w Kroku 3). Wykonaj TYLKO:
-1. Zmień w `proposal.md` **`Status: Draft` → `Status: Approved`** (bez tego `/regent:apply` odmówi startu).
-2. (opcjonalnie) Eksport tasków do trackera — tylko gdy sesja ma podłączony tracker (np. MCP
-   Jira/GitLab); bez niego pomiń punkt bez pytania. To akcja poza repo, więc:
-   - pytasz o zgodę (`AskUserQuestion`: eksportuj / pomiń) i pokazujesz listę tasków do utworzenia,
-     jako zadania podrzędne ticketu z pola `Ticket` w proposal.md;
-   - task, który ma już `(issue: KEY-123)` w tasks.md, pomijasz (deduplikacja po `T-NN`);
-   - klucz utworzonego zadania dopisujesz przy tasku: `(issue: KEY-123)`.
-3. Wskaż następny krok:
+After `approve` — the files already exist (saved in Step 3). Do ONLY:
+1. Change in `proposal.md` **`Status: Draft` → `Status: Approved`** (without it `/regent:apply` refuses to start).
+2. (optional) Export the tasks to a tracker — only when the session has a tracker connected (e.g. MCP
+   Jira/GitLab); without one, skip this point without asking. This is an action outside the repo, so:
+   - you ask for consent (`AskUserQuestion`: export / skip) and show the list of tasks to create,
+     as subtasks of the ticket from the `Ticket` field in proposal.md;
+   - a task that already has `(issue: KEY-123)` in tasks.md you skip (deduplication by `T-NN`);
+   - you append the key of the created issue next to the task: `(issue: KEY-123)`.
+3. Point to the next step:
 ```
-ai/changes/{nazwa}/proposal.md → Status: Approved
+ai/changes/{name}/proposal.md → Status: Approved
 
-→ /regent:apply {nazwa}
+→ /regent:apply {name}
 ```
 
 ---
 
-## WAŻNE Rules
+## IMPORTANT Rules
 
-✅ **ZAWSZE:**
-- 1 runda wywiadu (sesja główna), dopytuj tylko o braki
-- Challenge (Krok 1b′) przed decyzjami architektonicznymi — werdykt `AKCEPTUJĘ` /
-  `MAM ZASTRZEŻENIA` powiedziany jawnie
-- Większość zmian przechodzi z `AKCEPTUJĘ` — zastrzeżenie zgłaszasz, gdy masz konkretną
-  alternatywę; zgłoszone raz, potem budujesz pełny zakres wg decyzji użytkownika
-- Zastrzeżenia (jeśli były) zapisane w `proposal.md` → sekcja `## Zastrzeżenia` z decyzją usera
-- Frontier pusty (Krok 1b′) PRZED pierwszą delegacją — żadna gałąź bez rozstrzygnięcia,
-  bo każda re-delegacja to pełny re-run kontekstu
-- Kontrola spójności przed review: semantyczna w Kroku 2.5, pokrycie AC↔task skryptem w 3a
-- Subagent zwraca TREŚĆ artefaktów w raporcie; pliki zapisuje sesja główna
-- Pliki zapisane jako `Draft` PRZED review; `Approved` dopiero po `zatwierdzam`
-  (`/regent:apply` blokuje Draft)
-- Poprawki wg skali: drobne → sesja edytuje wprost na plikach Draft; koncepcyjne → resume
-  subagenta (resume zamiast re-delegacji — kontekst płatny raz)
-- Kontekst do subagentów zawężony (streszczenie dużych dokumentów zamiast ponownego czytania)
-- AC w Given-When-Then; delta specs (nie full)
-- INVARIANTS w delta spec dla refactorów
-- Zwięzła prezentacja (ścieżki + podsumowanie), zachęta do przeczytania plików Draft
+✅ **ALWAYS:**
+- 1 interview round (main session), ask only about gaps
+- Challenge (Step 1b′) before architectural decisions — verdict `ACCEPT` /
+  `OBJECTIONS` stated explicitly
+- Most changes pass with `ACCEPT` — you raise an objection when you have a concrete
+  alternative; raised once, then you build the full scope per the user's decision
+- Objections (if any) recorded in `proposal.md` → section `## Objections` with the user's decision
+- Frontier empty (Step 1b′) BEFORE the first delegation — no branch unresolved,
+  because every re-delegation is a full context re-run
+- Consistency check before review: semantic in Step 2.5, AC↔task coverage by the script in 3a
+- The subagent returns the artifact CONTENT in its report; the main session writes the files
+- Files saved as `Draft` BEFORE review; `Approved` only after `approve`
+  (`/regent:apply` blocks Draft)
+- Fixes by scale: minor → the session edits the Draft files directly; conceptual → resume
+  the subagent (resume instead of re-delegation — context paid once)
+- Context for subagents narrowed (summary of large documents instead of rereading)
+- AC in Given-When-Then; delta specs (not full)
+- INVARIANTS in the delta spec for refactors
+- Concise presentation (paths + summary), encouragement to read the Draft files

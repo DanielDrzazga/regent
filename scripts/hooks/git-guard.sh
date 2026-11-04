@@ -1,35 +1,35 @@
 #!/usr/bin/env bash
-# git-guard.sh — hook PreToolUse (Bash) dla projektów SDD: barierki git egzekwowane deterministycznie.
+# git-guard.sh — PreToolUse (Bash) hook for SDD projects: git guardrails enforced deterministically.
 #
-# Blokuje (kod 2 — Claude Code zatrzymuje wywołanie i pokazuje agentowi komunikat z stderr):
-#   git add . | ./ | :/ | -A | --all | -u   — stage całości wciąga cudze zmiany do commitu zmiany
-#   git commit -a | --all                   — to samo, tylnymi drzwiami
-#   --no-verify, git commit -n              — pomija hooki pre-commit, czyli bramkę testów
-#   git -c core.hooksPath… | --config-env=core.hooksPath=…  — podmienia katalog hooków: to samo co --no-verify
-#   atrybucja AI w git commit | merge, gh pr create | edit | merge — Co-Authored-By z Claude/Anthropic,
-#                                           „Generated with [Claude”, noreply@anthropic.com, link
-#                                           claude.ai/code/session (objaw dryfu; repo nie oznacza pracy AI)
+# Blocks (code 2 — Claude Code stops the call and shows the agent the stderr message):
+#   git add . | ./ | :/ | -A | --all | -u   — staging everything pulls foreign changes into the change's commit
+#   git commit -a | --all                   — the same, through the back door
+#   --no-verify, git commit -n              — skips pre-commit hooks, i.e. the test gate
+#   git -c core.hooksPath… | --config-env=core.hooksPath=…  — swaps the hooks directory: same as --no-verify
+#   AI attribution in git commit | merge, gh pr create | edit | merge — Co-Authored-By with Claude/Anthropic,
+#                                           "Generated with [Claude", noreply@anthropic.com, a
+#                                           claude.ai/code/session link (drift symptom; the repo does not mark AI work)
 #
-# Rejestracja: hooks/hooks.json pluginu. Zakres: projekt SDD (ai/docs/ w korzeniu projektu,
-# ${CLAUDE_PROJECT_DIR} albo bieżący katalog) — poza nim hook przepuszcza wszystko.
-# GIT_GUARD_FORCE=1 wymusza barierki także bez ai/docs/ (np. repo samego pluginu).
-# Wejście: JSON hooka na stdin; sprawdzane jest wyłącznie pole tool_input.command.
+# Registration: the plugin's hooks/hooks.json. Scope: SDD project (ai/docs/ in the project root,
+# ${CLAUDE_PROJECT_DIR} or the current directory) — outside it the hook lets everything through.
+# GIT_GUARD_FORCE=1 enforces the guardrails without ai/docs/ too (e.g. the plugin's own repo).
+# Input: hook JSON on stdin; only the tool_input.command field is checked.
 #
-# Polecenie a dane: każda linia to osobne polecenie (`\` na końcu linii je skleja). Danymi są
-# i nie są sprawdzane: treść w cudzysłowach (także wielolinijkowa), komentarz od `#` na początku
-# słowa, treść heredoca (<<SŁOWO, <<'SŁOWO', <<"SŁOWO", <<-SŁOWO) do linii zamykającej; `<<<`
-# to nie heredoc. Niezamknięty cudzysłów lub heredoc zostaje w tekście — wolimy fałszywą
-# blokadę niż przepuszczenie. Wyjątek: atrybucję AI sprawdza się w całym tekście, z danymi, bo
-# komunikat commita i opis PR to właśnie dane; samo polecenie (commit, merge, gh pr) — bez nich.
-# Hook łapie dryf, nie celowe obejście: klucz w cudzysłowie (-c "core.hooksPath=…") i komunikat
-# z pliku (git commit -F plik) przechodzą.
+# Command vs data: each line is a separate command (`\` at the end of a line joins them). Data,
+# not checked: quoted text (multi-line too), a comment from `#` at the start of a word, heredoc
+# body (<<WORD, <<'WORD', <<"WORD", <<-WORD) up to the closing line; `<<<` is not a heredoc.
+# An unclosed quote or heredoc stays in the text — a false block beats letting it through.
+# Exception: AI attribution is checked in the whole text, data included, because the commit
+# message and PR description are data; the command itself (commit, merge, gh pr) — without it.
+# The hook catches drift, not deliberate bypass: a quoted key (-c "core.hooksPath=…") and a
+# message from a file (git commit -F file) pass.
 
 set -u
 
 [ -d "${CLAUDE_PROJECT_DIR:-$PWD}/ai/docs" ] || [ "${GIT_GUARD_FORCE:-}" = 1 ] || exit 0
 
-# Wyciąga wartość pierwszego klucza "command" z JSON-a (bez jq/pythona — przenośnie);
-# \n i \t z JSON-a zostają nową linią i tabulatorem.
+# Extracts the value of the first "command" key from the JSON (no jq/python — portable);
+# JSON \n and \t become a newline and a tab.
 extract() {
   awk '
     { s = s $0 "\n" }
@@ -50,8 +50,8 @@ extract() {
     }'
 }
 
-# Zostawia z polecenia tylko to, co shell wykona (patrz nagłówek: polecenie a dane).
-# Stany: N — polecenie, S — '…', D — "…"; hc > 0 — linie treści heredoca nr hc.
+# Keeps only what the shell executes (see header: command vs data).
+# States: N — command, S — '…', D — "…"; hc > 0 — body lines of heredoc no. hc.
 commands_only() {
   awk '
     { L[NR] = $0 }
@@ -85,7 +85,7 @@ commands_only() {
             } else {
               while (k <= n && substr(line, k, 1) ~ /[A-Za-z0-9_]/) { w = w substr(line, k, 1); k++ }
             }
-            # Tylko słowo-identyfikator: $((1<<2)) to nie heredoc.
+            # Identifier word only: $((1<<2)) is not a heredoc.
             if (w ~ /^[A-Za-z_][A-Za-z0-9_]*$/) { hd[++nh] = w; hs[nh] = strip; printf "<<%s", w; j = k - 1; continue }
           }
           printf "%s", c
@@ -110,39 +110,39 @@ cmd=$(printf '%s\n' "$raw" | commands_only)
 
 block() {
   echo "SDD git-guard: $1" >&2
-  echo "Zamiast tego: $2" >&2
+  echo "Instead: $2" >&2
   exit 2
 }
 
-# git z opcjami globalnymi: -C <katalog>, -c <klucz=wartość>
+# git with global options: -C <dir>, -c <key=value>
 GIT='(^|[;&|(`[:space:]])git([[:space:]]+-[Cc][[:space:]]+[^[:space:]]+)*[[:space:]]+'
 
 if printf '%s\n' "$cmd" | grep -qE "${GIT}add[[:space:]]+([^;&|]*[[:space:]])?(\.|\./|:/|-[A-Za-z]*[Au][A-Za-z]*|--all|--update)([[:space:];&|)]|$)"; then
-  block "git add całości (. / ./ / :/ / -A / --all / -u) wciąga do commitu pliki spoza zmiany." \
-        "git add z listą konkretnych plików z raportu (np. git add src/a.ts tests/a.test.ts)."
+  block "git add of everything (. / ./ / :/ / -A / --all / -u) pulls files outside the change into the commit." \
+        "git add with a list of specific files from the report (e.g. git add src/a.ts tests/a.test.ts)."
 fi
 if printf '%s\n' "$cmd" | grep -qE "${GIT}commit[[:space:]]+([^;&|]*[[:space:]])?(-[A-Za-z]*n[A-Za-z]*)([[:space:];&|)]|$)"; then
-  block "git commit -n to --no-verify: pomija hooki pre-commit (bramkę testów i lint)." \
-        "napraw przyczynę, przez którą hook nie przechodzi; commit bez testów łamie regułę SDD."
+  block "git commit -n is --no-verify: skips pre-commit hooks (the test and lint gate)." \
+        "fix the reason the hook fails; a commit without tests breaks the SDD rule."
 fi
 if printf '%s\n' "$cmd" | grep -qE "${GIT}commit[[:space:]]+([^;&|]*[[:space:]])?(-[A-Za-z]*a[A-Za-z]*|--all)([[:space:];&|)]|$)"; then
-  block "git commit -a / --all stage'uje wszystkie zmodyfikowane pliki." \
-        "git add z listą plików, potem git commit -m \"…\"."
+  block "git commit -a / --all stages all modified files." \
+        "git add with a list of files, then git commit -m \"…\"."
 fi
 if printf '%s\n' "$cmd" | grep -qE "${GIT}[^;&|]*--no-verify"; then
-  block "--no-verify pomija hooki pre-commit (bramkę testów i lint)." \
-        "napraw przyczynę, przez którą hook nie przechodzi; commit bez testów łamie regułę SDD."
+  block "--no-verify skips pre-commit hooks (the test and lint gate)." \
+        "fix the reason the hook fails; a commit without tests breaks the SDD rule."
 fi
-# Klucz konfiguracji git nie rozróżnia wielkości liter (core.hookspath działa tak samo).
+# Git config keys are case-insensitive (core.hookspath works the same).
 HOOKS_PATH='(^|[;&|(`[:space:]])git[[:space:]]([^;&|]*[[:space:]])?(-c[[:space:]]*|--config-env[=[:space:]][[:space:]]*)core\.hookspath'
 if printf '%s\n' "$cmd" | grep -qiE "$HOOKS_PATH"; then
-  block "-c core.hooksPath / --config-env=core.hooksPath podmienia katalog hooków, czyli pomija pre-commit jak --no-verify." \
-        "napraw przyczynę, przez którą hook nie przechodzi; commit bez testów łamie regułę SDD."
+  block "-c core.hooksPath / --config-env=core.hooksPath swaps the hooks directory, i.e. skips pre-commit like --no-verify." \
+        "fix the reason the hook fails; a commit without tests breaks the SDD rule."
 fi
 WRITES="${GIT}(commit|merge)([[:space:];&|)]|\$)|(^|[;&|(\`[:space:]])gh[[:space:]]+pr[[:space:]]+(create|edit|merge)([[:space:];&|)]|\$)"
 ATTRIBUTION='co-authored-by:.*(claude|anthropic)|generated (with|by) \[?claude|noreply@anthropic\.com|claude\.ai/code/session'
 if printf '%s\n' "$cmd" | grep -qE "$WRITES" && printf '%s\n' "$raw" | grep -qiE "$ATTRIBUTION"; then
-  block "atrybucja AI w treści commita lub PR (Co-Authored-By z Claude, „Generated with Claude…”, noreply@anthropic.com, link do sesji)." \
-        "usuń te linie z komunikatu; commity i PR-y nie oznaczają pracy jako napisanej przez AI."
+  block "AI attribution in the commit or PR text (Co-Authored-By with Claude, \"Generated with Claude…\", noreply@anthropic.com, session link)." \
+        "remove these lines from the message; commits and PRs do not mark work as written by AI."
 fi
 exit 0

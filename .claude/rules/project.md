@@ -1,14 +1,10 @@
-# Regent — kontekst projektu
+# Regent — project context
 
-- Regent to narzędzie programisty: framework SDD (Spec-Driven Development) jako plugin Claude Code.
-- Harness to warstwa runtime Regenta, nie osobny produkt: jedno repo, plugin to przepis SDD
-  i adapter (hooki, statusline). Bez komponentów wymagających builda — plugin działa od razu po
-  instalacji (`tools/` usunięte 2026-11-04, `docs/roadmap.md`).
-- Repo nie pracuje w cyklu SDD (bez `ai/`). Zmiany idą lekką ścieżką: gałąź, plan z checklistą
-  w `docs/plans/<nazwa>.md`, bramka `bash scripts/framework-lint.sh` + `claude plugin validate .`
-  (jedyne dozwolone ostrzeżenie: brak `version`) i smoke. Mechanikę robi sesja główna, bez
-  subagentów.
-- Źródłem prawdy frameworka SDD jest to repo. Historia decyzji i zrealizowanych/odłożonych
-  pomysłów: `docs/roadmap.md`; plany zmian z przebiegiem: `docs/plans/`.
-- Komunikacja i dokumenty po polsku, z pełną polską ortografią. Identyfikatory i nazwy techniczne
-  w oryginale.
+- Regent is a developer tool: an SDD (Spec-Driven Development) framework shipped as a Claude Code
+  plugin. No components that need a build — the plugin works right after installation.
+- This repo does not run the SDD cycle (no `ai/`). A change goes on its own branch and reaches
+  `main` through an MR after the gate: `make check` (framework lint + `claude plugin validate .`)
+  (the only allowed warning: missing `version`) and a smoke run in a test project.
+- This repo is the source of truth for the framework. Deliberate decisions and postponed ideas:
+  `docs/roadmap.md`.
+- Language: the "Language" rule in `context/role.md`.

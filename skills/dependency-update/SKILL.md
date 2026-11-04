@@ -1,18 +1,18 @@
 ---
-description: Aktualizacja zależności i security patches (audyt, kategoryzacja, adaptacja kodu)
+description: Dependency updates and security patches (audit, categorization, code adaptation)
 disable-model-invocation: true
 argument-hint: [security-only|all|specific <pkg>]
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---
 
-# /regent:dependency-update — Aktualizacja zależności i łatek
+# /regent:dependency-update — Dependency and patch updates
 
-**Cel:** Aktualizuj zależności, security patches, version bumps.
+**Goal:** Update dependencies, security patches, version bumps.
 
 ```
 /regent:dependency-update [scope]
 
-Przykład:
+Example:
 /regent:dependency-update security-only
 /regent:dependency-update all
 /regent:dependency-update specific express
@@ -20,16 +20,16 @@ Przykład:
 
 ---
 
-## Agenci (delegacja — WYMAGANE)
+## Agents (delegation — REQUIRED)
 
-- Ocenę podatności (🔴 CRITICAL z `make deps-audit`: czy exploit dotyczy sposobu, w jaki
-  projekt używa pakietu) deleguj do subagenta `regent:security-auditor` (model: opus, Task).
-- **Kategoryzację 🟡/🟢 robi sesja główna** — major vs minor/patch to mechaniczny odczyt
-  `make deps-outdated`, nie zadanie dla opusa.
-- Adaptację kodu do breaking changes (krok 5) deleguj do dev-agenta wg pakietu:
-  zależność backendowa → `regent:backend-dev`, frontendowa → `regent:frontend-dev` (sonnet, Task).
+- Delegate the vulnerability assessment (🔴 CRITICAL from `make deps-audit`: whether the exploit affects the way
+  the project uses the package) to the `regent:security-auditor` subagent (model: opus, Task).
+- **The main session does the 🟡/🟢 categorization** — major vs minor/patch is a mechanical reading of
+  `make deps-outdated`, not a task for opus.
+- Delegate code adaptation to breaking changes (step 5) to a dev agent by package:
+  backend dependency → `regent:backend-dev`, frontend → `regent:frontend-dev` (sonnet, Task).
 
-Skanowanie/instalacja (`make deps-*`) i commity to operacje mechaniczne — bez delegacji.
+Scanning/installation (`make deps-*`) and commits are mechanical operations — no delegation.
 
 ---
 
@@ -87,7 +87,7 @@ make build
 
 ### 6. Commit
 
-Format commitów wg `/regent:commit` (`<type>: (<KEY>) <opis>`; bez ticketu → bez `(KEY)`):
+Commit format per `/regent:commit` (`<type>: (<KEY>) <description>`; no ticket → no `(KEY)`):
 
 ```bash
 git add package.json package-lock.json
@@ -129,4 +129,4 @@ git commit -m "refactor: (KEY) update code for express v5 API changes"
 - **Update regularly** — don't wait for emergencies
 - **Review changelogs** — understand what changed
 
-Timeline: 1-4 godziny
+Timeline: 1-4 hours

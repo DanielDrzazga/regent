@@ -1,22 +1,22 @@
-# User Story: {{ID}} — {{TYTUŁ}}
+# User Story: {{ID}} — {{TITLE}}
 
 <!--
-  INSTRUKCJA: Szablon OPCJONALNY, dla złożonych historii przy zmianie:
-  ai/changes/{nazwa}/user-stories/US-XXX.md; w delta spec powiąż:
-  "REQ-XXX (realizuje US-XXX)".
-  USUŃ sekcje niedotyczące projektu (UI/UX, RODO, accessibility w projekcie backendowym).
+  INSTRUCTION: OPTIONAL template, for complex stories in a change:
+  ai/changes/{name}/user-stories/US-XXX.md; link it in the delta spec:
+  "REQ-XXX (implements US-XXX)".
+  REMOVE sections that do not apply to the project (UI/UX, GDPR, accessibility in a backend project).
 -->
 
-## Metadane
+## Metadata
 
-| Pole | Wartość |
-|------|---------|
+| Field | Value |
+|-------|-------|
 | ID | US-XXX |
-| Priorytet | P0 (MVP) / P1 (soon) / P2 (later) |
+| Priority | P0 (MVP) / P1 (soon) / P2 (later) |
 | Status | Draft / Ready / In Progress / Done |
-| Persona | [nazwa persony] |
-| Moduł | [nazwa modułu] |
-| Estymacja | XS / S / M / L / XL |
+| Persona | [persona name] |
+| Module | [module name] |
+| Estimate | XS / S / M / L / XL |
 
 ## User Story
 
@@ -24,74 +24,74 @@
 **I want** [action/capability],
 **so that** [benefit/value].
 
-## Kontekst
+## Context
 
-[Motywacja biznesowa — dlaczego ta user story jest ważna]
+[Business motivation — why this user story matters]
 
-## Realizowane przez
+## Implemented by
 
-Kryteria akceptacji żyją w delcie (`specs/{domena}.md`) — jedno źródło AC:
-- REQ-NNN: [nazwa wymagania] — AC: `REQ-NNN/AC-1`, `REQ-NNN/AC-2`
+Acceptance criteria live in the delta (`specs/{domain}.md`) — single source of AC:
+- REQ-NNN: [requirement name] — AC: `REQ-NNN/AC-1`, `REQ-NNN/AC-2`
 
-## Scenariusze (narracja dla ludzi — testowalną wersją są AC w delcie)
+## Scenarios (narrative for people — the testable version is the AC in the delta)
 
-### S-1: [Nazwa]
-**Given** [warunek wstępny]
-**When** [akcja]
-**Then** [oczekiwany rezultat]
+### S-1: [Name]
+**Given** [precondition]
+**When** [action]
+**Then** [expected result]
 
-### S-NEG-1: [Nazwa scenariusza negatywnego]
-**Given** [warunek]
-**When** [nieprawidłowa akcja]
-**Then** [obsługa błędu]
+### S-NEG-1: [Name of the negative scenario]
+**Given** [condition]
+**When** [invalid action]
+**Then** [error handling]
 
-## Wymagania UI/UX <!-- usuń, jeśli nie dotyczy -->
+## UI/UX requirements <!-- remove if not applicable -->
 
-| Pole | Wartość |
-|------|---------|
-| Strona | [nazwa strony/ekranu] |
-| Wireframe | [link lub opis] |
-| Flow | [link do user flow] |
+| Field | Value |
+|-------|-------|
+| Page | [page/screen name] |
+| Wireframe | [link or description] |
+| Flow | [link to user flow] |
 | Responsive | Mobile / Tablet / Desktop |
 
-## Wymagania techniczne
+## Technical requirements
 
 ### API Endpoints
-| Method | Path | Opis |
-|--------|------|------|
-| POST | /api/... | [opis] |
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /api/... | [description] |
 
 ### Business Rules
-1. [Reguła biznesowa]
-2. [Reguła biznesowa]
+1. [Business rule]
+2. [Business rule]
 
-## Bezpieczeństwo i RODO <!-- usuń, jeśli nie dotyczy -->
+## Security and GDPR <!-- remove if not applicable -->
 
-| Pole | Wartość |
-|------|---------|
-| Autentykacja | Wymagana / Nie |
-| Role | [wymagane role] |
-| Dane osobowe | [kategorie] |
-| Podstawa prawna | [Art. 6.1.X RODO] |
+| Field | Value |
+|-------|-------|
+| Authentication | Required / No |
+| Roles | [required roles] |
+| Personal data | [categories] |
+| Legal basis | [Art. 6(1)(X) GDPR] |
 
 ## Definition of Done
 
-- [ ] AC spełnione i przetestowane
-- [ ] Unit testy (target coverage wg testing-patterns.md)
-- [ ] Integration testy (key flows)
+- [ ] AC met and tested
+- [ ] Unit tests (target coverage per testing-patterns.md)
+- [ ] Integration tests (key flows)
 - [ ] Code review passed
-- [ ] UI zgodne ze specyfikacją <!-- usuń, jeśli nie dotyczy -->
-- [ ] Accessibility (WCAG 2.1 AA) <!-- usuń, jeśli nie dotyczy -->
-- [ ] Dokumentacja zaktualizowana
+- [ ] UI matches the specification <!-- remove if not applicable -->
+- [ ] Accessibility (WCAG 2.1 AA) <!-- remove if not applicable -->
+- [ ] Documentation updated
 
-## Zależności
+## Dependencies
 
-### Blokowane przez
-- [zależność]
+### Blocked by
+- [dependency]
 
-### Powiązane stories
+### Related stories
 - [US-YYY]
 
-## Notatki
+## Notes
 
-[Dodatkowy kontekst, otwarte pytania, założenia]
+[Additional context, open questions, assumptions]
