@@ -17,10 +17,9 @@ warnings=0
 err()  { echo "ERROR $*"; errors=$((errors + 1)); }
 warn() { echo "WARN  $*"; warnings=$((warnings + 1)); }
 
-# Poza lintem: reguły pracy nad repo (.claude/) i plany zmian — opisują pliki, które
-# dopiero powstaną, i dawne nazwy.
+# Outside the lint: rules for working on this repo (.claude/).
 FILES=$(git ls-files --cached --others --exclude-standard -- '*.md' 2>/dev/null \
-  | grep -vE '^(\.claude/|docs/plans/)')
+  | grep -vE '^\.claude/')
 [ -n "$FILES" ] || { echo "ERROR brak plików .md — uruchom w repo regent"; exit 2; }
 # Dokumenty decyzji świadomie wymieniają wycofane komendy i usunięte pliki — sekcje 3, 4 i 6
 # ich nie sprawdzają. Dopisuj tu tylko pliki-rejestry decyzji, nie zwykłą dokumentację.
@@ -89,8 +88,8 @@ done
 
 # --- 4. Odwołania do plików frameworka prowadzą do istniejących plików ---------------------
 # Ścieżka ma zaczynać się od katalogu frameworka — `ai/docs/...` to pliki projektu, nie frameworka.
-paths=$(echo "$REFS" | xargs grep -ohE '(^|[^A-Za-z0-9_./~-])(~/\.claude/|\$\{CLAUDE_PLUGIN_ROOT\}/)?(agents|skills|templates|scripts|docs|context)/[A-Za-z0-9_./-]+\.(md|sh|template)' 2>/dev/null \
-  | sed -E 's#^[^A-Za-z~$]##; s#^~/\.claude/##; s#^\$\{CLAUDE_PLUGIN_ROOT\}/##' | sort -u)
+paths=$(echo "$REFS" | xargs grep -ohE '(^|[^A-Za-z0-9_./~-])(\$\{CLAUDE_PLUGIN_ROOT\}/)?(agents|skills|templates|scripts|docs|context)/[A-Za-z0-9_./-]+\.(md|sh|template)' 2>/dev/null \
+  | sed -E 's#^[^A-Za-z$]##; s#^\$\{CLAUDE_PLUGIN_ROOT\}/##' | sort -u)
 for p in $paths; do
   [ -e "$p" ] || err "odwołanie do nieistniejącego pliku $p: $(echo "$REFS" | xargs grep -l -- "$p" | tr '\n' ' ')"
 done
@@ -178,24 +177,19 @@ require skills/archive/SKILL.md        'sdd-check.sh postmerge'                 
 require skills/archive/SKILL.md        'sdd-check.sh preflight'                 "delta sprawdzana przed merge"
 forbid  agents/backend-dev.md          'testu zawiera ID AC'                    "numery REQ/AC są lokalne — nie trafiają do kodu"
 forbid  agents/frontend-dev.md         'testu zawiera ID AC'                    "numery REQ/AC są lokalne — nie trafiają do kodu"
-require skills/init/SKILL.md           'git check-ignore -q --no-index ai/'     "init rozpoznaje tryb ai/ (osobisty/współdzielony, docs/plans/ai-tracking-mode.md)"
 forbid  skills/status/SKILL.md         'git rev-parse HEAD`\). Różnica'          "dryf po plikach zmiany, nie po hashu HEAD"
 require skills/explore/SKILL.md        'Jeden kandydat = jedna zmiana SDD'      "discovery tnie inicjatywę na zmiany propose → archive"
 require skills/explore/SKILL.md        'Kandydat 1 = walking skeleton'          "discovery zaczyna od przekroju end-to-end, nie od fundamentu"
 forbid  skills/explore/SKILL.md        'ai/product'                             "discovery bez żywego backlogu w ai/ — kandydaci 2..N do trackera"
-require skills/optimize/SKILL.md       'git worktree add'                       "pętla pracuje w worktree — plugin działa na żywo z klonu"
-require skills/optimize/SKILL.md       'holdout'                                "wynik sprawdza zestaw kontrolny, którego pętla nie widzi w trakcie"
-require skills/optimize/SKILL.md       'score decide'                           "o keep/discard decyduje skrypt, nie model"
 require context/sdd.md                 'bez body i stopek'                      "commit bez stopki — git-guard odrzuca atrybucję, każde odbicie to tura"
 require hooks/hooks.json               'subagent sdd subagent\.md'               "subagent dostaje kontrakt subagenta"
-forbid  skills/apply/SKILL.md          'regent\.sh|task packet|Z CLI'          "CLI zadań usunięte (docs/plans/usun-tools-regent.md) — apply pracuje na plikach"
+forbid  skills/apply/SKILL.md          'regent\.sh|task packet|Z CLI'          "task CLI removed — apply works on files"
 require context/role.md                '^## Język'                              "artefakty po angielsku, rozmowa w języku użytkownika"
 for f in agents/*.md skills/*/SKILL.md templates/*.md templates/docs/*.md; do
   forbid "$f" 'po (polsku|angielsku)' "język artefaktów ustala tylko reguła „Język” w context/role.md"
 done
 forbid  hooks/hooks.json               'subagent sdd sdd-map\.md'                "mapa skilli tylko w sesji głównej — subagent jej nie potrzebuje"
 
-require docs/roadmap.md                 'git checkout 39445f1 --'                "rejestr decyzji podaje drogę przywrócenia usuniętych elementów"
 forbid  skills/init/SKILL.md           '"command": "f=.*git-guard\.sh'            "git-guard rejestruje plugin (hooks/hooks.json), nie wpis w projekcie"
 require hooks/hooks.json               'scripts/hooks/git-guard\.sh'           "plugin rejestruje git-guard"
 

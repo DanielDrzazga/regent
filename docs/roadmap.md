@@ -1,58 +1,27 @@
 # Roadmapa i świadome decyzje
 
 Zapis tego, **czego we frameworku nie ma i dlaczego**, pomysłów odłożonych na później i tego,
-co z nich zrealizowano.
-Po to, żeby przy nowym projekcie nie odkrywać tych decyzji od nowa — i żeby wiedzieć, jak
-przywrócić coś, co zostało usunięte.
+co z nich zrealizowano — po to, żeby przy nowym projekcie nie odkrywać tych decyzji od nowa.
 
 > Ten plik świadomie wymienia wycofane komendy i agentów, dlatego `framework-lint.sh` pomija go
 > przy sprawdzaniu odwołań i wycofanych nazw.
 
 ## Świadomie poza frameworkiem
 
-| Element | Status | Dlaczego | Ostatnia wersja |
-|---------|--------|----------|-----------------|
-| `/deploy-sdd`, agent `devops-engineer`, `templates/docs/deployment.md` | usunięte 2026-09-16 | Wdrożenie to proces organizacji i pipeline CI — framework go nie owija. Framework kończy się na `/regent:archive`; lokalną gotowość sprawdzają Etap 9 (Git & Release Readiness) i Etap 8 (Smoke) w `/regent:verify`. Przy osobistym `ai/` runbook wdrożenia w `ai/docs/` pasowałby jeszcze gorzej — to wiedza zespołu. | `39445f1` |
-| `docs/audyt-prompt.md` | usunięty 2026-09-16 | Jednorazowe narzędzie robocze, nie dokumentacja; szybko się starzeje (opisywał 19 komend i cykl z discovery i deploy). Mechaniczną spójność sprawdza `scripts/framework-lint.sh`; przegląd z modelem — prompt spoza repo. | `39445f1` |
-| `/discover-sdd`, agent `product-manager`, `templates/discovery-template.md` | poza rdzeniem | Potrzeba jest realna, ale stara forma kłóci się z frameworkiem: żywy backlog w `ai/product/` wymagała powiązań statusów F-XX w `/regent:propose`, `/regent:archive` i `/regent:status` i osobnego agenta na Opusie — niezależnie od trybu `ai/` (osobisty/współdzielony, `docs/plans/ai-tracking-mode.md`). Potrzebę realizuje tryb `/regent:explore --discovery` (niżej, „Zrealizowane"); resztę pokrywają korzeń PROBLEM w Challenge i `/regent:wiki`. | `39445f1` |
-| `regent-watch` (TUI mission-control w stylu OpenRig: `tools/watch/src/cli.ts`, `main.tsx`, `ui/`, `store.ts`, `view.ts`, `tmux.ts`, `workspace.ts`) | usunięty 2026-11-03 | Powstał jako odpowiedź na pytanie z osobistej wizji produktu („który aspekt OpenRig się spodobał") — osobista eksploracja, nie rdzeń frameworka. Regent przestaje być narzędziem jednej osoby, więc TUI znika; `regent-apply-tokens` przeszedł do `tools/regent/` i odszedł razem z nim (wiersz niżej). Fakty ze spike'a i decyzje budowy: `docs/plans/agent-teams-view.md`, `docs/plans/watch-ui.md`; decyzja usunięcia: `docs/plans/usun-regent-watch.md`. | `f677200` (regent) |
-| `tools/regent/` — CLI `regent task` (zadania z właścicielem, log przejść, utknięcie, baza SQLite), paczka dla `/regent:apply` (`task next`, `task packet`), `regent-apply-tokens`; `scripts/regent.sh`, hook `task-sync.sh`, `docs/tasks.md`, eval `apply/holdout-no-cli` | usunięte 2026-11-04 | Regent idzie do całej firmy, a CLI wymagało Node 24 i ręcznego builda (`dist/` poza gitem) — po instalacji pluginu u nikogo poza autorem nie działało. Baza zadań była lokalna, więc właściciel zadania nic nie znaczył w zespole; ślad tasków i tak niesie `tasks.md`, a stan liczy `sdd-check.sh status`. Paczka: jedyny zmierzony zysk (mediana pierwszej tury 3,6 mln wobec 5,0 mln tokenów), ale na 2 uruchomieniach i z większym kontekstem maksymalnym (175 tys. wobec 125 tys.). Wraca, jeśli — to jako skrypt bash bez builda. Plan: `docs/plans/usun-tools-regent.md`. | `b3a6cd1` (regent) |
-
-**Przywrócenie** — hashe w tym pliku pochodzą z zamrożonego repo `claude-sdd-framework`
-(Regent nie ma jego historii), poza `regent-watch` — jego hash jest commitem w tym repo
-(`regent`), bo tu powstał i tu żyła jego historia. W klonie tamtego repo plik wraca do working
-tree, potem przenieś go do układu pluginu (`commands/<nazwa>-sdd.md` → `skills/<nazwa>/SKILL.md`):
-
-```bash
-git checkout 39445f1 -- commands/discover-sdd.md agents/product-manager.md templates/discovery-template.md
-```
-
-Po przywróceniu skilla dopisz go do tabel w `README.md` i `context/sdd-map.md` — inaczej
-`framework-lint.sh` zgłosi błąd.
-
-`regent-watch` wraca z historii tego repo:
-
-```bash
-git checkout f677200 -- tools/watch/
-```
-
-Potem w `tools/watch/package.json` trzeba ręcznie wrócić do `name: regent-watch`, dwóch binów
-i zależności `ink`/`react` — ten plik zmienił się także w commicie usuwającym.
-
-`tools/regent/` wraca z historii tego repo (razem z hookiem, skryptem i blokami „Z CLI” w `apply`):
-
-```bash
-git checkout b3a6cd1 -- tools/regent/ scripts/regent.sh scripts/hooks/task-sync.sh \
-  scripts/tests/regent.test.sh scripts/tests/task-sync.test.sh docs/tasks.md \
-  evals/apply/ skills/apply/SKILL.md agents/dba.md hooks/hooks.json
-```
+| Element | Status | Dlaczego |
+|---------|--------|----------|
+| `/deploy-sdd`, agent `devops-engineer`, `templates/docs/deployment.md` | usunięte 2026-09-16 | Wdrożenie to proces organizacji i pipeline CI — framework go nie owija. Framework kończy się na `/regent:archive`; lokalną gotowość sprawdzają Etap 9 (Git & Release Readiness) i Etap 8 (Smoke) w `/regent:verify`. |
+| `docs/audyt-prompt.md` | usunięty 2026-09-16 | Jednorazowe narzędzie robocze, nie dokumentacja; szybko się starzeje. Mechaniczną spójność sprawdza `scripts/framework-lint.sh`. |
+| `/discover-sdd`, agent `product-manager`, `templates/discovery-template.md` | poza rdzeniem | Potrzeba jest realna, ale stara forma kłóci się z frameworkiem: żywy backlog w `ai/product/` wymagał powiązań statusów F-XX w `/regent:propose`, `/regent:archive` i `/regent:status` i osobnego agenta na Opusie. Potrzebę realizuje tryb `/regent:explore --discovery` (niżej, „Zrealizowane"); resztę pokrywają korzeń PROBLEM w Challenge i `/regent:wiki`. |
+| Task CLI with a SQLite store, an `apply` packet, a TUI for agent sessions | removed 2026-11-04 | Each needed Node and a manual build — after installing the plugin they worked for nobody but the author. The task trace already lives in `tasks.md` and `sdd-check.sh status` computes the state. If it comes back — as a bash script with no build step. |
+| `/regent:optimize` (skill optimisation loop over `claude plugin eval` suites) | removed 2026-11-04 | The eval suites were maintained by one person and are out of scope for the company harness; without them the skill has nothing to run. |
 
 ## Odłożone decyzje
 
 | Pomysł | Decyzja | Kiedy wrócić | Źródło |
 |--------|---------|--------------|--------|
 | Lżejsza ścieżka dla zmian S — `/regent:propose` bez `regent:architect`, gdy zmiana nie ma nowego modułu, kontraktu ani DB | nie teraz (2026-09-23) — reguła „nie pomijaj kroków SDD, bo to mała zmiana"; Challenge i tak kończy się szybko przy S | retrospektywy pokażą, że architekt na Opusie przy S-kach to realny koszt | OpenSpec „Match the ceremony to the stakes", spec-kit `presets/lean` |
-| Pełne tłumaczenie skilli, szablonów i agentów na angielski (ze znacznikami czytanymi przez `sdd-check.sh`) | etap 2 (2026-11-04) — na razie tylko reguła „Język" w `context/role.md` z wyjątkiem przejściowym dla nagłówków i znaczników | po wdrożeniu reguły w firmie; jedna zmiana: szablony + skrypty + testy + lint naraz | `docs/plans/jezyk-angielski.md` |
+| Pełne tłumaczenie skilli, szablonów i agentów na angielski (ze znacznikami czytanymi przez `sdd-check.sh`) | etap 2 (2026-11-04) — na razie tylko reguła „Język" w `context/role.md` z wyjątkiem przejściowym dla nagłówków i znaczników | one change: templates + scripts + tests + lint together | — |
 
 ## Zrealizowane
 
@@ -67,15 +36,12 @@ nie mówi: co wzięliśmy, czego świadomie nie i czego nauczyła próba.
 - Ze starego `/discover-sdd`: pytania wywiadu, „jeden kandydat = jedna zmiana SDD", cięcie MVP,
   bez finansów, werdykt z uzasadnieniem (`BUDUJEMY` / `DOPRECYZUJ` / `NIE BUDUJEMY` zamiast
   GO / PIVOT / NO-GO).
-- Bez `ai/product/` z żywym backlogiem, statusów F-XX i agenta `product-manager` — niezależnie
-  od trybu `ai/`: explore zostaje read-only, kandydaci 2..N idą do trackera za zgodą (pilnuje
-  `forbid 'ai/product'` w lincie).
+- Bez `ai/product/` z żywym backlogiem, statusów F-XX i agenta `product-manager`: explore zostaje
+  read-only, kandydaci 2..N idą do trackera za zgodą (pilnuje `forbid 'ai/product'` w lincie).
 - Inspiracja: spec-kit `extensions/assess` — esencja (rozbicie + werdykt), nie pięć artefaktów.
-- Próba na sucho na projekcie prywatnym (wiedza sprzed budowy, wynik porównany z faktycznym przebiegiem):
-  reguła „kandydat 1 sprawdza wartość albo odblokowuje resztę" dała na start tenant + zaproszenia
-  + role — ten sam fundament, na którym projekt utknął, zanim pracownik terenowy dostał pierwszy
-  ekran. Stąd „Kandydat 1 = walking skeleton" i fundament w minimalnym zakresie wewnątrz
-  pierwszego kandydata (`require` w lincie).
+- „Kandydat 1 = walking skeleton": a first candidate that only builds the foundation (tenants,
+  invitations, roles) delays the first screen a user can check, so the foundation goes inside the
+  first candidate in its minimal scope (`require` w lincie).
 
 ## Czego świadomie nie bierzemy z OpenSpec i spec-kit
 

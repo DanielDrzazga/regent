@@ -4,39 +4,21 @@ Pierwsze uruchomienie frameworka w projekcie — krok po kroku.
 
 ## 0. Warunek wstępny
 
-Plugin `regent` musi być załadowany (`claude --plugin-dir`, patrz [README → Użycie](../README.md#użycie)).
-Sprawdź, że Claude Code go widzi: wpisz `/regent:` i Tab — lista powinna pokazać `/regent:init`,
-`/regent:propose`, `/regent:apply` i resztę skilli.
+Plugin `regent` installed from the marketplace (see [README → Użycie](../README.md#użycie)).
+Check that Claude Code sees it: type `/regent:` and Tab — the list should show `/regent:init`,
+`/regent:propose`, `/regent:apply` and the other skills.
 
-> **`ai/` — osobisty albo współdzielony.** `/regent:init` Krok 0.5 pyta, który tryb. Osobisty
-> (domyślny) — katalog jest globalnie ignorowany, do repo produktu trafia tylko kod, testy
-> i `Makefile`, a plan zmiany niesie opis MR z `/regent:verify`. Współdzielony — cały `ai/` jest
-> śledzony w repo produktu.
+`ai/` (SDD artifacts) is tracked in the product repo as a whole — `/regent:init` makes sure no
+ignore rule hides it.
 
-### Nowa maszyna — checklista (do czasu publikacji pluginu)
+### Nowa maszyna — checklista
 
-Plugin nie jest publikowany w żadnym marketplace — ładuje się z klonu repo:
-
-1. Klon repo `regent` i adres autora commitów: `git config user.email <Twój adres>`
-   (sprawdź `.claude/rules/git.md`, jeśli repo wymaga konkretnego adresu).
-2. Sesja z pluginem: `claude --plugin-dir <klon repo regent>`, a na stałe — alias w konfiguracji
-   powłoki: `alias claude='claude --plugin-dir "<klon repo regent>"'`. Stary framework w `~/.claude`
-   (`CLAUDE.md`, `commands/*-sdd.md`, `agents/`) odłóż do osobnego katalogu w `~/.claude/`
-   (np. `sdd-wylaczone-<data>/`), inaczej reguły i komendy `-sdd` dublują się z `regent:`.
-3. W `~/.claude/settings.json` bez atrybucji AI: `"attribution": { "commit": "", "pr": "" }`.
-4. Statusline z pluginu (opcjonalnie; przy `--plugin-dir` dane pluginu są w
-   `~/.claude/plugins/data/regent-inline/`) — zob. [statusline.md](statusline.md).
-5. Nowa sesja z `--plugin-dir`: `/regent:` + Tab pokazuje skille, w projekcie z `ai/docs/` działa `/regent:status`.
-6. Aplikacja desktop (opcjonalnie) nie czyta aliasu — tam plugin idzie z lokalnego marketplace
-   z katalogu klonu. W klonie `.claude-plugin/marketplace.json` (plik lokalny, nie commituj):
-   marketplace `regent` z jednym pluginem `regent`, `source: "./"`. Potem
-   `claude plugin marketplace add <klon repo regent>` i `claude plugin install regent@regent --scope user`.
-   Instalacja to kopia z commita: po każdym merge'u do `main`
-   `claude plugin marketplace update regent && claude plugin update regent@regent` i nowa sesja
-   w aplikacji. W terminalu `--plugin-dir` wygrywa z instalacją — skille idą z klonu, raz.
-
-Po ukończeniu (poza zakresem dziś): publikacja w marketplace (`marketplace.json` w repo),
-usunięcie odłożonego starego frameworka z `~/.claude` i wpisów git-guard wskazujących `$HOME/.claude/…`.
+1. `claude plugin marketplace add <regent repo URL>` and `claude plugin install regent@regent --scope user`.
+2. In `~/.claude/settings.json` no AI attribution: `"attribution": { "commit": "", "pr": "" }`.
+3. Statusline from the plugin (optional) — see [statusline.md](statusline.md).
+4. New session: `/regent:` + Tab shows the skills; in a project with `ai/docs/` `/regent:status` works.
+5. After changes land on `main`: `claude plugin marketplace update regent && claude plugin update regent@regent`
+   and a new session.
 
 ## 1. `/regent:init` — skonfiguruj projekt
 

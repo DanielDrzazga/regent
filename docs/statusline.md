@@ -24,13 +24,11 @@ w danych pluginu, która przetrwa aktualizacje — katalog pluginu w cache zmien
 więc `statusLine` nie może wskazywać na niego wprost:
 
 ```
-~/.claude/plugins/data/regent-inline/bin/statusline.sh      # claude --plugin-dir (dziś)
-~/.claude/plugins/data/regent-regent/bin/statusline.sh      # po publikacji: regent@regent z marketplace
+~/.claude/plugins/data/regent-regent/bin/statusline.sh
 ```
 
-Dziś statusline działa ze starego frameworka (`~/.claude/scripts/statusline.sh`). Po publikacji
-pluginu raz na maszynie dodaj wpis do `~/.claude/settings.json` (plugin nie może ustawić
-`statusLine` głównej sesji):
+Add the entry to `~/.claude/settings.json` once per machine (a plugin cannot set the main
+session's `statusLine`):
 
 ```json
 {

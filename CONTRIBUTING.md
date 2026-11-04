@@ -13,7 +13,7 @@ kodu aplikacyjnego, więc „testem” jest spójność, przenośność i zgodno
   akceptacji prowadzi sesja główna, artefakty do akceptacji agent zwraca w raporcie
   (szczegóły w `context/subagent.md`).
 - **Zwięzłość** — komendy i agenci mają być krótkie i konkretne; bez rozwlekłych opisów.
-- **Język** — dokumentacja i treść: polski; `action`/kod/identyfikatory: angielski.
+- **Język** — the „Język" rule in `context/role.md` (artifacts in English).
 
 ## Dodanie nowego skilla (`skills/<nazwa>/SKILL.md`)
 

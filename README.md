@@ -24,8 +24,6 @@ projektu (`ai/docs/`) jest jedynym źródłem prawdy dla AI.
 - [Agenci i modele](#agenci-i-modele)
 - [Szablony](#szablony)
 - [Observability (opcjonalnie)](#observability-opcjonalnie)
-- [Agent teams (opcjonalnie)](#agent-teams-opcjonalnie)
-- [Optymalizacja skilli (opcjonalnie)](#optymalizacja-skilli-opcjonalnie)
 - [Konwencje](#konwencje)
 - [Bezpieczeństwo danych](#bezpieczeństwo-danych)
 - [Dokumentacja rozszerzona](#dokumentacja-rozszerzona)
@@ -63,22 +61,25 @@ opisuje `/regent:init` w `ai/docs/`, a komendy/agenci z nich korzystają.
 
 ## Użycie
 
-Regent jest **pluginem Claude Code w budowie** — do czasu ukończenia nie jest publikowany w żadnym
-marketplace (repo nie ma `marketplace.json`). Ładuje się wprost z klonu repo, na czas jednej sesji:
+The repo is its own plugin marketplace (`.claude-plugin/marketplace.json`). Install once per machine:
 
 ```bash
-claude --plugin-dir <klon repo regent>
+claude plugin marketplace add <regent repo URL>
+claude plugin install regent@regent --scope user
 ```
 
-Żeby plugin działał w każdej sesji z terminala, dodaj alias do konfiguracji powłoki:
-`alias claude='claude --plugin-dir "<klon repo regent>"'`.
+Update after changes land on `main`:
 
-Skille i agenci dostają prefiks `regent:` (`/regent:propose`, `regent:architect`). Jeśli na maszynie
-jest stary framework w `~/.claude` (`CLAUDE.md`, `commands/*-sdd.md`, `agents/`), reguły i komendy
-są w sesji z pluginem podwójnie (`-sdd` i `regent:`). Odłóż go wtedy do osobnego katalogu
-w `~/.claude/` — Claude Code go nie wczyta, a powrót to przeniesienie z powrotem.
-Skille wołają skrypty przez `${CLAUDE_PLUGIN_ROOT}/scripts/…` — Claude Code podstawia katalog
-pluginu w treści skilli i agentów.
+```bash
+claude plugin marketplace update regent && claude plugin update regent@regent
+```
+
+Working on the plugin itself: `claude --plugin-dir <regent clone>` loads it straight from the clone
+for one session.
+
+Skille i agenci dostają prefiks `regent:` (`/regent:propose`, `regent:architect`). Skille wołają
+skrypty przez `${CLAUDE_PLUGIN_ROOT}/scripts/…` — Claude Code podstawia katalog pluginu w treści
+skilli i agentów.
 
 Po instalacji wpisz `/regent:` i Tab — lista pokazuje cały framework. Skille poza `/regent:status`
 uruchamiasz sam: Claude ich nie wywoła i zamiast tego poda polecenie do wpisania (ich opisy nie
@@ -92,7 +93,7 @@ w projektach z `ai/docs/` oraz kopię statusline do stałej ścieżki
 
 ```
 regent/
-├── .claude-plugin/        # plugin.json (manifest)
+├── .claude-plugin/        # plugin.json (manifest), marketplace.json
 ├── context/               # role.md (rola partnera), sdd.md (reguły SDD), sdd-map.md (mapa skilli i agentów), subagent.md (kontrakt subagenta)
 ├── agents/                # 9 subagentów (każdy z polem model:)
 │   ├── architect.md              (opus)
@@ -104,12 +105,11 @@ regent/
 │   ├── dba.md                    (sonnet)
 │   ├── security-auditor.md       (opus)
 │   └── logging-engineer.md       (sonnet)
-├── skills/                # 19 skilli (/regent:propose, /regent:apply, ..., /regent:archive)
+├── skills/                # 18 skilli (/regent:propose, /regent:apply, ..., /regent:archive)
 ├── templates/             # Szablony artefaktów zmian + Makefile
 │   └── docs/              # Szablony plików ai/docs/ (wypełniane przez /regent:init)
 ├── scripts/               # sdd-check.sh (walidacja artefaktów), framework-lint.sh, statusline.sh, session-tokens.sh
-├── evals/                 # Zestawy evali skilli dla /regent:optimize (claude plugin eval, projekty testowe)
-├── docs/                  # Dokumentacja frameworka i plany zmian
+├── docs/                  # Dokumentacja frameworka
 ├── .claude/               # reguły pracy nad tym repo (nie są częścią pluginu)
 └── README.md · CONTRIBUTING.md
 ```
@@ -147,12 +147,11 @@ Pomocniczo: `/regent:status` (stan projektu), `/regent:explore` (analiza read-on
 | Krytyczny bug na produkcji | `/regent:hotfix` |
 | Wracam po przerwie — gdzie jestem? | `/regent:status` |
 | Testy do istniejącego kodu | `/regent:testing` |
-| Review zmian (np. cudzego MR) | `/regent:code-review` |
+| Review zmian (np. MR kolegi) | `/regent:code-review` |
 | Logi w istniejącym kodzie | `/regent:logging` |
 | Aktualizacja zależności / security patch | `/regent:dependency-update` |
 | Zmienia się podejście, stack albo konwencja projektu | `/regent:revise` |
 | Wiedza biznesowa: po co system istnieje | `/regent:wiki` |
-| Skill pluginu zużywa za dużo tokenów albo czasu | `/regent:optimize` |
 
 ## Przepływ pracy
 
@@ -199,7 +198,6 @@ Skróty poza pełnym cyklem:
 | `/regent:status` | Przegląd stanu projektu |
 | `/regent:explore` | Analiza read-only bez commitów |
 | `/regent:wiki` | Wiki biznesowa w Obsidian (`ai/wiki/`) — poza cyklem SDD |
-| `/regent:optimize` | Pętla optymalizacji skilla (eval, keep/discard) — poza cyklem SDD, w repo pluginu |
 
 Definicja każdego skilla: `skills/<nazwa>/SKILL.md`.
 
@@ -246,23 +244,6 @@ pilnuje, by **zmiana logowanej `action` nie rozjechała się z dashboardem**:
 
 Framework **nie buduje** dashboardów — tylko wymusza refleksję. Brak `observability/` → kroki N/A.
 
-## Agent teams (opcjonalnie)
-
-Praca agentów widoczna na żywo w tmux: natywne agent teams Claude Code w trybie split-pane,
-każdy członek zespołu we własnym panelu. Teams włączasz **tylko w wybranym projekcie**
-(`.claude/settings.local.json`), bo zmieniają delegację: nazwany agent startuje jako członek
-zespołu, nie subagent. Szczegóły, koszt i ograniczenia: [docs/agent-teams.md](docs/agent-teams.md).
-
-## Optymalizacja skilli (opcjonalnie)
-
-`/regent:optimize <skill>` to pętla wzorowana na `karpathy/autoresearch`. W osobnym worktree zmienia
-jeden plik promptu skilla albo agenta, uruchamia stały zestaw evali z `evals/<skill>/` (`claude plugin
-eval` na syntetycznym projekcie testowym) i zachowuje zmianę tylko wtedy, gdy jakość nie spada,
-a koszt tokenów, czas albo długość promptu spadają ponad szum. O `keep`/`discard` decyduje
-`scripts/optimize-score.sh`, nie model. Na końcu sprawdza przypadki kontrolne (holdout) i daje raport;
-merge robi użytkownik. Działa w repo pluginu. Zestaw jest dziś dla `apply`. Szczegóły:
-[docs/optimize.md](docs/optimize.md).
-
 ## Konwencje
 
 - **Commity:** `<type>: (<KEY>) <opis>` — **jedna linia, max 100 znaków, bez body**. Długi opis =
@@ -270,29 +251,22 @@ merge robi użytkownik. Działa w repo pluginu. Zestaw jest dziś dla `apply`. S
 - **Logi:** `action` w formacie `RZECZOWNIK_CZASOWNIK` (UPPERCASE, EN); tylko ID encji w `context`
   (zero PII/sekretów); nie logujemy w `domain/`.
 - **Specyfikacje:** delta (nie pełny stan); każde AC testowalne; INVARIANTS obowiązkowe dla refactorów.
-- **`ai/` — osobisty albo współdzielony:** wybór przy `/regent:init` (Krok 0.5), wykrywany przez
-  `git check-ignore -q --no-index ai/`. Osobisty (domyślny) — `ai/` (docs, specs, changes, wiki)
-  jest globalnie ignorowany (`/ai/` w `core.excludesfile`) i nie trafia do repo produktu; do MR
-  idzie kod i testy, plan niesie opis MR z `/regent:verify`. Współdzielony — cały `ai/` jest
-  śledzony w repo, razem z `changes/archive/`. Numery REQ/AC są lokalne i nie trafiają do kodu
-  w obu trybach.
+- **`ai/` w repo:** cały `ai/` (docs, specs, changes, archiwum, wiki) is tracked in the product
+  repo and goes into the MR together with code and tests. Numery REQ/AC są lokalne i nie trafiają
+  do kodu.
 
 ## Bezpieczeństwo danych
 
-Repo jest publiczne i zawiera wyłącznie plugin i jego dokumentację — bez danych z `~/.claude`
-(historia, transkrypty, sesje), bez notatek osobistych.
+The repo holds only the plugin and its documentation — no data from `~/.claude` (history,
+transcripts, sessions).
 
 - Przed pushem sprawdź `git status` — `git add` tylko z listą konkretnych plików.
 - Nigdy nie commituj sekretów ani realnych logów/payloadów.
-- Dane, które plugin zapisuje w przyszłości (np. kronika), trafiają do `${CLAUDE_PLUGIN_DATA}`
-  na danej maszynie, nie do repo.
 
 ## Dokumentacja rozszerzona
 
 - [`docs/getting-started.md`](docs/getting-started.md) — pierwsze uruchomienie krok po kroku
 - [`docs/workflow.md`](docs/workflow.md) — pełny cykl SDD + skróty
 - [`docs/writing-docs.md`](docs/writing-docs.md) — `ai/docs/`, logowanie, observability
-- [`docs/agent-teams.md`](docs/agent-teams.md) — agent teams w tmux
-- [`docs/optimize.md`](docs/optimize.md) — `/regent:optimize`: pętla optymalizacji skilli, zestawy evali, metryka
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — jak dodać skill/agenta/szablon
 - [`docs/`](docs/README.md) — indeks całej dokumentacji (m.in. `statusline.md` — konfiguracja statusline)
