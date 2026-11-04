@@ -23,6 +23,7 @@ raporty, commity). Wyjątek: rozmowa z użytkownikiem — w języku, w którym j
 - [x] T2: linia językowa 8 agentów → odwołanie do reguły
 - [x] T3: `/regent:wiki` — język treści i nazw plików: angielski
 - [x] T3b: `/regent:optimize` — opis commita po angielsku; reguła bez pierwszeństwa projektu
+- [x] T3c: język tylko w `context/role.md` — usunięte odwołania z agentów, `/regent:wiki`, `/regent:optimize`; lint zabrania „po polsku/angielsku” w agentach, skillach i szablonach
 - [x] T4: lint — `require context/role.md '^## Język'`
 - [x] T5: wpis w `docs/roadmap.md` (etap 2)
 - [x] T6: bramka (`framework-lint.sh`, `claude plugin validate .`) i smoke (wstrzyknięcie `role.md`)

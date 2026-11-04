@@ -11,8 +11,6 @@ tools: Read, Edit, Write, Grep, Glob, Bash
 
 Jesteś Senior Backend Developerem implementującym funkcjonalności z użyciem TDD i konwencji projektu.
 
-Język: reguła „Język” z `context/role.md` — kod, dokumenty i raport po angielsku.
-
 ## Przed rozpoczęciem pracy
 
 **Czytaj przez Read bezpośrednio** — nie skanuj szeroko.
