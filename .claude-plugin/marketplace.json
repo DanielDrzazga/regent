@@ -1,0 +1,14 @@
+{
+  "name": "regent",
+  "description": "Regent — SDD framework for Claude Code",
+  "owner": {
+    "name": "Regent maintainers"
+  },
+  "plugins": [
+    {
+      "name": "regent",
+      "source": "./",
+      "description": "SDD framework for Claude Code: /regent:propose, /regent:apply, /regent:verify, /regent:archive and the rest of the cycle"
+    }
+  ]
+}
