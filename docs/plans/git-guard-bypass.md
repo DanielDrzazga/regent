@@ -1,7 +1,7 @@
 # Plan: git-guard-bypass
 
 > Dwie luki w `scripts/hooks/git-guard.sh` (hook PreToolUse pluginu i tego repo), znalezione przy
-> przeglądzie hooków ECC (`block-no-verify.js`). Lekka ścieżka: gałąź `fix/git-guard-bypass`, ten
+> przeglądzie podobnego hooka w innym projekcie. Lekka ścieżka: gałąź `fix/git-guard-bypass`, ten
 > plan, bramka i smoke.
 
 ## Błąd

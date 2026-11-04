@@ -16,7 +16,7 @@ nazwy, ścieżki i miejsce plików.
 |---|---|
 | Źródło | stan roboczy `~/.claude` (repo `claude-sdd-framework`, HEAD `661da82` + niezacommitowany `statusline.sh` + nieśledzony `session-tokens.sh`); bez `docs/announcements/` (ogłoszenie dla zespołu w pracy) |
 | Historia gita | bez historii — kopia plików; stare repo zostaje zamrożone na `661da82` |
-| Klucze w przykładach | `CAP-1028` / `1029` / `1030` → `PROJ-123` / `124` / `125` |
+| Klucze w przykładach | `XYZ-1028` / `1029` / `1030` → `PROJ-123` / `124` / `125` |
 | Komendy | → skille `skills/<nazwa>/SKILL.md`, bez sufiksu `-sdd` → `/regent:<nazwa>` |
 | Agenci | bez zmian w plikach; w odwołaniach pełna nazwa `regent:<agent>` |
 | Reguły SDD z `CLAUDE.md` | → `context/sdd.md` (wstrzykiwany przez hook w zmianie 2, tylko przy `ai/docs/`) |
@@ -51,7 +51,7 @@ komendami — działają tylko jako `/regent:<nazwa>`, dlatego w treści zawsze 
 | 2 | `commands/<nazwa>-sdd.md` | `skills/<nazwa>/SKILL.md` | |
 | 3 | `` `<agent>` `` (9 nazw) | `` `regent:<agent>` `` | ok. 180 wystąpień; kontrola kontekstów, gdzie chodzi o pole `name`, a nie o delegację |
 | 4 | `~/.claude/templates/`, `~/.claude/scripts/` | `${CLAUDE_PLUGIN_ROOT}/templates/`, `${CLAUDE_PLUGIN_ROOT}/scripts/` | w treści skilli, agentów i w `allowed-tools` — dokumentacja CC potwierdza podstawianie |
-| 5 | `CAP-1028` / `1029` / `1030` | `PROJ-123` / `124` / `125` | |
+| 5 | `XYZ-1028` / `1029` / `1030` | `PROJ-123` / `124` / `125` | |
 
 Ręcznie: 4 wystąpienia nazwy bez ukośnika, sekcja „Konwencja nazw: sufiks `-sdd`" (→ namespace
 `regent:`), nagłówek zakresu w `context/sdd.md`, komentarze „Użycie:" w skryptach, README (drzewo,
