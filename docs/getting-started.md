@@ -16,8 +16,8 @@ Sprawdź, że Claude Code go widzi: wpisz `/regent:` i Tab — lista powinna pok
 
 Plugin nie jest publikowany w żadnym marketplace — ładuje się z klonu repo:
 
-1. Klon repo `regent` i adres autora commitów:
-   `git config user.email 40364469+DanielDrzazga@users.noreply.github.com`.
+1. Klon repo `regent` i adres autora commitów: `git config user.email <Twój adres>`
+   (sprawdź `.claude/rules/git.md`, jeśli repo wymaga konkretnego adresu).
 2. Sesja z pluginem: `claude --plugin-dir <klon repo regent>`, a na stałe — alias w konfiguracji
    powłoki: `alias claude='claude --plugin-dir "<klon repo regent>"'`. Stary framework w `~/.claude`
    (`CLAUDE.md`, `commands/*-sdd.md`, `agents/`) odłóż do osobnego katalogu w `~/.claude/`

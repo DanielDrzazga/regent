@@ -1,6 +1,6 @@
 # Regent — kontekst projektu
 
-- Regent to narzędzie programisty łączące framework SDD i pomysły z OpenRig.
+- Regent to narzędzie programisty: framework SDD (Spec-Driven Development) jako plugin Claude Code.
 - Harness to warstwa runtime Regenta, nie osobny produkt: jedno repo, plugin to przepis SDD
   i adapter (hooki, statusline), stan i polecenia to komponent w `tools/`.
 - Repo nie pracuje w cyklu SDD (bez `ai/`). Zmiany idą lekką ścieżką: gałąź, plan z checklistą
