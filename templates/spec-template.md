@@ -9,8 +9,7 @@
   /regent:archive: kolizję z równoległą gałęzią naprawia sdd-check renumber. AC numerowane w obrębie REQ (AC-1, AC-2…),
   nowe AC dostaje numer po najwyższym w bloku. Odwołanie w taskach, raportach i verification.md:
   REQ-012/AC-2 (lista: REQ-012/AC-1, AC-3; zakres: REQ-012/AC-1..3).
-  Numery są lokalną numeracją projektu (niezależną od tego, czy `ai/` jest osobisty czy
-  współdzielony w repo), więc nie trafiają do kodu:
+  Numery są lokalną numeracją projektu, więc nie trafiają do kodu:
   test nazywa się wg konwencji projektu, a powiązanie AC → test zapisuje się przy tasku
   w tasks.md („testy: plik › nazwa testu") i w verification.md → Pokrycie AC.
   Delta to jedyne miejsce AC w zmianie — proposal.md do nich odsyła.

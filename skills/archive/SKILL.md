@@ -47,8 +47,8 @@ Sprawdź:
 □ (miękko) bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh drift {nazwa} — pliki z Affected Files zmienione od `Commit HEAD`?
   WARN → ostrzeż: "kod zmiany ruszył się po weryfikacji, rozważ re-run /regent:verify"
   (porównanie plików, nie hasha — merge i squash cudzych zmian nie dają fałszywego alarmu)
-□ (tryb współdzielony: `git check-ignore -q --no-index ai/` → exit 1) `git fetch -q` — preflight
-  porównuje numery z main specs gałęzi domyślnej i z deltami innych gałęzi
+□ `git fetch -q` — preflight compares numbers with the main specs of the default branch and with
+  the deltas of other branches
 □ bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh preflight {nazwa} — ERROR (kolizja numeru REQ, MODIFIED bez REQ, utrata AC) →
   STOP i pokaż użytkownikowi; merge z takiej delty uszkodziłby main spec.
   Wyjątek — kolizja numeru ADDED (inna zmiana lub gałąź zajęła go wcześniej): numer z propose jest
@@ -92,12 +92,6 @@ Jeśli nie wszystkie taski done:
 
 `--abandon` → **POMIŃ cały Krok 2** (bez delegacji, zero uruchomień subagenta): zmiany, która
 nie powstała, nie wolno wmergować do źródła prawdy. Idź prosto do Kroku 3.
-
-**Przed merge (SESJA GŁÓWNA):** sprawdź `git check-ignore -q --no-index ai/`.
-- Osobisty (exit 0) — zrób migawkę źródła prawdy: `cp -R ai/specs "${TMPDIR:-/tmp}/specs-before-{nazwa}"`
-  (brak `ai/specs/` → pomiń). `git diff` nie pokaże zmian w main specs, bo `ai/` jest ignorowany —
-  pokaże je porównanie z migawką (2c).
-- Współdzielony (exit 1) — migawka niepotrzebna: `git diff -- ai/specs` pokaże zmiany wprost (2c).
 
 **Dla każdego pliku w `ai/changes/{nazwa}/specs/`:**
 
@@ -150,25 +144,18 @@ bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh postmerge {nazwa}
 ```
 ERROR (nagłówek delty w main spec, REQ z delty nie trafił do main, zbiór AC różny od delty) →
 **resume `regent:spec-writer`** z wynikiem skryptu i popraw merge, zanim przeniesiesz zmianę do archiwum.
-Pokaż użytkownikowi diff źródła prawdy: osobisty — `diff -ru "${TMPDIR:-/tmp}/specs-before-{nazwa}" ai/specs`;
-współdzielony — `git diff -- ai/specs` (zmiany jeszcze niezacommitowane).
+Show the user the diff of the source of truth: `git diff -- ai/specs` (changes not committed yet).
 
 ---
 
 ## Krok 3: Przenieś do archiwum
 
-`--abandon` → **przed** `mv` ustaw w `proposal.md` `Status: Abandoned`. Katalog porzuconej
-zmiany w `archive/` wygląda tak samo jak zakończonej; po tym polu zadania Regenta zamykają ją
-jako porzuconą.
+`--abandon` → **before** the move set `Status: Abandoned` in `proposal.md`. An abandoned change
+in `archive/` looks the same as a finished one; this field is the only thing that tells them apart.
 
 ```bash
-mv ai/changes/{nazwa}/ ai/changes/archive/{YYYY-MM-DD}-{nazwa}/
+git mv ai/changes/{nazwa} ai/changes/archive/{YYYY-MM-DD}-{nazwa} && git commit -m "chore: archive {nazwa}"
 ```
-
-Tryb współdzielony (`git check-ignore -q --no-index ai/` → exit 1) — użyj `git mv` zamiast `mv`
-i dodaj commit przenosin: `git mv ai/changes/{nazwa} ai/changes/archive/{YYYY-MM-DD}-{nazwa} &&
-git commit -m "chore: archiwizuj {nazwa}"`. Tryb osobisty — plain `mv`, bez zmian (to tylko ruch
-plików poza gitem).
 
 Struktura po archiwizacji:
 ```

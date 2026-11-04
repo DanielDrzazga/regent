@@ -39,7 +39,7 @@ wg tagu taska w tasks.md: `[BE]`/bez tagu → `regent:backend-dev`, `[FE]` → `
 (wg `frontend-patterns.md`), `[DB]` → `regent:dba`. Agent **sam uruchamia testy wąsko** w pętli
 TDD; atomic commit per task robi sesja główna po raporcie z potwierdzonym GREEN. Test RED
 sprawdza `weryfikację` z taska; powiązanie AC → test i hash commitu sesja zapisuje przy tasku
-w `tasks.md` (osobisty i lokalny albo współdzielony i śledzony w repo — wybór przy `/regent:init`).
+w `tasks.md` (tracked in the repo).
 
 **Zmiana kursu (Krok 4.5):** gdy kod ujawni, że plan się nie sprawdza, zmiana AC albo designu
 idzie przez `AMEND` — decyzja użytkownika, wpis w `Decyzje i założenia`, poprawiona delta.

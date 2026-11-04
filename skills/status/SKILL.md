@@ -138,8 +138,7 @@ commicie (`/regent:apply` 4c), więc dla pierwszego nieodhaczonego taska sprawd�
 bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh stale      # commity ruszające pliki zarchiwizowanych zmian, nieobecne w żadnym tasks.md
 ```
 Każdy WARN to kod zmieniony poza Twoim cyklem SDD — hotfix bez follow-upu, ręczna poprawka
-albo praca kolegi (gdy `ai/` jest osobisty, ich commity trafiają tu bez widocznej zmiany w `ai/`;
-przy współdzielonym `ai/` ich zmianę zobaczysz też wprost w `ai/changes/`). Twój main spec domeny
+albo praca kolegi poza cyklem SDD (a change made through SDD also shows up in `ai/changes/`). Twój main spec domeny
 mógł przestać opisywać prawdę → zaktualizuj go (`/regent:propose` na zmianę zachowania,
 `/regent:bugfix` na błąd). Squash bez klucza ticketu skrypt rozpoznaje po zawartości plików —
 gdy lokalne hashe cyklu zniknęły (gc, inna maszyna), WARN bywa fałszywy. Bez flagi `--drift`

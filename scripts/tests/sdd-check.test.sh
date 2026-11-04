@@ -320,7 +320,7 @@ printf '### REQ-050: stare\n' > "$P/ai/changes/archive/2026-01-01-old/specs/x.md
 run next-req
 expect_code 0; expect_has '^REQ-051$'
 
-name="next-req: numer z delty na innej gałęzi (tryb współdzielony)"; fresh
+name="next-req: number from a delta on another branch"; fresh
 g checkout -q -b other; mkdir -p "$P/ai/changes/pay/specs"
 printf '## ADDED\n\n### REQ-040: płatność\n' > "$P/ai/changes/pay/specs/billing.md"
 g add -A; g commit -m pay; g checkout -q main

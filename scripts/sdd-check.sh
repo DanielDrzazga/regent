@@ -229,8 +229,8 @@ default_branch() {
   return 0
 }
 
-# Gałęzie lokalne i zdalne (bez symbolicznych */HEAD). W trybie współdzielonym `ai/` jest w gicie,
-# więc delty i main specs innych gałęzi są widoczne bez checkoutu; w osobistym — puste.
+# Local and remote branches (without symbolic */HEAD). `ai/` is tracked, so deltas and main specs
+# of other branches are visible without a checkout (empty when `ai/` is not in git).
 branch_refs() { git for-each-ref --format='%(refname)' refs/heads refs/remotes 2>/dev/null | grep -v '/HEAD$'; }
 
 # Numery REQ ze wszystkich gałęzi: „ref:ścieżka:linia" z nagłówkami sekcji i REQ, w kolejności pliku.
@@ -406,7 +406,7 @@ cmd_preflight() {
       info "$f: nowy main spec ai/specs/$(basename "$f")"
     fi
   done
-  # Tryb współdzielony: main specs gałęzi domyślnej i delty innych gałęzi (bez checkoutu).
+  # Main specs of the default branch and deltas of other branches (without a checkout).
   base=$(default_branch)
   btmp=$(mktemp -d "${TMPDIR:-/tmp}/sdd-base.XXXXXX")
   if [ -n "$base" ]; then

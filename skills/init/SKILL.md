@@ -44,31 +44,19 @@ Jeśli ai/docs/stack/technology.md istnieje i nie jest pusty:
 
 ---
 
-## Krok 0.5: Tryb `ai/` — osobisty czy współdzielony
+## Krok 0.5: `ai/` tracked in the repo
 
-`ai/` to artefakty SDD (`docs/`, `specs/`, `changes/`). Zapytaj (`AskUserQuestion`): **osobisty**
-(każdy ma swój styl pracy z AI, katalog nie trafia do repo produktu) czy **współdzielony** (cała
-historia decyzji SDD — `docs/`, `specs/`, `changes/` aktywne i archiwum — w repo, widoczna dla
-zespołu i w MR).
+`ai/` holds the SDD artifacts (`docs/`, `specs/`, `changes/` active and archived) and is tracked
+in the product repo as a whole, so the team sees every decision and the plan travels with the MR.
 
-Sprawdź: `git check-ignore -q --no-index ai/` (`--no-index`: wynik zależy od reguł ignore, nie od
-tego, czy coś w `ai/` jest już śledzone).
+Check: `git check-ignore -q --no-index ai/` (`--no-index`: the result depends on ignore rules,
+not on whether anything in `ai/` is already tracked).
 
-**Osobisty:**
-- ignorowany (exit 0) → dalej;
-- nieignorowany → dopisz `/ai/` do globalnego excludes: plik z `git config --global
-  core.excludesfile` (brak → utwórz `~/.gitignore_global` i ustaw go tą komendą). `/ai/` kotwiczy
-  do korzenia repo — katalogi `ai/` w kodzie (np. `src/ai/`) zostają śledzone. Pliki już śledzone
-  w `ai/` git śledzi dalej; ich wyjęcie (`git rm --cached`) zmienia repo całego zespołu, więc to
-  osobna decyzja użytkownika.
-
-**Współdzielony:**
-- nieignorowany (exit 1) → dalej. Zapisz w wyniku Kroku 4: `ai/` trafia do repo w całości, ale
-  pierwszy realny commit nastąpi w `/regent:apply` albo `/regent:bugfix` razem z pierwszym
-  taskiem — ten krok tylko zapisuje pliki, niczego nie commituje;
-- ignorowany (exit 0, zwykle przez globalną regułę z innego projektu) → dopisz `!/ai/` do
-  **projektowego** `.gitignore` (wzorzec bliżej repo nadpisuje `core.excludesfile` — standardowy
-  mechanizm negacji git) i sprawdź ponownie.
+- not ignored (exit 1) → continue. Note in the Krok 4 result that the first real commit of `ai/`
+  happens in `/regent:apply` or `/regent:bugfix` together with the first task — this step only
+  writes files and commits nothing;
+- ignored (exit 0, usually by a global rule) → add `!/ai/` to the **project** `.gitignore` (a
+  pattern closer to the repo overrides `core.excludesfile` — standard git negation) and check again.
 
 ---
 
@@ -247,10 +235,6 @@ oraz atrybucję AI w treści commita i PR (`Co-Authored-By` z Claude, „Generat
 a agentowi mówi, co zrobić zamiast tego. Działa w każdym projekcie z `ai/docs/`, więc od zapisu plików w Kroku 4 chroni
 także ten projekt — bez wpisu w jego `.claude/settings*.json` i bez pytania o zgodę.
 
-Sprawdź tylko, czy projekt nie ma starego wpisu hooka wskazującego `$HOME/.claude/scripts/hooks/`
-(sprzed pluginu) w `.claude/settings.json` lub `.claude/settings.local.json`. Jest → zaproponuj
-jego usunięcie (dubluje hook pluginu, a po usunięciu frameworka z `~/.claude` nic nie robi).
-
 ## Krok 4: Prezentacja i zatwierdzenie
 
 ```markdown
@@ -270,7 +254,7 @@ jego usunięcie (dubluje hook pluginu, a po usunięciu frameworka z `~/.claude` 
 ⬜ ai/docs/patterns/frontend-patterns.md (opcjonalny — nie wykryto frontendu)
 ✅ Makefile (Node.js, pnpm, Prisma)
 ✅ git-guard — hook pluginu aktywny (projekt ma ai/docs/); stary wpis w .claude/settings*.json: brak / usunięty
-✅ ai/: tryb współdzielony (śledzony w repo) — pierwszy commit dopiero w apply/bugfix
+✅ ai/: tracked in the repo — first commit in apply/bugfix
 
 ### Podsumowanie:
 - Runtime: Node.js 20 + TypeScript 5.3

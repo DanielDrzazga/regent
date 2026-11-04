@@ -208,10 +208,8 @@ wywrotki, nie blokować weryfikacji.
 □ Dependencies locked?
 ```
 
-**Opis MR (gdy zespół pracuje na MR/PR):** gdy `ai/` jest osobisty (domyślny tryb), reviewer MR
-nie ma do niego dostępu, więc plan niesie opis MR; przy współdzielonym `ai/` reviewer może
-przeczytać `ai/changes/{nazwa}/` wprost, ale opis MR i tak ułatwia review w samym UI MR/PR —
-dołączaj go w obu trybach. Przy PASS dołącz do raportu gotowy do wklejenia opis: cel z
+**Opis MR (gdy zespół pracuje na MR/PR):** the reviewer can read `ai/changes/{nazwa}/` in the MR,
+but an MR description makes review easier in the MR/PR UI itself — always include it. Przy PASS dołącz do raportu gotowy do wklejenia opis: cel z
 `proposal.md` (1-2 zdania), wymagania
 z delty z **treścią AC** (ADDED/MODIFIED/REMOVED — reviewer nie ma Twoich plików), pokrycie
 w postaci „treść AC → test", kluczowe `DECYZJA`, „Odstępstwa od zasad" z design.md (zasady MUST

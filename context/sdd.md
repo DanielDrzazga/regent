@@ -27,9 +27,7 @@ Jeśli coś jest niejasne lub błędne — **zatrzymaj się i zapytaj**, nie zga
 Dokumentacja projektu: `ai/docs/` — komendy określają co i kiedy czytać.
 Jeśli `ai/docs/` nie istnieje → `/regent:init` najpierw.
 
-Struktura artefaktów SDD w projekcie (`ai/` jest osobisty i poza repo produktu — tryb domyślny —
-albo współdzielony i śledzony w repo, wybór przy `/regent:init`; sprawdź `git check-ignore -q
---no-index ai/`):
+Struktura artefaktów SDD w projekcie (`ai/` is tracked in the product repo):
 - `ai/docs/` — wiedza o projekcie (stack, wzorce, konwencje)
 - `ai/specs/` — main specs per domena (źródło prawdy po archiwizacji)
 - `ai/changes/{nazwa}/` — aktywne zmiany (proposal, specs delta, design, tasks, verification)

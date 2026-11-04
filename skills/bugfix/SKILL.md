@@ -127,9 +127,8 @@ git checkout -b fix/{KEY}-{short-description}
 git add [specific files]
 git commit -m "fix: (KEY) prevent duplicate email registration"
 
-# ai/ osobisty (git check-ignore -q --no-index ai/, exit 0) → tasks.md zostaje lokalnie, bez git add.
-# ai/ współdzielony (exit 1) → po edycji tasks.md drugi, krótki commit:
-# git add ai/changes/fix-{nazwa}/tasks.md && git commit -m "docs: odhacz T-01 w tasks.md"
+# ai/ is tracked → after editing tasks.md a second, short commit:
+# git add ai/changes/fix-{nazwa}/tasks.md && git commit -m "docs: check off T-01 in tasks.md"
 ```
 
 ---

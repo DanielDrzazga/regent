@@ -187,26 +187,20 @@ Commit (format: `context/sdd.md` → Commit) i krok 4c robisz jednym wywołaniem
 
 ### 4c. Aktualizuj tasks.md (SESJA GŁÓWNA, po commicie taska)
 
-`ai/` bywa osobisty (globalnie ignorowany) albo współdzielony (śledzony w repo) — sprawdź
-`git check-ignore -q --no-index ai/`. W obu trybach ślad taska dopisujesz po commicie: hash
-i test, który sprawdza jego AC (z raportu deva):
+`ai/` is tracked in the repo. Append the task trace after the commit: the hash and the test that
+checks its AC (from the dev report):
 
 ```markdown
 - [x] T-01: [BE] Create user entity — REQ-001/AC-1, AC-2 — … ✅ (commit: abc1234 · testy: AC-1 → tests/users/user.entity.test.ts › rejects empty email; AC-2 → … › trims name)
 - [ ] T-02: [BE] Create user repository — REQ-001/AC-2 — …
 ```
 
-**Osobisty** (exit 0) — `tasks.md` zostaje lokalnie; `git add` wymienia wyłącznie pliki kodu
-i testów, bo ścieżka w `ai/` jest ignorowana (dodanie kończyłoby się kodem 1 i przerwało
-`git add … && git commit`).
+After editing `tasks.md` add a second, short commit: `git add ai/changes/{nazwa}/tasks.md &&
+git commit -m "docs: check off T-01 in tasks.md"`. Two commits per task (code and tests, then the
+trace) — the hash must exist before the trace quotes it.
 
-**Współdzielony** (exit 1) — po edycji `tasks.md` dodaj drugi, krótki commit: `git add
-ai/changes/{nazwa}/tasks.md && git commit -m "docs: odhacz T-01 w tasks.md"`. Dwa commity na
-task (kod i testy, potem ślad) — hash musi już istnieć, zanim ślad go zacytuje.
-
-Po hashu `sdd-check diff/stale` odróżnia commity cyklu od zmian spoza SDD (w trybie
-współdzielonym rozpoznaje też same ścieżki w `ai/changes/`); po mapowaniu `testy:` reviewer
-w `/regent:verify` znajduje test każdego AC.
+By the hash (and the `ai/changes/` paths) `sdd-check diff/stale` tells cycle commits from changes
+outside SDD; by the `testy:` mapping the reviewer in `/regent:verify` finds the test of every AC.
 
 ---
 

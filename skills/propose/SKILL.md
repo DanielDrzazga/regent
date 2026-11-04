@@ -54,9 +54,9 @@ WYMAGANE pliki (nie puste):
 Jeśli brakuje → "Uruchom /regent:init przed /regent:propose"
 ```
 
-**Konflikt z inną aktywną zmianą (twardy punkt, nie ostrzeżenie ogólne)** — gdy `ai/` jest osobisty
-(domyślny tryb), widzisz tylko własne zmiany; pracę kolegów ujawni dopiero merge MR. Dla każdej
-zmiany w swoim `ai/changes/` (bez `archive/`) porównaj z zakresem tej propozycji:
+**Konflikt z inną aktywną zmianą (twardy punkt, nie ostrzeżenie ogólne)** — your working tree shows
+only changes merged into your branch; colleagues' changes on other branches show up after their MR
+is merged. Dla każdej zmiany w swoim `ai/changes/` (bez `archive/`) porównaj z zakresem tej propozycji:
 ```
 □ ta sama domena w specs/{domena}.md?   (obie delty wejdą do tego samego main spec)
 □ wspólne pliki w design.md → „Affected Files"?
@@ -245,9 +245,8 @@ wynik poprzedniego:
 
 W prompcie do `regent:spec-writer` przekaż listę `DECYZJA` z Kroku 1b′ oraz zastrzeżenia (jeśli były),
 a także dwa fakty policzone skryptem (sesja główna, przed delegacją):
-- `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh next-req` → następny wolny numer REQ (tryb
-  współdzielony — `git check-ignore -q --no-index ai/` daje exit 1 — najpierw `git fetch -q`:
-  skrypt dolicza numery z delt na gałęziach zdalnych),
+- `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh next-req` → następny wolny numer REQ (run
+  `git fetch -q` first: the script also counts numbers from deltas on remote branches),
 - `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh index` → spis wymagań z `ai/specs/` — spec-writer czyta w całości tylko main specs
   domen, których dotyczy zmiana.
 

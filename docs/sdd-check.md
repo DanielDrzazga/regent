@@ -21,7 +21,7 @@ bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh <tryb> [argumenty]
 | `postmerge <nazwa>` | main specs po merge: bez nagłówków delty i linii Było/Usunięte AC, bez duplikatów REQ, zbiór AC każdego REQ = zbiór z delty | `/regent:archive` po Kroku 2 |
 | `drift <nazwa>` | czy pliki z „Affected Files" zmieniły się od `Commit HEAD` z verification.md | `/regent:archive` Krok 0, `/regent:status` |
 | `diff <nazwa> [baza]` | fakty dla review: usunięte testy, dodane `.skip/.only/xit`, testy z mniejszą liczbą asercji, pliki spoza „Affected Files" | `/regent:verify` przed Etapami 2-4 |
-| `next-req` | następny wolny numer REQ (max z `ai/specs/`, aktywnych zmian, archiwum i — w trybie współdzielonym — delt i main specs na wszystkich gałęziach lokalnych i zdalnych + 1) | `/regent:propose` Krok 2 |
+| `next-req` | następny wolny numer REQ (max z `ai/specs/`, aktywnych zmian, archiwum, delt i main specs na wszystkich gałęziach lokalnych i zdalnych + 1) | `/regent:propose` Krok 2 |
 | `renumber <nazwa> <REQ> [REQ-nowy]` | **jedyny tryb, który zapisuje**: przenumerowuje wymaganie ADDED we wszystkich plikach zmiany (delta, tasks, verification, proposal); bez trzeciego argumentu bierze `next-req` | `/regent:archive` Krok 0 przy kolizji numeru |
 | `status` | jedna linia na aktywną zmianę: Status, taski x/y, werdykt weryfikacji | `/regent:status` |
 | `index` | spis wymagań: `domena: REQ-NNN tytuł (AC: n)` — mapa `ai/specs/` bez czytania całych plików | `regent:spec-writer` (przez prompt z `/regent:propose`) |

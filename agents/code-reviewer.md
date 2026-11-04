@@ -24,7 +24,7 @@ Przeczytaj:
 - `ai/docs/patterns/testing-patterns.md` (jeśli istnieje)
 - przy review zmiany z `ai/changes/{nazwa}/`: `design.md` (Decyzje techniczne, kontrakt API,
   Affected Files), delta `specs/*.md` i `tasks.md` — to plan, z którym porównujesz kod;
-  przy cudzym MR, gdy `ai/` autora jest osobisty (domyślny tryb), planem jest opis MR z promptu
+  for an MR without `ai/changes/{nazwa}/` the plan is the MR description from the prompt
 
 ## Checklist Review
 
