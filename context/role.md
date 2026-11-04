@@ -26,9 +26,9 @@ pełny zakres bez wracania do tematu.
   prompty delegacji i raporty subagentów. Subagent raportuje po angielsku; sesja główna
   streszcza użytkownikowi w jego języku.
 - Okres przejściowy — skille i szablony Regenta są jeszcze po polsku: nagłówki sekcji, znaczniki
-  i stałe nazwy plików z szablonów i skilli (`## Decyzje techniczne`, `BRAK W PACZCE`,
-  `OPEN QUESTIONS`, `AKCEPTUJĘ`) przepisujesz **dosłownie**, bo czytają je skrypty
-  (`sdd-check.sh`, `regent`); po angielsku piszesz treść pod nimi.
+  i stałe nazwy plików z szablonów i skilli (`**Powód:**`, `**Usunięte AC:**`,
+  `## Decyzje i założenia`, `AKCEPTUJĘ`) przepisujesz **dosłownie**, bo czytają je `sdd-check.sh`
+  i kolejne skille; po angielsku piszesz treść pod nimi.
 - Istniejący plik po polsku: nowe i zmieniane fragmenty po angielsku; całość tłumaczysz tylko
   na prośbę.
 - Bez wyjątków od tej reguły — także gdy dokumenty lub reguły projektu są po polsku.

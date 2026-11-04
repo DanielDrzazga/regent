@@ -34,8 +34,7 @@ Merge robisz Ty, zwykłą ścieżką repo: bramka, smoke, `main`.
   sandbox wbudowany). Kontener bez user namespaces (np. Docker z domyślnym seccomp) sandboksu
   nie uruchomi. Wtedy `optimize-score.sh run … --no-bash` odbiera przypadkom Basha. Takie
   wyniki porównujesz tylko z baseline'em zrobionym też z `--no-bash`, a kroków skilla opartych
-  na Bashu (np. `git log` w `wiki sync`) taki eval nie ocenia;
-- dla `apply` zbudowane CLI `tools/regent` (pętla kopiuje `dist` do worktree).
+  na Bashu (np. `git log` w `wiki sync`) taki eval nie ocenia.
 
 ## Jak to działa
 
@@ -92,8 +91,6 @@ jakość za tańszy przebieg. Nieudany task kosztuje w realnej pracy więcej, ni
 - **Wyrocznia jest zamrożona.** Pętla zmienia wyłącznie pliki kandydata. `evals/`, `scripts/`
   i reguły `require`/`forbid` w lincie zostają bez zmian, a lint przed każdym evalem pilnuje
   chronionych reguł promptów.
-- **Przegląd diffu i sprawdzenie na żywo.** Po merge'u `regent-apply-tokens` porównuje prawdziwe
-  sesje `apply` z punktem odniesienia ([tasks.md](tasks.md)).
 
 ## Zestaw `apply`
 
@@ -110,20 +107,19 @@ Tagi `<skill>-fe-train` i `<skill>-fe-holdout` wybierają podzestaw FE, np. dla 
 
 | Przypadek | Tag | Co sprawdza |
 |---|---|---|
-| `train-two-tasks` | `apply-train` | dwa niezależne taski `[BE]`: delegacja, paczka z CLI, commit i ślad na task, RED przed GREEN, testy pokrywają AC |
+| `train-two-tasks` | `apply-train` | dwa niezależne taski `[BE]`: delegacja, commit i ślad na task, RED przed GREEN, testy pokrywają AC |
 | `train-dependency` | `apply-train` | `(po T-01)`: dwie rundy, nowy subagent na rundę, bez `SendMessage` |
 | `train-tasks-filter` | `apply-train` | `--tasks 2`: tylko wskazany task, reszta nietknięta |
 | `holdout-db-be` | `apply-holdout` | `[DB]` do `regent:dba`, potem `[BE]` |
-| `holdout-no-cli` | `apply-holdout` | ścieżka bez CLI (`EVAL_REGENT_NO_CLI=1`) |
 | `holdout-bugfix` | `apply-holdout` | `/regent:bugfix` na tym samym projekcie — chroni agenta `backend-dev`, którego używa 6 skilli |
 | `holdout-four-tasks` | `apply-holdout` | cztery taski z dwiema zależnościami |
-| `train-fe-two` | `apply-train`, `apply-fe-train` | dwa niezależne taski `[FE]`: routing do `regent:frontend-dev` (bez `backend-dev`), paczka, polska odmiana licznika |
+| `train-fe-two` | `apply-train`, `apply-fe-train` | dwa niezależne taski `[FE]`: routing do `regent:frontend-dev` (bez `backend-dev`), polska odmiana licznika |
 | `train-fe-fullstack` | `apply-train`, `apply-fe-train` | `[BE]` + `[FE]` z kontraktem API: klient wg kontraktu, FE mockuje HTTP |
 | `holdout-fe-three` | `apply-holdout`, `apply-fe-holdout` | trzy taski `[FE]` z jedną zależnością |
 | `holdout-fe-bugfix` | `apply-holdout`, `apply-fe-holdout` | `/regent:bugfix` w UI: tytuł z HTML-em na liście (XSS) — escapowanie i test regresji |
 
 Oceniacze są najpierw deterministyczne:
-- `tool_used`: delegacja (`Agent` z `regent:<agent>`), `SendMessage` 0 razy, `task packet`;
+- `tool_used`: delegacja (`Agent` z `regent:<agent>`), `SendMessage` 0 razy;
 - regex po `tasks.md`: `[x] T-NN` ze śladem `commit:` oraz osobny commit na task (różne hashe przy
   kolejnych taskach). Liczba wywołań Bash z `git commit` byłaby złym sygnałem, bo karałaby dwa
   commity w jednym wywołaniu;

@@ -45,7 +45,7 @@ Inaczej modele z `agents/*.md` nie zostaną użyte.
 **jedno uruchomienie agenta z listą tasków**; taski zmieniające te same pliki → osobne uruchomienia,
 po kolei, bo inaczej commitów nie da się rozdzielić.
 
-**Uruchomienie = nowy subagent.** Każda paczka idzie do nowego subagenta. Kolejnego taska ani
+**Uruchomienie = nowy subagent.** Każde uruchomienie idzie do nowego subagenta. Kolejnego taska ani
 rundy — także napraw po `/regent:verify` — nie wysyłaj przez `SendMessage` agentowi, który już
 raportował: kontynuowany agent niesie całą historię, jego kontekst rośnie z każdym taskiem
 (zmierzone: 17k → 494k przy 13 taskach), a po przerwie cache zapisuje się od nowa. Kontynuacja
@@ -81,19 +81,6 @@ artefakt (drobny błąd — sam, koncepcyjny — resume `regent:spec-writer`), b
 ---
 
 ## Krok 1: Przeczytaj kontekst (TYLKO potrzebne pliki!)
-
-**Ścieżka — sprawdź raz, na starcie (SESJA GŁÓWNA):**
-`bash ${CLAUDE_PLUGIN_ROOT}/scripts/regent.sh task next {nazwa} --json` (dalej skrót `regent.sh` =
-`bash ${CLAUDE_PLUGIN_ROOT}/scripts/regent.sh`). Kod 0 → **ścieżka z CLI**: w Krokach 1, 3, 4a i 4c obowiązują bloki „Z CLI”, wynik
-zachowaj do Kroku 3. Kod 3 (brak zbudowanego CLI) albo inny błąd → **ścieżka bez CLI**: bloki „Z CLI”
-pomijasz, reszta bez zmian; przy innym błędzie pokaż użytkownikowi jedną linię stderr.
-
-**Z CLI:** subagent nie czyta `tasks.md`, `design.md` ani `specs/*.md` — czyta paczkę z pliku
-wskazanego w prompcie (Krok 4a): linie swoich tasków, ich bloki REQ z AC z delty, INVARIANTS i sekcje `design.md` dobrane do
-tagu, w tym „Affected Files”. Punkty 4–5 i czytanie KONTEKSTOWO z listy poniżej zostają bez zmian. Czego
-w paczce brakuje, subagent doczytuje z pliku i zgłasza w raporcie: `BRAK W PACZCE: <plik> › <sekcja> — <po co>`.
-
-**Bez CLI:**
 
 Subagent implementujący czyta **bezpośrednio narzędziem Read** — zakres per agent:
 
@@ -135,18 +122,6 @@ powiedz jawnie, czego użyłeś. Baseline musi być zielony niezależnie od narz
 
 ## Krok 3: Wybierz taski
 
-**Z CLI:** taski bierzesz z wyniku `next` (Krok 1) — gotowe to niezrobione z zamkniętymi zależnościami
-`(po T-XX)`, w kolejności z `tasks.md`:
-- `--tasks` → wskazane spośród gotowych; wskazany, a niegotowy → pokaż, na co czeka (`blocked[].after`)
-- `--group` → gotowe z tej grupy (`refs.group`)
-- inaczej → wszystkie gotowe; po zamknięciu rundy wołasz `next` ponownie — odblokowane taski dochodzą
-  w kolejnej rundzie
-- stan `in_progress` to task przerwany w poprzedniej sesji: wznów go bez `take`, najpierw `git status`
-
-Komunikat dla użytkownika jak niżej, z dopiskiem `(z regent task next)`.
-
-**Bez CLI:**
-
 ```
 Jeśli --tasks podane:
   → Filtruj tylko wskazane taski
@@ -169,22 +144,6 @@ Zgoda tutaj obejmuje per-taskowe commity (jawny wyjątek od bramki `/regent:comm
 ## Krok 4: Implementacja (per task)
 
 ### 4a. TDD Workflow (subagent wg tagu taska: `regent:backend-dev` / `regent:frontend-dev`)
-
-**Z CLI — przed delegacją (SESJA GŁÓWNA):**
-1. `regent.sh task take <id>` dla każdego taska uruchomienia: `<id>` to liczba z pola `id` w `next --json`,
-   nie klucz `T-NN` (task w toku — bez `take`). Punkty 1 i 2 robisz jednym wywołaniem Bash.
-   Kod 1 → task ma innego właściciela albo stan: pokaż komunikat i pomiń go w tej rundzie.
-2. `regent.sh task packet {nazwa} T-02 T-05 > <katalog>/paczka-T-02-T-05.md` — jedna paczka na
-   uruchomienie (nowego) agenta, z taskami tej warstwy (`next --layer BE|FE|DB` filtruje po tagu, brak
-   tagu = `BE`). `<katalog>` to scratchpad sesji (bez niego `mktemp -d`). Paczka idzie do pliku, nie na
-   ekran: nie wchodzi do kontekstu sesji głównej i nie przepisujesz jej w prompcie — pokaż najwyżej
-   rozmiar (`wc -c`).
-3. Prompt subagenta: ścieżka paczki i polecenie: „Najpierw przeczytaj w całości (Read) paczkę
-   `<ścieżka>`. Paczka zastępuje tasks.md, design.md i specs/*.md — nie czytaj ich. Czego brakuje,
-   doczytaj z pliku i zgłoś w raporcie: `BRAK W PACZCE: <plik> › <sekcja> — <po co>`.”
-
-Każde `BRAK W PACZCE` z raportu przepisz do raportu końcowego (Krok 5), jedna linia na brak — to
-sygnał do poprawy reguły paczki. Pętla TDD poniżej jest wspólna dla obu ścieżek.
 
 ```
 1. 🔴 RED — Napisz failing test dla `weryfikacji` z taska i URUCHOM (musi failować z oczekiwanego powodu)
@@ -227,13 +186,6 @@ git commit -m "feat: (KEY) create user entity with validation"
 Commit (format: `context/sdd.md` → Commit) i krok 4c robisz jednym wywołaniem Bash (hash z `git rev-parse --short HEAD`).
 
 ### 4c. Aktualizuj tasks.md (SESJA GŁÓWNA, po commicie taska)
-
-**Z CLI:** zamiast ręcznej edycji — `regent.sh task done <id> --commit <hash> --tests "<AC-1 → plik › test; …>"`
-(task bez AC: bez `--tests`). Skrypt przepisuje wyłącznie linię taska: `[x]` i ślad w formacie poniżej.
-Komunikat „nie ma w … tasks.md” → dopisz ślad ręcznie jak niżej; kod 1 (przejście niedozwolone) →
-pokaż komunikat, pliku nie edytuj.
-
-**Bez CLI** — ślad dopisujesz ręcznie (format i uwaga o `git add` poniżej dotyczą obu ścieżek):
 
 `ai/` bywa osobisty (globalnie ignorowany) albo współdzielony (śledzony w repo) — sprawdź
 `git check-ignore -q --no-index ai/`. W obu trybach ślad taska dopisujesz po commicie: hash
@@ -304,5 +256,5 @@ Commits: abc1234, def5678, ghi9012
 ❌ **Barierka:** `git add` wyłącznie z listą plików — `git add .` i `git add -A` wciągają cudze
 zmiany do commitu zmiany.
 
-❌ **Barierka:** kolejny task ani runda przez `SendMessage` do agenta, który już raportował — nowa
-paczka idzie do nowego subagenta (Agenci → „Uruchomienie = nowy subagent”).
+❌ **Barierka:** kolejny task ani runda przez `SendMessage` do agenta, który już raportował — nowe
+uruchomienie idzie do nowego subagenta (Agenci → „Uruchomienie = nowy subagent”).

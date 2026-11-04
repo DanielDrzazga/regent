@@ -1,6 +1,6 @@
 schema_version: "1.0"
 name: apply-train-fe-two
-description: Dwa niezależne taski [FE] (ui-search) — routing do frontend-dev, paczka, commit i ślad na task.
+description: Dwa niezależne taski [FE] (ui-search) — routing do frontend-dev, commit i ślad na task.
 tags: [apply, apply-train, apply-fe-train]
 runs: 2
 context:
@@ -31,11 +31,6 @@ graders:
     tool: SendMessage
     min: 0
     max: 0
-    arm: both
-  - name: paczka-z-cli
-    type: tool_used
-    tool: Bash
-    input_match: "task packet"
     arm: both
   - name: T-01-zamkniety
     type: regex

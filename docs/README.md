@@ -10,7 +10,6 @@ Indeks dokumentacji frameworka. Szczegóły w plikach poniżej.
 | [workflow.md](workflow.md) | Przepływ pracy SDD: komendy, cykl zmiany, delegacja do agentów |
 | [writing-docs.md](writing-docs.md) | Jak pisać dokumentację w tym repo (styl, struktura) |
 | [roadmap.md](roadmap.md) | Świadome decyzje (czego nie ma i dlaczego, jak przywrócić), pomysły odłożone i zrealizowane |
-| [tasks.md](tasks.md) | Zadania `regent task`: instalacja CLI, polecenia, stany, sync z artefaktów SDD, paczka dla `apply`, utknięcie |
 | [agent-teams.md](agent-teams.md) | Agent teams w tmux (włączenie per projekt, koszt, wpływ na delegację) |
 | [plans/](plans/) | Plany zmian prowadzonych lekką ścieżką (gałąź + checklista) |
 
@@ -26,8 +25,6 @@ terminala `${CLAUDE_PLUGIN_ROOT}` oznacza katalog pluginu — przy pracy nad plu
 | [`scripts/hooks/git-guard.sh`](../scripts/hooks/git-guard.sh) | [`/regent:init` Krok 3.5](../skills/init/SKILL.md) | Hook PreToolUse pluginu: w projektach z `ai/docs/` blokuje `git add .`/`-A`, `git commit -a`, `--no-verify`, `-c core.hooksPath`, atrybucję AI w commicie i PR; `GIT_GUARD_FORCE=1` wymusza |
 | [`scripts/hooks/session-context.sh`](../scripts/hooks/session-context.sh) | nagłówek skryptu | Hook SessionStart/SubagentStart: wstrzykuje `context/role.md` zawsze, przy `ai/docs/` `sdd.md` i `subagent.md` (sesja i subagent) oraz `sdd-map.md` (tylko sesja) |
 | [`scripts/hooks/sync-bin.sh`](../scripts/hooks/sync-bin.sh) | [statusline.md](statusline.md) | Hook SessionStart: kopiuje `statusline.sh` i `session-tokens.sh` do `${CLAUDE_PLUGIN_DATA}/bin/` |
-| [`scripts/regent.sh`](../scripts/regent.sh) | nagłówek skryptu | Wywołanie CLI zadań (`tools/regent`) ze skilli i hooków: `dist/cli.js` w pluginie albo `regent` w PATH; brak → kod 3; `EVAL_REGENT_NO_CLI=1` wymusza kod 3 |
-| [`scripts/hooks/task-sync.sh`](../scripts/hooks/task-sync.sh) | nagłówek skryptu | Hook SessionStart i Stop: w projektach z `ai/docs/` `regent task sync` z sesją i transkryptem; cisza na stdout, kod 0 |
 | [`scripts/framework-lint.sh`](../scripts/framework-lint.sh) | [CONTRIBUTING.md](../CONTRIBUTING.md#walidacja-lokalna) | Spójność frameworka: frontmatter, odwołania, tabele skilli, prefiks agentów, regresje promptów |
 | [`scripts/session-tokens.sh`](../scripts/session-tokens.sh) | nagłówek skryptu | Zużycie tokenów w sesji Claude Code per prompt (z subagentami), z transkryptu `~/.claude/projects/` |
 | [`scripts/optimize-score.sh`](../scripts/optimize-score.sh) | [optimize.md](optimize.md) | Wyrocznia `/regent:optimize`: uruchamia zestaw evali skilla (`claude plugin eval`), liczy jedną linię wyniku (jakość, koszt, tokeny, czas, prompt) i rozstrzyga keep/discard |
@@ -41,4 +38,3 @@ Pakiety Node w [`tools/`](../tools/) — poza komponentami pluginu, instalowane 
 
 | Pakiet | Dokumentacja | O czym |
 |--------|--------------|--------|
-| [`tools/regent/`](../tools/regent/) | [tasks.md](tasks.md) | `regent task`: zadania z właścicielem i logiem przejść, sync z `ai/changes/`, paczka dla agenta `apply`; `regent-apply-tokens`: tokeny pierwszej tury subagentów `apply` z paczką i bez ([szczegóły](tasks.md#pomiar-paczki-regent-apply-tokens)) |

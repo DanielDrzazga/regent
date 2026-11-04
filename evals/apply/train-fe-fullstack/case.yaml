@@ -31,11 +31,6 @@ graders:
     min: 0
     max: 0
     arm: both
-  - name: paczka-z-cli
-    type: tool_used
-    tool: Bash
-    input_match: "task packet"
-    arm: both
   - name: T-01-zamkniety
     type: regex
     target: {source: file, path: ai/changes/ui-recent/tasks.md}

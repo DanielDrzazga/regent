@@ -61,10 +61,7 @@ Przygotowanie:
    `git worktree add ../<katalog-repo>-optimize-<tag> -b perf/optimize-<tag> HEAD`. Całą pracę
    robisz w worktree. Plugin działa na żywo z klonu (`--plugin-dir`), więc zmiana w klonie
    zmieniłaby skill we wszystkich sesjach.
-2. CLI zadań w worktree (`dist` jest poza gitem):
-   - skopiuj `tools/regent/dist` z klonu;
-   - brak w klonie → `npm ci && npm run build` w `tools/regent` worktree.
-3. `evals/results/optimize-<tag>.tsv` w worktree, nagłówek (tabulatory):
+2. `evals/results/optimize-<tag>.tsv` w worktree, nagłówek (tabulatory):
    `nr	commit	status	quality	cost	tokens	seconds	prompt	opis	powód`.
 
 ## Krok 2: Baseline

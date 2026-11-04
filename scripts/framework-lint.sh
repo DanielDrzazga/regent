@@ -65,9 +65,6 @@ for f in skills/*/SKILL.md; do
     if grep -q 'sdd-check.sh' "$f" && ! echo "$tools" | grep -qE '(^|, *)Bash(,|$)|sdd-check\.sh'; then
       err "$f: woła sdd-check.sh, a allowed-tools tego nie dopuszcza"
     fi
-    if grep -q 'regent\.sh' "$f" && ! echo "$tools" | grep -qE '(^|, *)Bash(,|$)|regent\.sh'; then
-      err "$f: woła regent.sh, a allowed-tools tego nie dopuszcza"
-    fi
   fi
 done
 
@@ -158,7 +155,7 @@ forbid  templates/user-story-template.md '^## Acceptance Criteria'              
 forbid  skills/propose/SKILL.md        'rozwiązanie, AC \(Given-When-Then\)'   "AC żyją tylko w delcie (jedno źródło AC)"
 forbid  agents/qa-engineer.md          'REQ-XXX-1'                              "jeden format ID: REQ-NNN/AC-n"
 forbid  skills/propose/SKILL.md        '^## Tests$'                             "testy należą do swojego taska (horizontal slicing)"
-require agents/architect.md            'Kontrakt API↔UI w sekcji „API / Interface Contract'  "kontrakt pod nazwą z szablonu — tej szuka paczka apply"
+require agents/architect.md            'Kontrakt API↔UI w sekcji „API / Interface Contract'  "kontrakt pod nazwą z szablonu — tej szukają agenci FE i BE"
 require agents/spec-writer.md          'weryfikacja'                            "każdy task mówi, jak sprawdzić ukończenie"
 require skills/propose/SKILL.md        'resume tego samego .regent:spec-writer.'       "tasks.md powstaje po design.md"
 require templates/proposal-template.md '^## Decyzje i założenia'                "odpowiedzi z Challenge przeżywają sesję"
@@ -172,7 +169,6 @@ forbid  agents/code-reviewer.md        '^\| .partial. \|'                       
 require agents/spec-writer.md          'pierwsza specyfikacja istniejącego'      "brownfield: nieopisane zachowanie trafia do ADDED"
 require skills/apply/SKILL.md          '^## Krok 4\.5: Zmiana kursu'            "odkrycie w trakcie apply aktualizuje plan za zgodą"
 require skills/apply/SKILL.md          'Uruchomienie = nowy subagent'           "kolejny task nie idzie przez SendMessage do agenta po raporcie — kontekst rośnie z każdym taskiem"
-forbid  skills/apply/SKILL.md          'Prompt subagenta: paczka w całości'     "paczka z pliku — w prompcie wchodzi do kontekstu sesji głównej dwa razy"
 require agents/backend-dev.md          'ZAKRES:'                                "dev nie zawęża AC po cichu"
 require agents/frontend-dev.md         'ZAKRES:'                                "dev nie zawęża AC po cichu"
 require templates/design-template.md   '^## Odstępstwa od zasad'                "odstępstwo od MUST ma uzasadnienie"
@@ -192,6 +188,7 @@ require skills/optimize/SKILL.md       'holdout'                                
 require skills/optimize/SKILL.md       'score decide'                           "o keep/discard decyduje skrypt, nie model"
 require context/sdd.md                 'bez body i stopek'                      "commit bez stopki — git-guard odrzuca atrybucję, każde odbicie to tura"
 require hooks/hooks.json               'subagent sdd subagent\.md'               "subagent dostaje kontrakt subagenta"
+forbid  skills/apply/SKILL.md          'regent\.sh|task packet|Z CLI'          "CLI zadań usunięte (docs/plans/usun-tools-regent.md) — apply pracuje na plikach"
 require context/role.md                '^## Język'                              "artefakty po angielsku, rozmowa w języku użytkownika"
 for f in agents/*.md skills/*/SKILL.md templates/*.md templates/docs/*.md; do
   forbid "$f" 'po (polsku|angielsku)' "język artefaktów ustala tylko reguła „Język” w context/role.md"

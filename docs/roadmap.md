@@ -15,7 +15,8 @@ przywrócić coś, co zostało usunięte.
 | `/deploy-sdd`, agent `devops-engineer`, `templates/docs/deployment.md` | usunięte 2026-09-16 | Wdrożenie to proces organizacji i pipeline CI — framework go nie owija. Framework kończy się na `/regent:archive`; lokalną gotowość sprawdzają Etap 9 (Git & Release Readiness) i Etap 8 (Smoke) w `/regent:verify`. Przy osobistym `ai/` runbook wdrożenia w `ai/docs/` pasowałby jeszcze gorzej — to wiedza zespołu. | `39445f1` |
 | `docs/audyt-prompt.md` | usunięty 2026-09-16 | Jednorazowe narzędzie robocze, nie dokumentacja; szybko się starzeje (opisywał 19 komend i cykl z discovery i deploy). Mechaniczną spójność sprawdza `scripts/framework-lint.sh`; przegląd z modelem — prompt spoza repo. | `39445f1` |
 | `/discover-sdd`, agent `product-manager`, `templates/discovery-template.md` | poza rdzeniem | Potrzeba jest realna, ale stara forma kłóci się z frameworkiem: żywy backlog w `ai/product/` wymagała powiązań statusów F-XX w `/regent:propose`, `/regent:archive` i `/regent:status` i osobnego agenta na Opusie — niezależnie od trybu `ai/` (osobisty/współdzielony, `docs/plans/ai-tracking-mode.md`). Potrzebę realizuje tryb `/regent:explore --discovery` (niżej, „Zrealizowane"); resztę pokrywają korzeń PROBLEM w Challenge i `/regent:wiki`. | `39445f1` |
-| `regent-watch` (TUI mission-control w stylu OpenRig: `tools/watch/src/cli.ts`, `main.tsx`, `ui/`, `store.ts`, `view.ts`, `tmux.ts`, `workspace.ts`) | usunięty 2026-11-03 | Powstał jako odpowiedź na pytanie z osobistej wizji produktu („który aspekt OpenRig się spodobał") — osobista eksploracja, nie rdzeń frameworka. Regent przestaje być narzędziem jednej osoby, więc TUI znika; `regent-apply-tokens` z tego samego pakietu zostaje (pomiar `apply`, T9 toru `/regent:optimize`). Fakty ze spike'a i decyzje budowy: `docs/plans/agent-teams-view.md`, `docs/plans/watch-ui.md`; decyzja usunięcia: `docs/plans/usun-regent-watch.md`. | `f677200` (regent) |
+| `regent-watch` (TUI mission-control w stylu OpenRig: `tools/watch/src/cli.ts`, `main.tsx`, `ui/`, `store.ts`, `view.ts`, `tmux.ts`, `workspace.ts`) | usunięty 2026-11-03 | Powstał jako odpowiedź na pytanie z osobistej wizji produktu („który aspekt OpenRig się spodobał") — osobista eksploracja, nie rdzeń frameworka. Regent przestaje być narzędziem jednej osoby, więc TUI znika; `regent-apply-tokens` przeszedł do `tools/regent/` i odszedł razem z nim (wiersz niżej). Fakty ze spike'a i decyzje budowy: `docs/plans/agent-teams-view.md`, `docs/plans/watch-ui.md`; decyzja usunięcia: `docs/plans/usun-regent-watch.md`. | `f677200` (regent) |
+| `tools/regent/` — CLI `regent task` (zadania z właścicielem, log przejść, utknięcie, baza SQLite), paczka dla `/regent:apply` (`task next`, `task packet`), `regent-apply-tokens`; `scripts/regent.sh`, hook `task-sync.sh`, `docs/tasks.md`, eval `apply/holdout-no-cli` | usunięte 2026-11-04 | Regent idzie do całej firmy, a CLI wymagało Node 24 i ręcznego builda (`dist/` poza gitem) — po instalacji pluginu u nikogo poza autorem nie działało. Baza zadań była lokalna, więc właściciel zadania nic nie znaczył w zespole; ślad tasków i tak niesie `tasks.md`, a stan liczy `sdd-check.sh status`. Paczka: jedyny zmierzony zysk (mediana pierwszej tury 3,6 mln wobec 5,0 mln tokenów), ale na 2 uruchomieniach i z większym kontekstem maksymalnym (175 tys. wobec 125 tys.). Wraca, jeśli — to jako skrypt bash bez builda. Plan: `docs/plans/usun-tools-regent.md`. | `b3a6cd1` (regent) |
 
 **Przywrócenie** — hashe w tym pliku pochodzą z zamrożonego repo `claude-sdd-framework`
 (Regent nie ma jego historii), poza `regent-watch` — jego hash jest commitem w tym repo
@@ -36,17 +37,22 @@ git checkout f677200 -- tools/watch/
 ```
 
 Potem w `tools/watch/package.json` trzeba ręcznie wrócić do `name: regent-watch`, dwóch binów
-i zależności `ink`/`react` — ten plik zmienił się także w commicie usuwającym. `regent-apply-tokens`
-(i `parse/`, `session.ts`, `units.ts`) od 2026-11-04 mieszka w `tools/regent/`, nie w `tools/watch/`
-— po przywróceniu usuń duplikat z `tools/watch/` i w `tools/regent/package.json` wyjmij bin
-`regent-apply-tokens`.
+i zależności `ink`/`react` — ten plik zmienił się także w commicie usuwającym.
+
+`tools/regent/` wraca z historii tego repo (razem z hookiem, skryptem i blokami „Z CLI” w `apply`):
+
+```bash
+git checkout b3a6cd1 -- tools/regent/ scripts/regent.sh scripts/hooks/task-sync.sh \
+  scripts/tests/regent.test.sh scripts/tests/task-sync.test.sh docs/tasks.md \
+  evals/apply/ skills/apply/SKILL.md agents/dba.md hooks/hooks.json
+```
 
 ## Odłożone decyzje
 
 | Pomysł | Decyzja | Kiedy wrócić | Źródło |
 |--------|---------|--------------|--------|
 | Lżejsza ścieżka dla zmian S — `/regent:propose` bez `regent:architect`, gdy zmiana nie ma nowego modułu, kontraktu ani DB | nie teraz (2026-09-23) — reguła „nie pomijaj kroków SDD, bo to mała zmiana"; Challenge i tak kończy się szybko przy S | retrospektywy pokażą, że architekt na Opusie przy S-kach to realny koszt | OpenSpec „Match the ceremony to the stakes", spec-kit `presets/lean` |
-| Pełne tłumaczenie skilli, szablonów i agentów na angielski (z nagłówkami czytanymi przez `sdd-check.sh` i `tools/regent`) | etap 2 (2026-11-04) — na razie tylko reguła „Język" w `context/role.md` z wyjątkiem przejściowym dla nagłówków i znaczników | po wdrożeniu reguły w firmie; jedna zmiana: szablony + skrypty + testy + lint naraz | `docs/plans/jezyk-angielski.md` |
+| Pełne tłumaczenie skilli, szablonów i agentów na angielski (ze znacznikami czytanymi przez `sdd-check.sh`) | etap 2 (2026-11-04) — na razie tylko reguła „Język" w `context/role.md` z wyjątkiem przejściowym dla nagłówków i znaczników | po wdrożeniu reguły w firmie; jedna zmiana: szablony + skrypty + testy + lint naraz | `docs/plans/jezyk-angielski.md` |
 
 ## Zrealizowane
 
