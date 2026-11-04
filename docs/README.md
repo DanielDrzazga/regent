@@ -9,7 +9,7 @@ Indeks dokumentacji frameworka. Szczegóły w plikach poniżej.
 | [getting-started.md](getting-started.md) | Pierwsze uruchomienie frameworka w projekcie — krok po kroku |
 | [workflow.md](workflow.md) | Przepływ pracy SDD: komendy, cykl zmiany, delegacja do agentów |
 | [writing-docs.md](writing-docs.md) | Jak pisać dokumentację w tym repo (styl, struktura) |
-| [roadmap.md](roadmap.md) | Świadome decyzje (czego nie ma i dlaczego, jak przywrócić), pomysły odłożone i zrealizowane |
+| [roadmap.md](roadmap.md) | Deliberate decisions (what is left out and why), postponed and implemented ideas |
 
 ## Skrypty
 
