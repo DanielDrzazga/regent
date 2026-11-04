@@ -28,7 +28,6 @@ do wpisania zamiast odtwarzać jego kroki.
 | `/regent:status` | Przegląd stanu projektu |
 | `/regent:explore` | Analiza read-only bez commitów |
 | `/regent:wiki` | Wiki biznesowa w Obsidian (`ai/wiki/`) — poza cyklem SDD |
-| `/regent:optimize` | Pętla optymalizacji skilla (eval, keep/discard) — poza cyklem SDD, w repo pluginu |
 
 ## Agenci (delegowani przez komendy)
 
@@ -63,4 +62,4 @@ w głównej sesji (wtedy leci na modelu sesji, a nie na modelu agenta).
 | `/regent:explore` | `regent:architect` (read-only — analiza, bez plików/commitów) |
 | `/regent:wiki` | `regent:architect` (analiza domeny + redakcja stron; zapis — sesja główna) |
 
-Bez delegacji (mechaniczne, działają w głównej sesji): `/regent:commit`, `/regent:status`, `/regent:optimize`.
+Bez delegacji (mechaniczne, działają w głównej sesji): `/regent:commit`, `/regent:status`.
