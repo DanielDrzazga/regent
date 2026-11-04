@@ -1,36 +1,36 @@
 # Code Style
 
-> Wypełnij na podstawie eslint/prettier/tsconfig wykrytych przez `/regent:init`.
+> Fill in based on the eslint/prettier/tsconfig detected by `/regent:init`.
 
-## Narzędzia
+## Tools
 
-| Narzędzie | Konfiguracja | Komenda |
-|-----------|--------------|---------|
-| Linter | [np. ESLint — `.eslintrc.js`] | `make lint` |
-| Formatter | [np. Prettier — `.prettierrc`] | `make format` |
-| Type-check | [np. tsc — `tsconfig.json`] | `make type-check` |
+| Tool | Configuration | Command |
+|------|---------------|---------|
+| Linter | [e.g. ESLint — `.eslintrc.js`] | `make lint` |
+| Formatter | [e.g. Prettier — `.prettierrc`] | `make format` |
+| Type-check | [e.g. tsc — `tsconfig.json`] | `make type-check` |
 
-## Formatowanie
+## Formatting
 
-| Reguła | Wartość |
-|--------|---------|
-| Wcięcia | [np. 2 spacje] |
-| Cudzysłowy | [np. single] |
-| Średniki | [tak / nie] |
-| Max długość linii | [np. 100] |
-| Trailing comma | [np. all] |
+| Rule | Value |
+|------|-------|
+| Indentation | [e.g. 2 spaces] |
+| Quotes | [e.g. single] |
+| Semicolons | [yes / no] |
+| Max line length | [e.g. 100] |
+| Trailing comma | [e.g. all] |
 
-## Zasady jakości
+## Quality rules
 
-- Funkcja robi JEDNĄ rzecz (SRP).
-- Max 3 poziomy zagnieżdżenia.
-- Brak dead code / zakomentowanego kodu.
-- Brak `console.log` / debug w commitach.
-- Error handling kompletny i typowany (→ `exception-patterns.md`).
-- Brak duplikacji logiki (DRY).
-- Reuse przed implementacją — sprawdź, czy helper/util/wzorzec już nie istnieje.
+- A function does ONE thing (SRP).
+- Max 3 levels of nesting.
+- No dead code / commented-out code.
+- No `console.log` / debug in commits.
+- Error handling complete and typed (→ `exception-patterns.md`).
+- No duplicated logic (DRY).
+- Reuse before implementing — check whether a helper/util/pattern already exists.
 
-## Importy
+## Imports
 
-- [Kolejność — np. zewnętrzne → wewnętrzne → względne]
-- [Aliasy ścieżek — np. `@modules/*`, `@core/*`]
+- [Order — e.g. external → internal → relative]
+- [Path aliases — e.g. `@modules/*`, `@core/*`]

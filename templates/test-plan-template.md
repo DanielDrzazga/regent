@@ -1,27 +1,27 @@
-# Test Plan: {{NAZWA}}
+# Test Plan: {{NAME}}
 
-## Metadane
+## Metadata
 
-| Pole | Wartość |
-|------|---------|
-| Feature | [nazwa feature] |
-| Data | YYYY-MM-DD |
-| Scope | [co testujemy] |
-| Out of Scope | [czego nie testujemy] |
+| Field | Value |
+|-------|-------|
+| Feature | [feature name] |
+| Date | YYYY-MM-DD |
+| Scope | [what we test] |
+| Out of Scope | [what we do not test] |
 
-## Cele testowania
+## Testing goals
 
-- [ ] Weryfikacja Acceptance Criteria
-- [ ] Regresja istniejącej funkcjonalności
-- [ ] Edge cases i error handling
-- [ ] Performance (jeśli dotyczy)
-- [ ] Security (jeśli dotyczy)
+- [ ] Verification of Acceptance Criteria
+- [ ] Regression of existing functionality
+- [ ] Edge cases and error handling
+- [ ] Performance (if applicable)
+- [ ] Security (if applicable)
 
-## Strategia testowa
+## Test strategy
 
-| Typ | Framework | Target Coverage | Fokus |
-|-----|-----------|----------------|-------|
-| Unit | [Jest/Vitest/...] | ≥80% | Logika biznesowa |
+| Type | Framework | Target Coverage | Focus |
+|------|-----------|----------------|-------|
+| Unit | [Jest/Vitest/...] | ≥80% | Business logic |
 | Integration | [Supertest/...] | Key flows | API, DB |
 | E2E | [Playwright/Cypress/...] | Critical paths | User flows |
 
@@ -29,28 +29,28 @@
 
 ### Unit Tests
 
-| ID | Opis | AC | Typ | Status |
-|----|------|----|-----|--------|
-| UT-01 | [opis] | REQ-001/AC-1 | Happy path | ⬜ |
-| UT-02 | [opis] | REQ-001/AC-1 | Edge case | ⬜ |
-| UT-03 | [opis] | REQ-001/AC-2 | Error | ⬜ |
+| ID | Description | AC | Type | Status |
+|----|-------------|----|------|--------|
+| UT-01 | [description] | REQ-001/AC-1 | Happy path | ⬜ |
+| UT-02 | [description] | REQ-001/AC-1 | Edge case | ⬜ |
+| UT-03 | [description] | REQ-001/AC-2 | Error | ⬜ |
 
 ### Integration Tests
 
-| ID | Endpoint | Method | Scenariusz | Expected | Status |
-|----|----------|--------|-----------|----------|--------|
+| ID | Endpoint | Method | Scenario | Expected | Status |
+|----|----------|--------|----------|----------|--------|
 | IT-01 | /api/... | POST | Valid input | 201 | ⬜ |
 | IT-02 | /api/... | POST | Invalid input | 400 | ⬜ |
 
 ### E2E Tests
 
-| ID | User Flow | Kroki | Priorytet | Status |
-|----|-----------|-------|-----------|--------|
-| E2E-01 | [flow] | [kroki] | High | ⬜ |
+| ID | User Flow | Steps | Priority | Status |
+|----|-----------|-------|----------|--------|
+| E2E-01 | [flow] | [steps] | High | ⬜ |
 
-## Kryteria sukcesu
+## Success criteria
 
-| Kryterium | Target |
+| Criterion | Target |
 |-----------|--------|
 | Unit coverage | ≥80% |
 | Integration tests passing | 100% |

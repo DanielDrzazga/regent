@@ -7,4 +7,4 @@
   (the only allowed warning: missing `version`) and a smoke run in a test project.
 - This repo is the source of truth for the framework. Deliberate decisions and postponed ideas:
   `docs/roadmap.md`.
-- Language: the „Język" rule in `context/role.md`.
+- Language: the "Language" rule in `context/role.md`.

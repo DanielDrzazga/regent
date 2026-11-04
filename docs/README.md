@@ -1,30 +1,30 @@
-# Dokumentacja
+# Documentation
 
-Indeks dokumentacji frameworka. Szczegóły w plikach poniżej.
+Index of the framework documentation. Details in the files below.
 
-## Przewodniki
+## Guides
 
-| Dokument | O czym |
+| Document | About |
 |----------|--------|
-| [getting-started.md](getting-started.md) | Pierwsze uruchomienie frameworka w projekcie — krok po kroku |
-| [workflow.md](workflow.md) | Przepływ pracy SDD: komendy, cykl zmiany, delegacja do agentów |
-| [writing-docs.md](writing-docs.md) | Jak pisać dokumentację w tym repo (styl, struktura) |
+| [getting-started.md](getting-started.md) | First run of the framework in a project — step by step |
+| [workflow.md](workflow.md) | SDD workflow: commands, change cycle, delegation to agents |
+| [writing-docs.md](writing-docs.md) | How to write documentation in this repo (style, structure) |
 | [roadmap.md](roadmap.md) | Deliberate decisions (what is left out and why), postponed and implemented ideas |
 
-## Skrypty
+## Scripts
 
-Skrypty pomocnicze leżą w [`scripts/`](../scripts/). Każdy ma tu swój opis. W poleceniach dla
-terminala `${CLAUDE_PLUGIN_ROOT}` oznacza katalog pluginu — przy pracy nad pluginem to klon repo:
+Helper scripts live in [`scripts/`](../scripts/). Each one has its description here. In terminal
+commands `${CLAUDE_PLUGIN_ROOT}` means the plugin directory — when working on the plugin, it is the repo clone:
 
-| Skrypt | Dokumentacja | O czym |
+| Script | Documentation | About |
 |--------|--------------|--------|
-| [`scripts/statusline.sh`](../scripts/statusline.sh) | [statusline.md](statusline.md) | Statusline z licznikiem kontekstu i progiem ostrzegawczym |
-| [`scripts/sdd-check.sh`](../scripts/sdd-check.sh) | [sdd-check.md](sdd-check.md) | Deterministyczna walidacja artefaktów w projekcie: delta, tasks, pokrycie AC, merge, dryf |
-| [`scripts/hooks/git-guard.sh`](../scripts/hooks/git-guard.sh) | [`/regent:init` Krok 3.5](../skills/init/SKILL.md) | Hook PreToolUse pluginu: w projektach z `ai/docs/` blokuje `git add .`/`-A`, `git commit -a`, `--no-verify`, `-c core.hooksPath`, atrybucję AI w commicie i PR; `GIT_GUARD_FORCE=1` wymusza |
-| [`scripts/hooks/session-context.sh`](../scripts/hooks/session-context.sh) | nagłówek skryptu | Hook SessionStart/SubagentStart: wstrzykuje `context/role.md` zawsze, przy `ai/docs/` `sdd.md` i `subagent.md` (sesja i subagent) oraz `sdd-map.md` (tylko sesja) |
-| [`scripts/hooks/sync-bin.sh`](../scripts/hooks/sync-bin.sh) | [statusline.md](statusline.md) | Hook SessionStart: kopiuje `statusline.sh` i `session-tokens.sh` do `${CLAUDE_PLUGIN_DATA}/bin/` |
-| [`scripts/framework-lint.sh`](../scripts/framework-lint.sh) | [CONTRIBUTING.md](../CONTRIBUTING.md#walidacja-lokalna) | Spójność frameworka: frontmatter, odwołania, tabele skilli, prefiks agentów, regresje promptów |
-| [`scripts/session-tokens.sh`](../scripts/session-tokens.sh) | nagłówek skryptu | Zużycie tokenów w sesji Claude Code per prompt (z subagentami), z transkryptu `~/.claude/projects/` |
+| [`scripts/statusline.sh`](../scripts/statusline.sh) | [statusline.md](statusline.md) | Statusline with a context counter and a warning threshold |
+| [`scripts/sdd-check.sh`](../scripts/sdd-check.sh) | [sdd-check.md](sdd-check.md) | Deterministic validation of artifacts in a project: delta, tasks, AC coverage, merge, drift |
+| [`scripts/hooks/git-guard.sh`](../scripts/hooks/git-guard.sh) | [`/regent:init` Step 3.5](../skills/init/SKILL.md) | The plugin's PreToolUse hook: in projects with `ai/docs/` blocks `git add .`/`-A`, `git commit -a`, `--no-verify`, `-c core.hooksPath`, AI attribution in commits and PRs; `GIT_GUARD_FORCE=1` forces |
+| [`scripts/hooks/session-context.sh`](../scripts/hooks/session-context.sh) | script header | SessionStart/SubagentStart hook: injects `context/role.md` always, with `ai/docs/` `sdd.md` and `subagent.md` (session and subagent) and `sdd-map.md` (session only) |
+| [`scripts/hooks/sync-bin.sh`](../scripts/hooks/sync-bin.sh) | [statusline.md](statusline.md) | SessionStart hook: copies `statusline.sh` and `session-tokens.sh` to `${CLAUDE_PLUGIN_DATA}/bin/` |
+| [`scripts/framework-lint.sh`](../scripts/framework-lint.sh) | [CONTRIBUTING.md](../CONTRIBUTING.md#local-validation) | Framework consistency: frontmatter, references, skill tables, agent prefix, prompt regressions |
+| [`scripts/session-tokens.sh`](../scripts/session-tokens.sh) | script header | Token usage in a Claude Code session per prompt (with subagents), from the `~/.claude/projects/` transcript |
 
-Gdy dojdzie nowy skrypt do `scripts/` — dopisz wiersz w tabeli powyżej i (jeśli
-wymaga wyjaśnienia) osobny plik `docs/<nazwa>.md`.
+When a new script is added to `scripts/` — add a row to the table above and (if it
+needs explanation) a separate `docs/<name>.md` file.

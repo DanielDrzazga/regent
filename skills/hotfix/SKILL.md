@@ -1,172 +1,172 @@
 ---
-description: Emergency fix na produkcji — minimalna zmiana (max 3 pliki), szybki deploy, monitoring, plan rollbacku
+description: Emergency fix in production — minimal change (max 3 files), fast deploy, monitoring, rollback plan
 disable-model-invocation: true
-argument-hint: <opis-problemu>
+argument-hint: <problem-description>
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---
 
-# /regent:hotfix — Pilny fix na produkcji
+# /regent:hotfix — Urgent production fix
 
-**Cel:** Emergency fix — minimalna zmiana, szybki deploy, monitoring po fix.
+**Goal:** Emergency fix — minimal change, fast deploy, monitoring after the fix.
 
 ```
-/regent:hotfix <opis-problemu>
+/regent:hotfix <problem-description>
 
-Przykład:
+Example:
 /regent:hotfix "payment endpoint returns 500 for all users"
 /regent:hotfix "authentication bypass on admin panel"
 ```
 
 ---
 
-## Agent (delegacja — WYMAGANE)
+## Agent (delegation — REQUIRED)
 
-Mimo trybu awaryjnego fix produkcyjny wymaga jakości — implementację (test reprodukujący
-+ minimalna zmiana) deleguj do dev-agenta **wg obszaru buga**: kod backendu → `regent:backend-dev`,
-kod frontendu → `regent:frontend-dev` (model: sonnet, narzędzie Task). Bug na styku → root cause
-po JEDNEJ stronie. Nie rób tego „w miejscu" w głównej sesji.
+Despite emergency mode, a production fix requires quality — delegate the implementation (reproducing test
++ minimal change) to a dev agent **by bug area**: backend code → `regent:backend-dev`,
+frontend code → `regent:frontend-dev` (model: sonnet, Task tool). Bug at the boundary → root cause
+on ONE side. Don't do it "in place" in the main session.
 
 ---
 
 ## ⚠️ SCOPE GUARD
 
 ```
-Hotfix MUSI być:
-□ Max 3 pliki zmienione
-□ Max 2 moduły dotknięte
-□ Czas implementacji: < 30 minut
+A hotfix MUST be:
+□ Max 3 files changed
+□ Max 2 modules touched
+□ Implementation time: < 30 minutes
 
-Jeśli przekracza → "To nie jest hotfix. Użyj /regent:bugfix."
+If it exceeds that → "This is not a hotfix. Use /regent:bugfix."
 ```
 
 ---
 
-## Krok 1: Przeczytaj konwencje
+## Step 1: Read the conventions
 
 ```
-Przeczytaj:
+Read:
 - ai/docs/conventions/git-workflow.md
 - ai/docs/patterns/architecture.md
 
-Brak ai/docs/ (projekt bez SDD)? → NIE blokuj awarii: konwencje wywnioskuj
-z git log -10 i struktury repo, działaj dalej.
+No ai/docs/ (project without SDD)? → do NOT block the incident: infer the conventions
+from git log -10 and the repo structure, carry on.
 ```
 
 ---
 
-## Krok 2: Utwórz branch
+## Step 2: Create a branch
 
 ```bash
 git checkout -b hotfix/{KEY}-{short-description}
-# lub jeśli brak ticket:
+# or if there is no ticket:
 git checkout -b hotfix/{YYYY-MM-DD}-{short-description}
 ```
 
 ---
 
-## Krok 3: Quick Root Cause
+## Step 3: Quick Root Cause
 
 ```
 ## Root Cause (quick analysis)
 
 ### Symptom
-[Co się dzieje — error message, behavior]
+[What happens — error message, behavior]
 
 ### Cause
-[Dlaczego — szybka analiza]
+[Why — quick analysis]
 
 ### Fix
-[Co zmieniamy — minimalna zmiana]
+[What we change — minimal change]
 
 ### Risk
-[Ryzyko fixa — co może pójść nie tak]
+[Risk of the fix — what can go wrong]
 ```
 
 ---
 
-## Krok 4: Implementacja
+## Step 4: Implementation
 
-Deleguj → dev-agent wg obszaru root cause (`regent:backend-dev` / `regent:frontend-dev` — patrz sekcja
-„Agent (delegacja)"); sam uruchamia testy, commit robi sesja główna:
+Delegate → dev agent by root cause area (`regent:backend-dev` / `regent:frontend-dev` — see the
+"Agent (delegation)" section); it runs the tests itself, the main session makes the commit:
 
 ```
-1. Napisz test reprodukujący problem
-2. Napraw bug (MINIMALNA zmiana!)
-3. Verify: test przechodzi
-4. Verify: inne testy przechodzą
+1. Write a test reproducing the problem
+2. Fix the bug (MINIMAL change!)
+3. Verify: the test passes
+4. Verify: other tests pass
 ```
 
 ```bash
-make test   # brak Makefile → natywny runner testów ze stacku (kontrakt `make` w CLAUDE.md).
-            # Awaria produkcyjna NIE jest powodem, by pominąć test — jest powodem, by go zawęzić.
+make test   # no Makefile → native test runner from the stack (the `make` contract in `context/sdd.md`).
+            # A production incident is NOT a reason to skip the test — it is a reason to narrow it.
 
-# Single atomic commit (typ hotfix — patrz tabela typów w /regent:commit)
+# Single atomic commit (hotfix type — see the types table in /regent:commit)
 git add [specific files]
 git commit -m "hotfix: (KEY) fix payment endpoint 500 error"
 ```
 
 ---
 
-## Krok 5: Deploy
+## Step 5: Deploy
 
 ```
-⚠️ CZEKAJ NA POTWIERDZENIE UŻYTKOWNIKA
+⚠️ WAIT FOR USER CONFIRMATION
 
 Deploy ready:
-□ Test przechodzi
-□ Lint przechodzi
+□ Test passes
+□ Lint passes
 □ Single commit
-□ Max 3 pliki
+□ Max 3 files
 
-Push? (tak/nie)
+Push? (yes/no)
 ```
 
 ```bash
-# Po zatwierdzeniu
+# After approval
 git push origin hotfix/{branch-name}
 ```
 
-Wdrożenie: wg obowiązującego w organizacji procesu deploy (poza zakresem SDD).
+Deployment: per the organization's established deploy process (outside the SDD scope).
 
 ---
 
-## Krok 6: Post-fix
+## Step 6: Post-fix
 
 ```
-Po deploy:
-□ Monitor logs (15 minut)
-□ Verify fix w production
-□ Root cause analysis (dokładna — follow-up przez /regent:bugfix, patrz WAŻNE)
-□ Regression test dodany permanentnie
-```
-
----
-
-## Krok 7: Rollback (gdy fix nie działa)
-
-```
-Kryteria rollbacku (którekolwiek):
-□ Symptom nadal występuje po deploy
-□ NOWE błędy w logach po deploy
-□ Pogorszenie metryk (error rate, latency)
-
-Procedura:
-1. git revert {commit-hotfixa} → push → redeploy wg obowiązującego procesu deploy
-   (decyzję o redeploy potwierdza użytkownik)
-2. Poinformuj: rollback wykonany, produkcja w stanie sprzed fixa
-3. Wróć do analizy → kolejna iteracja /regent:hotfix lub eskalacja do /regent:bugfix
-   (jeśli problem wymaga > 3 plików / głębszej zmiany — to nie jest hotfix)
+After deploy:
+□ Monitor logs (15 minutes)
+□ Verify the fix in production
+□ Root cause analysis (thorough — follow-up via /regent:bugfix, see IMPORTANT)
+□ Regression test added permanently
 ```
 
 ---
 
-## WAŻNE
+## Step 7: Rollback (when the fix doesn't work)
 
-- **Speed > perfection** — napraw, deploy, potem proper fix
-- **Minimal** — nie refaktoruj, nie ulepszaj
-- **Monitor** — obserwuj po deploy; przygotowany rollback (Krok 7)
-- **Follow up** — zawsze: root cause + regresja + artefakty przez `/regent:bugfix`
-  (a gdy proper fix wymaga większej zmiany — pełny `/regent:propose`)
-- **Commit po zielonym teście** — także tutaj; hotfix skraca artefakty, nie testy
+```
+Rollback criteria (any of them):
+□ The symptom still occurs after deploy
+□ NEW errors in the logs after deploy
+□ Metrics degradation (error rate, latency)
 
-Timeline: 15-30 minut MAX
+Procedure:
+1. git revert {hotfix-commit} → push → redeploy per the established deploy process
+   (the user confirms the redeploy decision)
+2. Inform: rollback done, production in the state before the fix
+3. Back to analysis → another /regent:hotfix iteration or escalation to /regent:bugfix
+   (if the problem requires > 3 files / a deeper change — it's not a hotfix)
+```
+
+---
+
+## IMPORTANT
+
+- **Speed > perfection** — fix, deploy, then a proper fix
+- **Minimal** — don't refactor, don't improve
+- **Monitor** — watch after deploy; rollback prepared (Step 7)
+- **Follow up** — always: root cause + regression + artifacts via `/regent:bugfix`
+  (and when a proper fix needs a bigger change — a full `/regent:propose`)
+- **Commit after a green test** — here too; a hotfix shortens the artifacts, not the tests
+
+Timeline: 15-30 minutes MAX

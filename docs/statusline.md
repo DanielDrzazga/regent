@@ -1,27 +1,27 @@
-# Statusline — licznik kontekstu
+# Statusline — context counter
 
-Pasek na dole terminala pokazujący na żywo, ile kontekstu zajmuje sesja. Długie sesje
-zużywają najwięcej tokenów (zwłaszcza subagentowe), a bez wskaźnika nie widać, kiedy
-kontekst urósł na tyle, że warto zrobić `/clear`. Statusline to uwidacznia.
+A bar at the bottom of the terminal showing live how much context the session takes up. Long sessions
+use the most tokens (especially subagent ones), and without an indicator you cannot see when
+the context has grown enough that it is worth running `/clear`. The statusline makes it visible.
 
-Skrypt: [`scripts/statusline.sh`](../scripts/statusline.sh).
+Script: [`scripts/statusline.sh`](../scripts/statusline.sh).
 
-## Jak wygląda
+## What it looks like
 
 ```
-Opus  ctx 9% (90k/1000k)  $0.30                     ← zielono, spokojnie
-Opus  ctx 18% (180k/1000k)  ⚠ obserwuj  $1.10        ← żółto
-Opus  ctx 27% (270k/1000k)  ⛔ czas na /clear  $2.20  ← czerwono
+Opus  ctx 9% (90k/1000k)  $0.30                     ← green, calm
+Opus  ctx 18% (180k/1000k)  ⚠ watch  $1.10          ← yellow
+Opus  ctx 27% (270k/1000k)  ⛔ time to /clear  $2.20 ← red
 ```
 
-Pokazuje: model, procent okna, tokeny (zajęte / max), etykietę progu i koszt sesji.
+It shows: the model, the window percentage, tokens (used / max), the threshold label and the session cost.
 
-## Instalacja
+## Installation
 
-Wymaga `jq` i włączonego pluginu `regent`. Hook `SessionStart` pluginu
-([`scripts/hooks/sync-bin.sh`](../scripts/hooks/sync-bin.sh)) kopiuje skrypt do stałej ścieżki
-w danych pluginu, która przetrwa aktualizacje — katalog pluginu w cache zmienia się z każdą wersją,
-więc `statusLine` nie może wskazywać na niego wprost:
+Requires `jq` and the `regent` plugin enabled. The plugin's `SessionStart` hook
+([`scripts/hooks/sync-bin.sh`](../scripts/hooks/sync-bin.sh)) copies the script to a fixed path
+in the plugin data that survives updates — the plugin directory in the cache changes with every version,
+so `statusLine` cannot point at it directly:
 
 ```
 ~/.claude/plugins/data/regent-regent/bin/statusline.sh
@@ -39,36 +39,36 @@ session's `statusLine`):
 }
 ```
 
-W tym samym katalogu leży `session-tokens.sh` — zużycie tokenów sesji per prompt:
+The same directory holds `session-tokens.sh` — the session's token usage per prompt:
 `bash ~/.claude/plugins/data/regent-regent/bin/session-tokens.sh`.
 
-Statusline odświeża się po każdej odpowiedzi asystenta.
+The statusline refreshes after every assistant response.
 
-## Progi
+## Thresholds
 
-Progi są liczone od **bezwzględnej liczby tokenów**, nie od procentu okna:
+The thresholds are counted from the **absolute number of tokens**, not from the window percentage:
 
-| Zakres | Kolor | Etykieta |
+| Range | Color | Label |
 |--------|-------|----------|
-| < 150k | zielony | (brak) |
-| 150k–250k | żółty | `⚠ obserwuj` |
-| > 250k | czerwony | `⛔ czas na /clear` |
+| < 150k | green | (none) |
+| 150k–250k | yellow | `⚠ watch` |
+| > 250k | red | `⛔ time to /clear` |
 
-**Dlaczego bezwzględne, a nie procent:** przy oknie 1M (`opus[1m]`) procent ostrzega
-o wiele za późno — 80% z miliona to 800k tokenów, czyli kontekst już bardzo drogi.
-Bezwzględne progi ostrzegają wtedy, gdy realnie robi się kosztownie, niezależnie od
-rozmiaru okna. Jeśli pracujesz na zwykłym oknie 200k, możesz progi podnieść — edytuj
-wartości `150000` / `250000` w skrypcie.
+**Why absolute and not a percentage:** with a 1M window (`opus[1m]`) a percentage warns
+far too late — 80% of a million is 800k tokens, i.e. the context is already very expensive.
+Absolute thresholds warn when it actually gets costly, regardless of
+the window size. If you work with a regular 200k window, you can raise the thresholds — edit
+the `150000` / `250000` values in the script.
 
-## Skąd bierze dane
+## Where it gets the data
 
-Claude Code przekazuje skryptowi na stdin JSON z gotową sekcją `context_window`
-(m.in. `total_input_tokens`, `context_window_size`, `used_percentage`) oraz `cost`.
-Nie trzeba parsować transkryptu sesji.
+Claude Code passes the script a JSON on stdin with a ready `context_window` section
+(incl. `total_input_tokens`, `context_window_size`, `used_percentage`) and `cost`.
+There is no need to parse the session transcript.
 
-## Ograniczenie
+## Limitation
 
-To wskaźnik, nie automat — nie przerywa pracy ani nie wykonuje `/clear` za Ciebie.
-Decyzję o wyczyszczeniu kontekstu podejmujesz sam. Jest to jednak jedyne miejsce
-w Claude Code, które zna rzeczywistą liczbę tokenów kontekstu (hooki jej nie
-otrzymują), więc do świadomego pilnowania kosztu w zupełności wystarcza.
+It is an indicator, not an automaton — it does not stop work or run `/clear` for you.
+You make the decision to clear the context yourself. It is, however, the only place
+in Claude Code that knows the actual number of context tokens (hooks do not
+receive it), so it is entirely sufficient for deliberately keeping an eye on cost.

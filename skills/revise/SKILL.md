@@ -1,113 +1,113 @@
 ---
-description: Aktualizacja ai/docs/ gdy podejście się zmienia (architektura, stack, konwencje)
+description: Update ai/docs/ when the approach changes (architecture, stack, conventions)
 disable-model-invocation: true
-argument-hint: <plik-lub-temat>
+argument-hint: <file-or-topic>
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---
 
-# /regent:revise — Zaktualizuj ai/docs/
+# /regent:revise — Update ai/docs/
 
-**Cel:** Zaktualizuj dokumentację techniczną gdy implementacja ujawni zmiany w podejściu.
-
-```
-/regent:revise <plik-lub-temat>
-
-Przykład:
-/regent:revise architecture    (aktualizuj ai/docs/patterns/architecture.md)
-/regent:revise technology      (aktualizuj ai/docs/stack/technology.md)
-/regent:revise naming          (aktualizuj ai/docs/conventions/naming.md)
-/regent:revise glossary        (aktualizuj ai/docs/domain/glossary.md)
-```
-
----
-
-## Agent (delegacja — WYMAGANE)
-
-Przygotowanie aktualizacji `ai/docs/` deleguj do subagenta `regent:architect` (model: opus,
-narzędzie Task) — to on generuje i utrzymuje dokumentację (jak w `/regent:init`), także
-`logging-patterns.md`. **Nie deleguj tu `regent:logging-engineer`:** ten agent traktuje
-`logging-patterns.md` jako zewnętrzne źródło prawdy i przy jego braku PRZERYWA pracę —
-czyli dokładnie w sytuacji, w której `/regent:revise` ma ten plik utworzyć. Gdy potrzebne są
-realia loggera (ścieżka importu, API), rozpoznaj je sam (Grep/Glob) i przekaż architektowi
-w prompcie.
-
-**Kontrakt:** `regent:architect` jest read-only — zwraca proponowaną treść (diff BYŁO/JEST)
-w raporcie; sesja główna pokazuje diff użytkownikowi i po zatwierdzeniu zapisuje pliki.
-Wywiad (Krok 1) prowadzi sesja główna.
-
----
-
-## Krok 1: Wywiad
+**Goal:** Update the technical documentation when implementation reveals changes in the approach.
 
 ```
-1. Co się zmieniło w stosunku do dokumentacji?
-   [Opis oryginalnego vs nowego podejścia]
+/regent:revise <file-or-topic>
 
-2. Dlaczego zmiana?
-   [Powód — odkrycie techniczne, zmiana wymagań, lepsze rozwiązanie]
-
-3. Które pliki ai/docs/ wymagają aktualizacji?
-   [Lista plików]
-```
-
-**Czekaj na odpowiedzi.**
-
----
-
-## Krok 2: Identyfikacja plików
-
-```
-Na podstawie wywiadu, pliki do aktualizacji:
-
-□ ai/docs/stack/technology.md — zmiana stacku
-□ ai/docs/patterns/architecture.md — zmiana wzorców
-□ ai/docs/patterns/di-patterns.md — zmiana DI
-□ ai/docs/patterns/testing-patterns.md — zmiana testów
-□ ai/docs/patterns/exception-patterns.md — zmiana error handling
-□ ai/docs/patterns/logging-patterns.md — zmiana wzorca logowania (ścieżka/API loggera)
-□ ai/docs/conventions/naming.md — zmiana konwencji
-□ ai/docs/domain/glossary.md — nowy termin domenowy, zmiana znaczenia istniejącego
-  albo rozstrzygnięcie niejednoznaczności (wtedy wpis w sekcji „Rozstrzygnięte
-  niejednoznaczności" z datą — zapis sporu jest tak samo wartościowy jak sama definicja)
-□ ai/docs/conventions/code-style.md — zmiana stylu
-□ ai/docs/conventions/git-workflow.md — zmiana git workflow
+Example:
+/regent:revise architecture    (update ai/docs/patterns/architecture.md)
+/regent:revise technology      (update ai/docs/stack/technology.md)
+/regent:revise naming          (update ai/docs/conventions/naming.md)
+/regent:revise glossary        (update ai/docs/domain/glossary.md)
 ```
 
 ---
 
-## Krok 3: Przygotuj i zatwierdź zmiany
+## Agent (delegation — REQUIRED)
 
-Subagent zwraca proponowane zmiany; sesja główna pokazuje diff:
+Delegate preparing the `ai/docs/` update to the `regent:architect` subagent (model: opus,
+Task tool) — it generates and maintains the documentation (as in `/regent:init`), including
+`logging-patterns.md`. **Don't delegate `regent:logging-engineer` here:** that agent treats
+`logging-patterns.md` as an external source of truth and when it is missing it STOPS work —
+i.e. exactly in the situation in which `/regent:revise` is supposed to create that file. When the
+logger's realities are needed (import path, API), work them out yourself (Grep/Glob) and pass them to the architect
+in the prompt.
+
+**Contract:** `regent:architect` is read-only — it returns the proposed content (WAS/NOW diff)
+in the report; the main session shows the diff to the user and after approval writes the files.
+The main session runs the interview (Step 1).
+
+---
+
+## Step 1: Interview
+
 ```
-## Zmiany w ai/docs/patterns/architecture.md:
+1. What changed compared to the documentation?
+   [Description of the original vs the new approach]
 
-BYŁO:
+2. Why the change?
+   [Reason — technical discovery, requirements change, better solution]
+
+3. Which ai/docs/ files need updating?
+   [List of files]
+```
+
+**Wait for the answers.**
+
+---
+
+## Step 2: Identify the files
+
+```
+Based on the interview, files to update:
+
+□ ai/docs/stack/technology.md — stack change
+□ ai/docs/patterns/architecture.md — pattern change
+□ ai/docs/patterns/di-patterns.md — DI change
+□ ai/docs/patterns/testing-patterns.md — testing change
+□ ai/docs/patterns/exception-patterns.md — error handling change
+□ ai/docs/patterns/logging-patterns.md — logging pattern change (logger path/API)
+□ ai/docs/conventions/naming.md — convention change
+□ ai/docs/domain/glossary.md — a new domain term, a change in meaning of an existing one
+  or resolving an ambiguity (then an entry in the "Resolved ambiguities" section
+  with a date — the record of the dispute is as valuable as the definition itself)
+□ ai/docs/conventions/code-style.md — style change
+□ ai/docs/conventions/git-workflow.md — git workflow change
+```
+
+---
+
+## Step 3: Prepare and approve the changes
+
+The subagent returns the proposed changes; the main session shows the diff:
+```
+## Changes in ai/docs/patterns/architecture.md:
+
+WAS:
   Architecture Type: Modular Monolith
 
-JEST:
+NOW:
   Architecture Type: Microservices (2 services: API + Worker)
 
-Powód: Worker wymaga osobnego skalowania
+Reason: Worker requires separate scaling
 ```
 
-**Czekaj na zatwierdzenie.** Po `tak` → sesja główna zapisuje pliki.
+**Wait for approval.** After `yes` → the main session writes the files.
 
 ---
 
-## Krok 4: Potwierdź
+## Step 4: Confirm
 
 ```
 ## Revise Complete ✅
 
-### Zaktualizowane pliki:
+### Updated files:
 - ai/docs/patterns/architecture.md
 ```
 
 ---
 
-## WAŻNE
+## IMPORTANT
 
-- **Nie zmieniaj ai/docs/ "po cichu"** — zawsze /regent:revise
-- **Inne agenci czytają ai/docs/** — aktualizacja wpływa na cały workflow
+- **Don't change ai/docs/ "silently"** — always /regent:revise
+- **Other agents read ai/docs/** — an update affects the whole workflow
 
-Timeline: 10-20 minut
+Timeline: 10-20 minutes

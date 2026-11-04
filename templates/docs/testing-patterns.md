@@ -1,17 +1,17 @@
 # Testing Patterns
 
-> Opcjonalny. Wypełnij na podstawie istniejących testów i konfiguracji test runnera.
+> Optional. Fill in based on the existing tests and the test runner configuration.
 
-## Piramida testów
+## Test pyramid
 
-| Typ | Target | Fokus |
-|-----|--------|-------|
-| Unit | ≥80% coverage | Logika biznesowa, walidacja, utility |
-| Component (UI) | Kluczowe komponenty | Render + interakcja + zachowanie (jeśli projekt ma frontend) |
-| Integration | Key flows | API endpoints, operacje DB |
-| E2E | Critical paths | Pełne scenariusze API i/lub przeglądarkowe |
+| Type | Target | Focus |
+|------|--------|-------|
+| Unit | ≥80% coverage | Business logic, validation, utility |
+| Component (UI) | Key components | Render + interaction + behavior (if the project has a frontend) |
+| Integration | Key flows | API endpoints, DB operations |
+| E2E | Critical paths | Full API and/or browser scenarios |
 
-## Struktura
+## Structure
 
 ```
 tests/
@@ -23,36 +23,36 @@ tests/
 ├── unit/
 ├── integration/
 └── e2e/
-# + tests/component/ lub kolokacja *.test.tsx przy komponencie — wg konwencji projektu
+# + tests/component/ or *.test.tsx colocated with the component — per the project convention
 ```
 
 ## Mocks-first
 
-- Mockuj zależności zewnętrzne; **NIGDY** nie duplikuj kodu produkcyjnego w testach.
-- Współdziel mocki/factory z `tests/helpers/` — brak inline mocków (DRY).
-- Integration/E2E: real DB (testcontainers / test DB), mock TYLKO external API.
+- Mock external dependencies; **NEVER** duplicate production code in tests.
+- Share mocks/factories from `tests/helpers/` — no inline mocks (DRY).
+- Integration/E2E: real DB (testcontainers / test DB), mock ONLY external APIs.
 
-## Zasady
+## Rules
 
-- **Behavior, not implementation** — testuj CO, nie JAK.
+- **Behavior, not implementation** — test WHAT, not HOW.
 - **Arrange-Act-Assert**.
-- Nazwy opisowe: `should_return_error_when_email_is_invalid`.
-- One test = one scenario; brak flaky testów.
-- Czasy: unit < 100ms, integration < 1s, e2e < 5s.
-- Każde AC ma test; edge cases i error paths pokryte.
+- Descriptive names: `should_return_error_when_email_is_invalid`.
+- One test = one scenario; no flaky tests.
+- Durations: unit < 100ms, integration < 1s, e2e < 5s.
+- Every AC has a test; edge cases and error paths covered.
 
-## Testy UI (jeśli projekt ma frontend — usuń w backend-only)
+## UI tests (if the project has a frontend — remove in backend-only)
 
-- **Component tests**: render + interakcja użytkownika + asercja na widoczne zachowanie
-  (nie wewnętrzny stan); mock HTTP wg `frontend-patterns.md` (sekcja Testy komponentowe).
-- **E2E przeglądarkowe**: tylko critical paths (logowanie, core flows); realny backend.
-- Selektory user-facing (role/label), `data-testid` tylko gdy brak roli.
-- Narzędzia i konwencje: `ai/docs/patterns/frontend-patterns.md` — jedno źródło.
+- **Component tests**: render + user interaction + assertion on visible behavior
+  (not internal state); HTTP mock per `frontend-patterns.md` (Component tests section).
+- **Browser E2E**: critical paths only (login, core flows); real backend.
+- User-facing selectors (role/label), `data-testid` only when there is no role.
+- Tools and conventions: `ai/docs/patterns/frontend-patterns.md` — single source.
 
-## Narzędzia
+## Tools
 
-| Element | Wartość |
-|---------|---------|
-| Runner | [np. Jest / Vitest] |
-| Coverage | [np. c8] |
-| Komendy | `make test`, `make test-unit`, `make test-component` (UI), `make test-coverage` |
+| Element | Value |
+|---------|-------|
+| Runner | [e.g. Jest / Vitest] |
+| Coverage | [e.g. c8] |
+| Commands | `make test`, `make test-unit`, `make test-component` (UI), `make test-coverage` |

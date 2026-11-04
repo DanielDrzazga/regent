@@ -1,17 +1,17 @@
 # Getting Started
 
-Pierwsze uruchomienie frameworka w projekcie — krok po kroku.
+First run of the framework in a project — step by step.
 
-## 0. Warunek wstępny
+## 0. Prerequisite
 
-Plugin `regent` installed from the local marketplace in the clone (see [README → Użycie](../README.md#użycie)).
+Plugin `regent` installed from the local marketplace in the clone (see [README → Usage](../README.md#usage)).
 Check that Claude Code sees it: type `/regent:` and Tab — the list should show `/regent:init`,
 `/regent:propose`, `/regent:apply` and the other skills.
 
 `ai/` (SDD artifacts) is tracked in the product repo as a whole — `/regent:init` makes sure no
 ignore rule hides it.
 
-### Nowa maszyna — checklista
+### New machine — checklist
 
 1. Clone the `regent` repo and in the clone: `make plugin-marketplace-add plugin-install`.
 2. In `~/.claude/settings.json` no AI attribution: `"attribution": { "commit": "", "pr": "" }`.
@@ -20,89 +20,89 @@ ignore rule hides it.
 5. After changes land on `main`: `git pull && make plugin-update` in the clone and a new session —
    the installation is a copy of the clone's commit, not a live clone.
 
-## 1. `/regent:init` — skonfiguruj projekt
+## 1. `/regent:init` — configure the project
 
-W katalogu projektu:
+In the project directory:
 
 ```text
-/regent:init            # auto-detekcja (--detect); alternatywnie /regent:init --manual
+/regent:init            # auto-detection (--detect); alternatively /regent:init --manual
 ```
 
 `/regent:init`:
 
-- skanuje repo (package.json, tsconfig, eslint, docker, struktura, git log),
-- generuje `ai/docs/` z szablonów (`templates/docs/`) wypełnionych realiami projektu,
-- generuje `Makefile` (cele `test`, `lint`, `type-check`, `check`, ...),
-- prezentuje wynik **do zatwierdzenia** — nic nie zapisuje bez `tak`.
+- scans the repo (package.json, tsconfig, eslint, docker, structure, git log),
+- generates `ai/docs/` from templates (`templates/docs/`) filled in with the project's realities,
+- generates a `Makefile` (targets `test`, `lint`, `type-check`, `check`, ...),
+- presents the result **for approval** — writes nothing without `yes`.
 
-Wygenerowane (wymagane): `stack/technology.md`, `patterns/architecture.md`,
-`conventions/{naming,code-style,git-workflow}.md`. Opcjonalne (jeśli wykryto):
+Generated (required): `stack/technology.md`, `patterns/architecture.md`,
+`conventions/{naming,code-style,git-workflow}.md`. Optional (if detected):
 `patterns/{di,testing,exception,logging}-patterns.md`, `patterns/frontend-patterns.md`
-(gdy projekt ma frontend).
+(when the project has a frontend).
 
-> `ai/docs/observability/` **nie** jest generowane (zbyt środowiskowe) — tworzysz je ręcznie,
-> jeśli utrzymujesz dashboardy/alerty.
+> `ai/docs/observability/` is **not** generated (too environment-specific) — you create it manually
+> if you maintain dashboards/alerts.
 
-## 2. `/regent:status` — sprawdź stan
+## 2. `/regent:status` — check the state
 
 ```text
 /regent:status
 ```
 
-Pokaże, które pliki `ai/docs/` są wypełnione, aktywne zmiany, archiwum i sugestie.
+Shows which `ai/docs/` files are filled in, active changes, the archive and suggestions.
 
-## 3. Pierwsza zmiana: `/regent:propose`
+## 3. First change: `/regent:propose`
 
 ```text
 /regent:propose user-registration
 ```
 
-1. **Wywiad** — jedna runda: problem, zachowanie, zakres, ograniczenia.
-2. **Challenge** — agent sam ustala fakty w kodzie, a Ciebie pyta tylko o decyzje, rundami
-   (do 4 pytań naraz, z rekomendacją). Większość małych zmian przechodzi od razu (`AKCEPTUJĘ`).
-3. **Artefakty** w `ai/changes/user-registration/`: `proposal.md` (z logiem Decyzje i założenia),
-   `specs/*.md` (delta z AC), `design.md`, `tasks.md` (każdy task wskazuje swoje AC).
-4. **Kontrola spójności** i zapis jako `Draft` — czytasz pełne pliki z checklistą recenzenta.
-5. `zatwierdzam` → `Approved` (dopiero wtedy `/regent:apply` ruszy) albo `popraw: ...`.
+1. **Interview** — one round: problem, behavior, scope, constraints.
+2. **Challenge** — the agent establishes the facts in the code itself and asks you only about decisions, in rounds
+   (up to 4 questions at once, with a recommendation). Most small changes pass right away (`ACCEPT`).
+3. **Artifacts** in `ai/changes/user-registration/`: `proposal.md` (with the Decisions and assumptions log),
+   `specs/*.md` (delta with AC), `design.md`, `tasks.md` (every task points to its AC).
+4. **Consistency check** and saving as `Draft` — you read the full files with the reviewer checklist.
+5. `approve` → `Approved` (only then will `/regent:apply` start) or `revise: ...`.
 
-> **Istniejący projekt bez specyfikacji:** `ai/specs/` rośnie zmiana po zmianie — `/regent:init`
-> celowo go nie generuje i nie opisujesz starego kodu na zapas. Pierwsza zmiana, która dotyka
-> nieopisanego zachowania, dodaje je do delty jako ADDED („pierwsza specyfikacja istniejącego
-> zachowania").
+> **Existing project without specifications:** `ai/specs/` grows change by change — `/regent:init`
+> deliberately does not generate it and you do not describe old code in advance. The first change that touches
+> undescribed behavior adds it to the delta as ADDED ("first specification of existing
+> behavior").
 
-## 4. Implementacja: `/regent:apply`
+## 4. Implementation: `/regent:apply`
 
 ```text
 /regent:apply user-registration
 ```
 
-TDD per task: 🔴 test → 🟢 kod → 🔵 refactor. Implementuje `regent:backend-dev` lub `regent:frontend-dev`
-wg tagu taska (`[BE]`/`[FE]`); agent sam uruchamia testy (wąsko, per moduł/komponent);
-atomic commit per task robi sesja główna po potwierdzonym GREEN.
+TDD per task: 🔴 test → 🟢 code → 🔵 refactor. Implemented by `regent:backend-dev` or `regent:frontend-dev`
+per the task tag (`[BE]`/`[FE]`); the agent runs the tests itself (narrowly, per module/component);
+the main session makes an atomic commit per task after a confirmed GREEN.
 
-## 5. Weryfikacja: `/regent:verify`
+## 5. Verification: `/regent:verify`
 
 ```text
 /regent:verify user-registration
 ```
 
-9 etapów (5-8 warunkowe). Wynik ląduje w `ai/changes/{nazwa}/verification.md`.
-PASS → można archiwizować; FAIL → fix przez `/regent:apply`, re-run oblanych etapów.
+9 stages (5-8 conditional). The result lands in `ai/changes/{name}/verification.md`.
+PASS → you can archive; FAIL → fix via `/regent:apply`, re-run of the failed stages.
 
-## 6. Zamknięcie: `/regent:archive`
+## 6. Closing: `/regent:archive`
 
 ```text
 /regent:archive user-registration
 ```
 
-Merguje delta-specs do `ai/specs/` i przenosi zmianę do `ai/changes/archive/`.
+Merges the delta specs into `ai/specs/` and moves the change to `ai/changes/archive/`.
 
-## Dalej
+## Next
 
-- Barierki git w istniejącym projekcie SDD (hook `git-guard`): wpis z `/regent:init` Krok 3.5
-  dodaj do `.claude/settings.json` projektu.
-- Stan zmian liczony skryptem: `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh status`
-  (wszystkie tryby: [`sdd-check.md`](sdd-check.md)).
-- Instrumentacja logami: `/regent:logging <ścieżka>` (wymaga `ai/docs/patterns/logging-patterns.md`).
-- Analiza bez zmian: `/regent:explore <temat>`.
-- Szczegóły cyklu: [`workflow.md`](workflow.md).
+- Git guardrails in an existing SDD project (the `git-guard` hook): add the entry from `/regent:init` Step 3.5
+  to the project's `.claude/settings.json`.
+- Change state counted by the script: `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh status`
+  (all modes: [`sdd-check.md`](sdd-check.md)).
+- Log instrumentation: `/regent:logging <path>` (requires `ai/docs/patterns/logging-patterns.md`).
+- Analysis without changes: `/regent:explore <topic>`.
+- Cycle details: [`workflow.md`](workflow.md).

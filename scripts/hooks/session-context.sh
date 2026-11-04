@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# session-context.sh — hook SessionStart / SubagentStart pluginu: wstrzykuje jeden plik context/.
+# session-context.sh — the plugin's SessionStart / SubagentStart hook: injects one context/ file.
 #
-# Plugin nie wczytuje CLAUDE.md, więc reguły trafiają do kontekstu przez hooki. Jeden plik na
-# wywołanie: Claude Code obcina wyjście pojedynczego hooka do 10 000 znaków.
-#   session  — zwykły stdout (Claude Code dodaje go do kontekstu sesji)
-#   subagent — JSON hookSpecificOutput.additionalContext; Explore i Plan pomijane, bo pomijają
-#              też CLAUDE.md
-#   always   — zawsze;  sdd — tylko w projekcie SDD (jest ai/docs/ w korzeniu projektu)
+# A plugin does not load CLAUDE.md, so rules reach the context through hooks. One file per
+# call: Claude Code truncates a single hook's output to 10,000 characters.
+#   session  — plain stdout (Claude Code adds it to the session context)
+#   subagent — JSON hookSpecificOutput.additionalContext; Explore and Plan skipped, because they
+#              skip CLAUDE.md too
+#   always   — always;  sdd — only in an SDD project (ai/docs/ exists in the project root)
 #
-# Użycie (hooks/hooks.json):  bash "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/session-context.sh" <session|subagent> <always|sdd> <plik>
-#   np. session-context.sh session always role.md
-# Wejście: JSON hooka na stdin (subagent: pole agent_type). Kod wyjścia: zawsze 0 — brak kontekstu
-# nie może blokować sesji; błędne użycie → komunikat na stderr.
+# Usage (hooks/hooks.json):  bash "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/session-context.sh" <session|subagent> <always|sdd> <file>
+#   e.g. session-context.sh session always role.md
+# Input: hook JSON on stdin (subagent: the agent_type field). Exit code: always 0 — missing context
+# must not block the session; wrong usage → message on stderr.
 
 set -u
 
@@ -19,12 +19,12 @@ ROOT=${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}
 PROJECT=${CLAUDE_PROJECT_DIR:-$PWD}
 event=${1:-}; scope=${2:-}; file=${3:-}
 
-usage() { echo "session-context.sh: $1 — użycie: <session|subagent> <always|sdd> <plik>" >&2; exit 0; }
-case "$event" in session|subagent) ;; *) usage "nieznane zdarzenie '$event'" ;; esac
-case "$scope" in always|sdd) ;; *) usage "nieznany zakres '$scope'" ;; esac
-case "$file" in ''|*/*) usage "plik z context/ bez ścieżki" ;; esac
+usage() { echo "session-context.sh: $1 — usage: <session|subagent> <always|sdd> <file>" >&2; exit 0; }
+case "$event" in session|subagent) ;; *) usage "unknown event '$event'" ;; esac
+case "$scope" in always|sdd) ;; *) usage "unknown scope '$scope'" ;; esac
+case "$file" in ''|*/*) usage "a context/ file name without a path" ;; esac
 src="$ROOT/context/$file"
-[ -f "$src" ] || usage "brak $src"
+[ -f "$src" ] || usage "missing $src"
 
 [ "$scope" = sdd ] && [ ! -d "$PROJECT/ai/docs" ] && exit 0
 
@@ -33,11 +33,11 @@ if [ "$event" = session ]; then
   exit 0
 fi
 
-# subagent: agent_type z JSON-a hooka bez jq (pierwsza wartość klucza).
+# subagent: agent_type from the hook JSON without jq (first value of the key).
 agent=$(cat | LC_ALL=C sed -n 's/.*"agent_type"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
 case "$agent" in Explore|Plan) exit 0 ;; esac
 
-# Treść jako string JSON: \ → \\, " → \", tab → \t, CR usunięty, linie łączone przez \n.
+# Content as a JSON string: \ → \\, " → \", tab → \t, CR removed, lines joined with \n.
 TAB=$(printf '\t')
 printf '{"hookSpecificOutput":{"hookEventName":"SubagentStart","additionalContext":"'
 LC_ALL=C sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e "s/$TAB/\\\\t/g" -e "s/$(printf '\r')//g" "$src" \

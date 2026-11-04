@@ -1,18 +1,18 @@
 ---
-description: Refactoring bez zmiany zachowania — pełny cykl propose → apply → verify → archive z INVARIANTS
+description: Refactoring without behavior change — full propose → apply → verify → archive cycle with INVARIANTS
 disable-model-invocation: true
-argument-hint: <opis>
+argument-hint: <description>
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---
 
-# /regent:refactor — Refaktoryzacja i redukcja długu technicznego
+# /regent:refactor — Refactoring and technical debt reduction
 
-**Cel:** Refaktoring kodu BEZ zmiany zachowania. INVARIANTS obowiązkowe.
+**Goal:** Code refactoring WITHOUT behavior change. INVARIANTS are mandatory.
 
 ```
-/regent:refactor <opis>
+/regent:refactor <description>
 
-Przykład:
+Example:
 /regent:refactor "extract auth service from user module"
 /regent:refactor "replace raw SQL with repository pattern"
 /regent:refactor "simplify order validation logic"
@@ -20,49 +20,49 @@ Przykład:
 
 ---
 
-## Agenci (delegacja — WYMAGANE)
+## Agents (delegation — REQUIRED)
 
-- Krok 2 (`/regent:propose --type refactor`) deleguje `regent:spec-writer` + `regent:architect` sam z siebie.
-- Krok 4 (implementacja kroków refactoru) deleguj do dev-agenta wg obszaru:
+- Step 2 (`/regent:propose --type refactor`) delegates `regent:spec-writer` + `regent:architect` on its own.
+- Delegate Step 4 (implementing the refactor steps) to a dev agent by area:
   backend → `regent:backend-dev`, frontend → `regent:frontend-dev` (sonnet, Task).
-- Krok 6 (`/regent:verify`) deleguje `regent:code-reviewer`/`regent:qa-engineer`/… sam.
+- Step 6 (`/regent:verify`) delegates `regent:code-reviewer`/`regent:qa-engineer`/… on its own.
 
-Nie refaktoruj „w miejscu" w głównej sesji — inaczej modele agentów nie zostaną użyte.
+Don't refactor "in place" in the main session — otherwise the agents' models will not be used.
 
 ---
 
-## Krok 1: Zdefiniuj zakres
+## Step 1: Define the scope
 
 ```
 ## Refactor Scope
 
 ### Target
-[Co refaktorujemy — plik, moduł, pattern]
+[What we refactor — file, module, pattern]
 
 ### Current Problem
-[Dlaczego obecny kod jest problematyczny]
-- [np. Code duplication, high complexity, tight coupling]
+[Why the current code is problematic]
+- [e.g. Code duplication, high complexity, tight coupling]
 
 ### Proposed Solution
-[Jak powinno wyglądać po refactorze]
+[What it should look like after the refactor]
 
 ### Behavior Change: NONE ❗
-[Refactor NIE zmienia zachowania — to fundamentalna zasada]
+[A refactor does NOT change behavior — this is the fundamental rule]
 ```
 
 ---
 
-## Krok 2: Utwórz /regent:propose --type refactor
+## Step 2: Create /regent:propose --type refactor
 
 ```
-/regent:propose {nazwa} --type refactor
+/regent:propose {name} --type refactor
 ```
 
-**KLUCZOWE:** Delta spec (`specs/{domena}.md`) MUSI zawierać sekcję INVARIANTS —
-tam sprawdza ją `/regent:verify` Etap 2 (zgodnie ze `spec-template.md`):
+**KEY:** The delta spec (`specs/{domain}.md`) MUST contain an INVARIANTS section —
+that's where `/regent:verify` Stage 2 checks it (per `spec-template.md`):
 
 ```markdown
-## INVARIANTS (obowiązkowe!)
+## INVARIANTS (mandatory!)
 
 - INV-1: All existing API endpoints return same responses
 - INV-2: All existing tests pass without modification
@@ -72,114 +72,114 @@ tam sprawdza ją `/regent:verify` Etap 2 (zgodnie ze `spec-template.md`):
 
 ---
 
-## Krok 3: Strategia implementacji
+## Step 3: Implementation strategy
 
-**Wzorzec docelowy z docs, nie ze skanu src/:** kształt do którego refaktorujesz (Repository,
-Service Layer, Factory itd.) bierz z `ai/docs/patterns/architecture.md` + sekcji Reference
-Implementations (wskazane, wzorcowe pliki — `Read`). Do `src/` sięgaj przez `Grep`/`Glob`
-**tylko żeby ZLOKALIZOWAĆ** target refactoru i jego callsites — NIE żeby uczyć się wzorca
-docelowego przez szerokie skanowanie. Brak wzorca w Reference Implementations → kandydat do
-dopisania przez `/regent:revise`.
+**Target pattern from the docs, not from scanning src/:** take the shape you refactor towards (Repository,
+Service Layer, Factory etc.) from `ai/docs/patterns/architecture.md` + the Reference
+Implementations section (the referenced, exemplary files — `Read`). Reach into `src/` via `Grep`/`Glob`
+**only to LOCATE** the refactor target and its callsites — NOT to learn the target pattern
+by broad scanning. No pattern in Reference Implementations → a candidate to
+add via `/regent:revise`.
 
 ```
-Zasady:
-1. Małe kroki — każdy krok = working code + passing tests
-2. Atomic commits — każdy commit = complete refactor step
-3. Testy ZAWSZE przechodzą po każdym kroku
-4. Jeśli testy failują = cofnij krok, nie naprawiaj test
+Rules:
+1. Small steps — each step = working code + passing tests
+2. Atomic commits — each commit = complete refactor step
+3. Tests ALWAYS pass after each step
+4. If tests fail = revert the step, don't fix the test
 
-Typowa sekwencja:
-Step 1: Dodaj nową strukturę (obok starej)
-Step 2: Przenieś logikę do nowej struktury
-Step 3: Update callsites do nowej struktury
-Step 4: Usuń starą strukturę
+Typical sequence:
+Step 1: Add the new structure (next to the old one)
+Step 2: Move the logic to the new structure
+Step 3: Update callsites to the new structure
+Step 4: Remove the old structure
 Step 5: Cleanup (imports, exports)
 ```
 
 ---
 
-## Krok 4: Implementacja
+## Step 4: Implementation
 
 ```bash
 # Branch
 git checkout -b refactor/{JIRA-KEY}-{short-description}
 
-# Dla każdego kroku (implementacja: backend-dev — sam uruchamia testy;
-# commit: sesja główna po raporcie z potwierdzonym PASS):
-# 1. Zmień kod
+# For each step (implementation: backend-dev — runs the tests itself;
+# commit: main session after a report with confirmed PASS):
+# 1. Change the code
 # 2. make test → PASS ✅
 # 3. git add [specific files]
 # 4. git commit -m "refactor: (KEY) step X - description"
-# 5. ślad przy tasku jak w /regent:apply 4c: ✅ (commit: <hash> · testy: INV-1 → <test>)
+# 5. trace on the task as in /regent:apply 4c: ✅ (commit: <hash> · tests: INV-1 → <test>)
 ```
 
 ---
 
-## Krok 5: Weryfikacja
+## Step 5: Verification
 
 ```
 Checklist:
-□ WSZYSTKIE istniejące testy przechodzą (nie zmodyfikowane!)
-□ Zachowanie niezmienione (INVARIANTS)
-□ Coverage taka sama lub lepsza
-□ Performance taka sama lub lepsza
-□ No new dependencies introduced (chyba że uzasadnione)
+□ ALL existing tests pass (not modified!)
+□ Behavior unchanged (INVARIANTS)
+□ Coverage the same or better
+□ Performance the same or better
+□ No new dependencies introduced (unless justified)
 ```
 
 ```bash
-# Porównaj pokrycie przed i po
+# Compare coverage before and after
 make test-coverage
 
-# Porównaj zachowanie
-make test  # Wszystkie testy MUSZĄ przejść BEZ modyfikacji
+# Compare behavior
+make test  # All tests MUST pass WITHOUT modification
 ```
 
 ---
 
-## Krok 6: Review & merge
+## Step 6: Review & merge
 
 ```
-/regent:verify {nazwa-refactora}
+/regent:verify {refactor-name}
 
-Dodatkowe sprawdzenie:
-□ INVARIANTS zachowane?
-□ Testy NIE zmodyfikowane (chyba że test był na implementację, nie zachowanie)?
-□ Kod czytelniejszy po refactorze?
+Additional check:
+□ INVARIANTS preserved?
+□ Tests NOT modified (unless the test was on the implementation, not the behavior)?
+□ Code more readable after the refactor?
 ```
 
 ---
 
-## Krok 7: Zamknięcie
+## Step 7: Closing
 
 ```
-/regent:archive {nazwa-refactora}
+/regent:archive {refactor-name}
 ```
 
-Refactor przechodzi PEŁNY cykl — bez archiwizacji delta spec (z INVARIANTS w archiwum)
-zmiana formalnie nie istnieje. Wpis w History trafia do main spec domeny, gdy ten istnieje;
-refactor z samymi INVARIANTS w domenie bez main spec zostawia ślad w archiwum i w gicie.
+A refactor goes through the FULL cycle — without archiving the delta spec (with INVARIANTS in the archive)
+the change formally does not exist. The History entry goes into the domain's main spec, when it exists;
+a refactor with only INVARIANTS in a domain without a main spec leaves a trace in the archive and in git.
 
-Taski refactoru odwołują się do INVARIANTS, które chronią: `T-02: [BE] wydziel serwis — INV-1, INV-2 — …`.
+Refactor tasks refer to the INVARIANTS they protect: `T-02: [BE] extract service — INV-1, INV-2 — …`.
 
 ---
 
 ## Red Flags 🚩
 
 ```
-🚩 Behavior change → To NIE jest refactor → użyj /regent:propose --type feature
-🚩 Without tests → Ryzykowne → napisz testy NAJPIERW, potem refaktoruj
-🚩 Code less clear after → Odrzuć refactor
-🚩 Tests modified to pass → Prawdopodobnie zmieniłeś zachowanie
-🚩 Too many files → Podziel na mniejsze refactory
+🚩 Behavior change → This is NOT a refactor → use /regent:propose --type feature
+🚩 Without tests → Risky → write tests FIRST, then refactor
+🚩 Code less clear after → Reject the refactor
+🚩 Tests modified to pass → You probably changed behavior
+🚩 Too many files → Split into smaller refactors
 ```
 
 ---
 
-## WAŻNE
+## IMPORTANT
 
-- **INVARIANTS** — obowiązkowe, weryfikowane w /regent:verify
-- **Testy first** — jeśli brak testów, napisz je PRZED refactorem
-- **Small steps** — testy przechodzą po KAŻDYM kroku
-- **No behavior change** — jedyna zasada, która jest absolutna
+- **INVARIANTS** — mandatory, verified in /regent:verify
+- **Tests first** — if there are no tests, write them BEFORE the refactor
+- **Small steps** — tests pass after EVERY step
+- **No behavior change** — the only rule that is absolute
 
-Timeline: 1-4 godziny
+Timeline: 1-4 hours

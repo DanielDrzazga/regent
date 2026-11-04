@@ -1,90 +1,90 @@
 # Technology Stack
 
-> Wypełnij konkretami wykrytymi przez `/regent:init` (package.json, tsconfig, docker) lub z wywiadu.
+> Fill in with specifics detected by `/regent:init` (package.json, tsconfig, docker) or from the interview.
 
 ## Runtime & Language
 
-| Element | Wartość |
-|---------|---------|
-| Runtime | [np. Node.js 20] |
-| Język | [np. TypeScript 5.3] |
+| Element | Value |
+|---------|-------|
+| Runtime | [e.g. Node.js 20] |
+| Language | [e.g. TypeScript 5.3] |
 | Package manager | [npm / pnpm / yarn] |
 
 ## Framework
 
-| Warstwa | Technologia |
-|---------|-------------|
-| Backend | [np. NestJS 10 / Express / FastAPI] |
-| ORM / DB access | [np. Prisma / TypeORM] |
-| Walidacja | [np. class-validator / zod] |
+| Layer | Technology |
+|-------|------------|
+| Backend | [e.g. NestJS 10 / Express / FastAPI] |
+| ORM / DB access | [e.g. Prisma / TypeORM] |
+| Validation | [e.g. class-validator / zod] |
 
-## Frontend (jeśli dotyczy — usuń w projektach backend-only)
+## Frontend (if applicable — remove in backend-only projects)
 
-<!-- Obecność tej sekcji = sygnał "projekt ma frontend" dla komend i agentów. -->
+<!-- The presence of this section = "project has a frontend" signal for commands and agents. -->
 
-| Element | Technologia |
-|---------|-------------|
-| Framework UI | [np. React 18 / Vue 3] |
-| Build tool | [np. Vite / Next] |
-| State management | [np. TanStack Query + Zustand] |
-| Styling | [np. Tailwind / CSS Modules] |
-| Biblioteka komponentów | [np. wewnętrzny DS / MUI / brak] |
-| Routing | [np. React Router / file-based] |
+| Element | Technology |
+|---------|------------|
+| UI framework | [e.g. React 18 / Vue 3] |
+| Build tool | [e.g. Vite / Next] |
+| State management | [e.g. TanStack Query + Zustand] |
+| Styling | [e.g. Tailwind / CSS Modules] |
+| Component library | [e.g. internal DS / MUI / none] |
+| Routing | [e.g. React Router / file-based] |
 
-Szczegóły wzorców: `ai/docs/patterns/frontend-patterns.md`.
+Pattern details: `ai/docs/patterns/frontend-patterns.md`.
 
 ## Database
 
-| Element | Wartość |
-|---------|---------|
-| Silnik | [np. PostgreSQL 16] |
-| Migracje | [np. Prisma Migrate] |
-| Cache | [np. Redis / brak] |
+| Element | Value |
+|---------|-------|
+| Engine | [e.g. PostgreSQL 16] |
+| Migrations | [e.g. Prisma Migrate] |
+| Cache | [e.g. Redis / none] |
 
-## Message Queue / Events (jeśli dotyczy)
+## Message Queue / Events (if applicable)
 
-| Element | Technologia |
-|---------|-------------|
-| Broker | [np. RabbitMQ / Kafka / brak] |
-| Klient | [np. @golevelup/nestjs-rabbitmq] |
-| Event bus | [np. @nestjs/cqrs] |
+| Element | Technology |
+|---------|------------|
+| Broker | [e.g. RabbitMQ / Kafka / none] |
+| Client | [e.g. @golevelup/nestjs-rabbitmq] |
+| Event bus | [e.g. @nestjs/cqrs] |
 
 ## Testing
 
-| Typ | Narzędzie |
-|-----|-----------|
-| Unit / Integration | [np. Jest / Vitest] |
-| Component (UI) | [np. Vitest + Testing Library / brak — projekt backend-only] |
-| E2E | [API: np. Supertest / przeglądarkowe: np. Playwright] |
-| Coverage | [np. c8 / built-in] |
+| Type | Tool |
+|------|------|
+| Unit / Integration | [e.g. Jest / Vitest] |
+| Component (UI) | [e.g. Vitest + Testing Library / none — backend-only project] |
+| E2E | [API: e.g. Supertest / browser: e.g. Playwright] |
+| Coverage | [e.g. c8 / built-in] |
 
-## Infrastruktura
+## Infrastructure
 
-- Konteneryzacja: [np. Docker + docker-compose]
-- CI/CD: [np. GitHub Actions]
-- Środowiska: [dev / staging / prod]
+- Containerization: [e.g. Docker + docker-compose]
+- CI/CD: [e.g. GitHub Actions]
+- Environments: [dev / staging / prod]
 
-## TypeScript Config (jeśli TS — wycinek istotnych opcji)
+## TypeScript Config (if TS — excerpt of relevant options)
 
 ```json
 {
-  "module": "[np. commonjs]",
-  "target": "[np. ES2023]",
+  "module": "[e.g. commonjs]",
+  "target": "[e.g. ES2023]",
   "strict": "[true/false]",
   "strictNullChecks": "[true/false]"
 }
 ```
 
-## Ports (jeśli dotyczy)
+## Ports (if applicable)
 
-| Port | Cel |
-|------|-----|
-| [np. 80] | [REST API] |
-| [np. 8081] | [health] |
-| [np. 5001] | [metrics] |
+| Port | Purpose |
+|------|---------|
+| [e.g. 80] | [REST API] |
+| [e.g. 8081] | [health] |
+| [e.g. 5001] | [metrics] |
 
-## Kluczowe zależności
+## Key dependencies
 
-| Pakiet | Wersja | Po co |
-|--------|--------|-------|
-| [np. nestjs-pino] | [1.x] | [logowanie] |
+| Package | Version | What for |
+|---------|---------|----------|
+| [e.g. nestjs-pino] | [1.x] | [logging] |

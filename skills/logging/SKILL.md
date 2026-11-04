@@ -1,119 +1,119 @@
 ---
-description: Instrumentacja istniejącego kodu logami wg logging-patterns.md projektu
+description: Instrument existing code with logs per the project's logging-patterns.md
 disable-model-invocation: true
-argument-hint: <ścieżka-lub-opis> [--level debug|info|warn|error|fatal] [--type business|technical]
+argument-hint: <path-or-description> [--level debug|info|warn|error|fatal] [--type business|technical]
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, AskUserQuestion, SendMessage, Bash
 ---
 
-# /regent:logging — Dodaj logi do kodu
+# /regent:logging — Add logs to code
 
-**Cel:** Instrumentuj istniejący kod logami na właściwych poziomach (debug → fatal),
-zgodnie z wzorcem logowania projektu. NIE buduje loggera — używa istniejącego.
+**Goal:** Instrument existing code with logs at the right levels (debug → fatal),
+following the project's logging pattern. It does NOT build a logger — it uses the existing one.
 
 ```
-/regent:logging <ścieżka-lub-opis> [opcje]
+/regent:logging <path-or-description> [options]
 
-Opcje:
-  --level debug|info|warn|error|fatal   Wymuś/ogranicz poziom
-  --type business|technical             Wymuś typ logów
+Options:
+  --level debug|info|warn|error|fatal   Force/limit the level
+  --type business|technical             Force the log type
 
-Przykład:
+Example:
 /regent:logging src/modules/messenger/application/whatsapp-sender.service.ts
-/regent:logging "consumer webhooków WhatsApp"
+/regent:logging "WhatsApp webhook consumer"
 /regent:logging src/modules/template-management --type business
 ```
 
 ---
 
-## Agent (delegacja — WYMAGANE)
+## Agent (delegation — REQUIRED)
 
-Instrumentację deleguj do subagenta `regent:logging-engineer` (model: sonnet, uruchom narzędziem
-Task). Nie dobieraj i nie wstawiaj logów „w miejscu" w głównej sesji — inaczej model
-z `agents/logging-engineer.md` nie zostanie użyty.
-
----
-
-## Krok 0: Walidacja (przenośna — bez zaszytych ścieżek)
-
-Sprawdź czy istnieje `ai/docs/patterns/logging-patterns.md`.
-
-```
-✅ Jest → to źródło prawdy: ścieżka loggera + API + zasady. Idź do Kroku 1.
-
-❌ Brak → ZAPYTAJ użytkownika (AskUserQuestion), nie zgaduj:
-   (a) Użyć natywnego loggera frameworka teraz (ogólne zasady standardu)
-   (b) Przerwać — najpierw utworzyć ai/docs/patterns/logging-patterns.md / wdrożyć standard
-   (c) Wskazać ścieżkę loggera ręcznie
-```
-
-❗ NIE zakładaj żadnej ścieżki loggera (`src/core/...`, `src/logger/`, …) — czytaj ją z wzorca.
+Delegate the instrumentation to the `regent:logging-engineer` subagent (model: sonnet, launch it with the
+Task tool). Don't pick and insert logs "in place" in the main session — otherwise the model
+from `agents/logging-engineer.md` will not be used.
 
 ---
 
-## Krok 1: Wczytaj wzorzec + zlokalizuj cel
+## Step 0: Validation (portable — no hardcoded paths)
 
-Subagent `regent:logging-engineer` czyta **bezpośrednio przez Read**:
+Check whether `ai/docs/patterns/logging-patterns.md` exists.
 
 ```
-ZAWSZE:
-1. ai/docs/patterns/logging-patterns.md   ← ścieżka loggera + API + zasady
-2. Wskazane pliki celu (z argumentu komendy)
+✅ It exists → it is the source of truth: logger path + API + rules. Go to Step 1.
 
-NIE skanuj całego src/. Jeśli cel to opis (nie ścieżka) → Grep/Glob TYLKO by znaleźć pliki.
+❌ Missing → ASK the user (AskUserQuestion), don't guess:
+   (a) Use the framework's native logger now (general rules of the standard)
+   (b) Stop — first create ai/docs/patterns/logging-patterns.md / roll out the standard
+   (c) Specify the logger path manually
 ```
 
-`regent:logging-engineer` identyfikuje punkty logowania: wejścia/wyjścia operacji, zdarzenia domenowe,
-integracje zewnętrzne, bloki `catch`/błędy, istotne gałęzie warunkowe.
+❗ Do NOT assume any logger path (`src/core/...`, `src/logger/`, …) — read it from the pattern.
 
 ---
 
-## Krok 2: Plan instrumentacji (DO AKCEPTACJI)
+## Step 1: Load the pattern + locate the target
 
-Deleguj do `regent:logging-engineer` w trybie PLAN (zwraca tabelę w raporcie — bez zmian w kodzie).
-Sesja główna pokazuje tabelę użytkownikowi i czeka na zatwierdzenie:
+The `regent:logging-engineer` subagent reads **directly via Read**:
+
+```
+ALWAYS:
+1. ai/docs/patterns/logging-patterns.md   ← logger path + API + rules
+2. The specified target files (from the command argument)
+
+Do NOT scan the whole src/. If the target is a description (not a path) → Grep/Glob ONLY to find the files.
+```
+
+`regent:logging-engineer` identifies logging points: operation entries/exits, domain events,
+external integrations, `catch` blocks/errors, significant conditional branches.
+
+---
+
+## Step 2: Instrumentation plan (FOR APPROVAL)
+
+Delegate to `regent:logging-engineer` in PLAN mode (it returns a table in the report — no code changes).
+The main session shows the table to the user and waits for approval:
 
 ```markdown
-## Plan logowania: {cel}
+## Logging plan: {target}
 
-| Plik:linia | level | type | action | Uzasadnienie |
+| File:line | level | type | action | Rationale |
 |------------|-------|------|--------|--------------|
-| sender.service.ts:42 | info | BUSINESS | MESSAGE_SENT | Wysłano wiadomość |
-| sender.service.ts:55 | error | TECHNICAL | META_API_ERROR | Błąd Meta API w catch |
+| sender.service.ts:42 | info | BUSINESS | MESSAGE_SENT | Message sent |
+| sender.service.ts:55 | error | TECHNICAL | META_API_ERROR | Meta API error in catch |
 
-Zatwierdzasz? (tak/nie/popraw)
+Approve? (yes/no/revise)
 ```
 
-**CZEKAJ.** `tak` → implementacja (kontynuuj TEGO SAMEGO subagenta — resume po agentId —
-z komunikatem „plan zaakceptowany, implementuj"). `popraw: ...` → kontynuuj subagenta
-z poprawkami i pokaż tabelę ponownie.
+**WAIT.** `yes` → implementation (continue THE SAME subagent — resume by agentId —
+with the message "plan approved, implement"). `revise: ...` → continue the subagent
+with the corrections and show the table again.
 
 ---
 
-## Krok 3: Implementacja
+## Step 3: Implementation
 
 ```
-→ Dodaj logi przez API z wzorca (business()/technical() lub natywne wg ustaleń Kroku 0)
-→ Wstrzyknij logger przez DI jeśli klasa go nie ma (wg ścieżki z wzorca)
-→ @LogDuration / @WithEventContext gdy pasują (nie dubluj logu requestu)
-→ action: RZECZOWNIK_CZASOWNIK, UPPERCASE, EN
-→ context: TYLKO ID encji — zero PII/sekretów
-→ Jeden log per operacja — nie w pętli/hot-path
-→ NIE zmieniaj logiki biznesowej
+→ Add logs via the API from the pattern (business()/technical() or native per the Step 0 decision)
+→ Inject the logger via DI if the class doesn't have it (per the path from the pattern)
+→ @LogDuration / @WithEventContext when they fit (don't duplicate the request log)
+→ action: NOUN_VERB, UPPERCASE, EN
+→ context: ONLY entity IDs — zero PII/secrets
+→ One log per operation — not in a loop/hot-path
+→ Do NOT change business logic
 ```
 
 ---
 
-## Krok 4: Testy nie czerwone
+## Step 4: Tests not red
 
 ```
-Subagent uruchamia wąsko testy zmienionych modułów:
-→ make test-unit PATTERN={moduł}   (lub make test gdy brak celu wąskiego)
+The subagent narrowly runs the tests of the changed modules:
+→ make test-unit PATTERN={module}   (or make test when there is no narrow target)
 
-Mock loggera = no-op; bez nowych asercji na logi.
-Testy mają tylko nie wywalać się przy dodanych logach.
+Logger mock = no-op; no new assertions on logs.
+Tests only need to not blow up with the added logs.
 ```
 
-Atomic commit — SESJA GŁÓWNA, wyłącznie pliki wymienione w raporcie subagenta:
+Atomic commit — MAIN SESSION, only the files listed in the subagent's report:
 
 ```bash
 git add src/modules/messenger/application/whatsapp-sender.service.ts
@@ -122,48 +122,48 @@ git commit -m "chore: (KEY) add structured logging to WhatsAppSenderService"
 
 ---
 
-## Krok 4.5: Synchronizacja z observability (warunkowa)
+## Step 4.5: Sync with observability (conditional)
 
 ```
-Jeśli istnieje ai/docs/observability/ ORAZ zmiana DODAJE / ZMIENIA NAZWĘ / USUWA
-logowaną `action` (lub zmienia `type`/`module`):
+If ai/docs/observability/ exists AND the change ADDS / RENAMES / REMOVES
+a logged `action` (or changes `type`/`module`):
 
-→ Przeczytaj ai/docs/observability/maintenance.md i zasygnalizuj refleksję:
-   dashboardy/alerty Kibany filtrują po zaszytej liście `action` — nowa/zmieniona
-   akcja NIE pojawi się sama. To FLAGA, nie budowanie dashboardów.
+→ Read ai/docs/observability/maintenance.md and flag it for reflection:
+   Kibana dashboards/alerts filter by a hardcoded list of `action` — a new/changed
+   action will NOT show up by itself. This is a FLAG, not building dashboards.
 
-Brak ai/docs/observability/ → pomiń ten krok (nieobowiązkowy).
+No ai/docs/observability/ → skip this step (optional).
 ```
 
-W raporcie (Krok 5) wypisz `⚠️ Observability` z listą nowych/zmienionych `action`, jeśli dotyczy.
+In the report (Step 5) list `⚠️ Observability` with the list of new/changed `action`s, if applicable.
 
 ---
 
-## Krok 5: Raport (zwięzły)
+## Step 5: Report (concise)
 
 ```markdown
-## Logging: {cel} — Done
+## Logging: {target} — Done
 
-Logi: N (info: x, warn: y, error: z, debug: w)
-Typy: BUSINESS: a, TECHNICAL: b
-Pliki: [lista]
-⚠️ Observability: nowe/zmienione action → [lista] (sprawdź maintenance.md) — jeśli dotyczy
+Logs: N (info: x, warn: y, error: z, debug: w)
+Types: BUSINESS: a, TECHNICAL: b
+Files: [list]
+⚠️ Observability: new/changed action → [list] (check maintenance.md) — if applicable
 Commit: abc1234
 ```
 
 ---
 
-## WAŻNE Rules
+## IMPORTANT Rules
 
-✅ **ZAWSZE:**
-- Źródło prawdy = `ai/docs/patterns/logging-patterns.md` (także ścieżka loggera); brak → zapytaj
-- To instrumentacja istniejącego loggera — logger buduje `/regent:propose`, nie ta komenda
-- `action` EN UPPERCASE; `business()` dla domeny, `technical()` dla reszty/błędów
-- W `context` wyłącznie ID encji — dane osobowe i sekrety zostają poza logiem
-- Loguj na granicach modułów; `domain/` zostaje czysty, hot-path i pętle bez logów
-- Request loguje istniejący interceptor / axios logger — instrumentuj to, czego nie pokrywa
-- Plan instrumentacji → akceptacja (sesja główna) → kod (kontynuacja subagenta)
-- Testy wąsko po instrumentacji (subagent); commit w sesji głównej po zielonych testach
-- Gdy istnieje `ai/docs/observability/` i zmieniasz `action` → zasygnalizuj sync (Krok 4.5)
+✅ **ALWAYS:**
+- Source of truth = `ai/docs/patterns/logging-patterns.md` (including the logger path); missing → ask
+- This is instrumentation of an existing logger — `/regent:propose` builds the logger, not this command
+- `action` EN UPPERCASE; `business()` for the domain, `technical()` for the rest/errors
+- In `context` only entity IDs — personal data and secrets stay out of the log
+- Log at module boundaries; `domain/` stays clean, hot-path and loops without logs
+- The request is logged by the existing interceptor / axios logger — instrument what it doesn't cover
+- Instrumentation plan → approval (main session) → code (continuing the subagent)
+- Narrow tests after instrumentation (subagent); commit in the main session after green tests
+- When `ai/docs/observability/` exists and you change an `action` → flag the sync (Step 4.5)
 
-❌ **Barierka:** `git add` wyłącznie z listą plików.
+❌ **Guardrail:** `git add` only with a list of files.

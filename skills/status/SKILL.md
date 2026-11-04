@@ -1,176 +1,176 @@
 ---
-description: Przegląd stanu projektu SDD — konfiguracja, aktywne zmiany, „gdzie jestem" po przerwanej sesji, archiwum, specyfikacje
+description: SDD project status overview — configuration, active changes, "where am I" after an interrupted session, archive, specifications
 argument-hint: [--drift]
 allowed-tools: Read, Grep, Glob, Bash(ls:*), Bash(git log:*), Bash(git status:*), Bash(git rev-parse:*), Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh:*)
 ---
 
-# /regent:status — Przegląd stanu projektu
+# /regent:status — Project status overview
 
-**Cel:** Pokaż aktualny stan projektu: konfiguracja, aktywne zmiany (z etapem cyklu — „gdzie jestem"),
-archiwum, specyfikacje.
+**Goal:** Show the current state of the project: configuration, active changes (with the cycle stage — "where am I"),
+archive, specifications.
 
 ```
-/regent:status            # przegląd
-/regent:status --drift    # + audyt: kod zmieniony poza cyklem SDD po archiwizacji
+/regent:status            # overview
+/regent:status --drift    # + audit: code changed outside the SDD cycle after archiving
 ```
 
 ---
 
-## Agent (delegacja)
+## Agent (delegation)
 
-Bez delegacji — świadomie. To czysty odczyt: sprawdzenie istnienia plików `ai/docs/`,
-`ls` aktywnych zmian/archiwum/speców i heurystyczne sugestie. Brak rozumowania, które
-model agenta mógłby ulepszyć; ma być natychmiastowy. Działa w głównej sesji.
+No delegation — deliberately. This is a pure read: checking that `ai/docs/` files exist,
+`ls` of active changes/archive/specs and heuristic suggestions. No reasoning that an
+agent model could improve; it must be instant. Runs in the main session.
 
 ---
 
-## Krok 1: Konfiguracja
+## Step 1: Configuration
 
 ```
-## Konfiguracja SDD
+## SDD configuration
 
-### ai/docs/ (wymagane):
+### ai/docs/ (required):
 ✅ / ❌ ai/docs/stack/technology.md
 ✅ / ❌ ai/docs/patterns/architecture.md
 ✅ / ❌ ai/docs/conventions/naming.md
 ✅ / ❌ ai/docs/conventions/code-style.md
 ✅ / ❌ ai/docs/conventions/git-workflow.md
 
-### ai/docs/ (opcjonalne):
+### ai/docs/ (optional):
 ✅ / ⬜ ai/docs/patterns/di-patterns.md
 ✅ / ⬜ ai/docs/patterns/testing-patterns.md
 ✅ / ⬜ ai/docs/patterns/exception-patterns.md
 ✅ / ⬜ ai/docs/patterns/logging-patterns.md
-✅ / ⬜ ai/docs/patterns/frontend-patterns.md (tylko projekty z frontendem)
-✅ / ⬜ ai/docs/adr/ (opcjonalne — ADR-y architekta; nie z /regent:init)
-✅ / ⬜ ai/docs/observability/ (autorskie — dashboardy/alerty Kibany; nie z /regent:init)
+✅ / ⬜ ai/docs/patterns/frontend-patterns.md (only projects with a frontend)
+✅ / ⬜ ai/docs/adr/ (optional — the architect's ADRs; not from /regent:init)
+✅ / ⬜ ai/docs/observability/ (authored — Kibana dashboards/alerts; not from /regent:init)
 
 ### Status: CONFIGURED / PARTIALLY CONFIGURED / NOT CONFIGURED
 
-Jeśli NOT CONFIGURED → "Uruchom /regent:init"
+If NOT CONFIGURED → "Run /regent:init"
 ```
 
 ---
 
-## Krok 2: Aktywne zmiany
+## Step 2: Active changes
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh status      # jedna linia na aktywną zmianę: Status, taski x/y, werdykt weryfikacji
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh status      # one line per active change: Status, tasks x/y, verification verdict
 ```
-Liczby w tabeli bierz z wyniku skryptu — nie licz checkboxów sam.
+Take the numbers in the table from the script output — do not count checkboxes yourself.
 
 ```
-## Aktywne zmiany
+## Active changes
 
-| Zmiana | Typ | Tasks | Status |
-|--------|-----|-------|--------|
+| Change | Type | Tasks | Status |
+|--------|------|-------|--------|
 | user-registration | feature | 4/5 done | 🟡 In Progress |
 
-Szczegóły:
+Details:
 ### user-registration (4/5 tasks)
 - [x] T-01: Create user entity
 - [x] T-02: Create user repository
-- [ ] T-05: [BE] E2E rejestracji — REQ-001, REQ-002 — weryfikacja: test E2E zielony
+- [ ] T-05: [BE] Registration E2E — REQ-001, REQ-002 — verification: E2E test green
 
 → /regent:apply user-registration --tasks 5
 ```
 
-Jeśli brak aktywnych zmian:
+If there are no active changes:
 ```
-Brak aktywnych zmian.
-→ /regent:propose — utwórz nową zmianę
+No active changes.
+→ /regent:propose — create a new change
 ```
 
 ---
 
-## Krok 3: Archiwum
+## Step 3: Archive
 
 ```bash
 ls ai/changes/archive/
 ```
-(pokaż 5 najnowszych — sortowanie po prefiksie daty w nazwie katalogu)
+(show the 5 newest — sort by the date prefix in the directory name)
 
 ```
-## Archiwum (ostatnie 5)
+## Archive (last 5)
 
-| Data | Zmiana | Typ |
-|------|--------|-----|
+| Date | Change | Type |
+|------|--------|------|
 | 2025-03-18 | setup-project-structure | feature |
 | 2025-03-15 | initial-auth | feature |
 ```
 
 ---
 
-## Krok 3.7: Gdzie jestem? (wykrywanie stanu zmiany)
+## Step 3.7: Where am I? (detecting the change state)
 
-Dla KAŻDEJ aktywnej zmiany ustal etap cyklu **z plików na dysku** — bez osobnego pliku stanu.
-To ratunek po przerwanej sesji: użytkownik nie musi pamiętać, na czym skończył.
+For EACH active change determine the cycle stage **from the files on disk** — no separate state file.
+This is the rescue after an interrupted session: the user does not have to remember where they left off.
 
-| Sygnał na dysku | Etap | Następny krok |
+| Signal on disk | Stage | Next step |
 |---|---|---|
-| brak `proposal.md` | zmiana niekompletna | `/regent:propose {nazwa}` od nowa (lub usuń katalog) |
-| `Status: Draft` | propozycja czeka na akceptację | przeczytaj pliki → `zatwierdzam` w `/regent:propose` |
-| `Status: Rejected` | odrzucona na etapie propozycji | `/regent:archive {nazwa} --abandon` lub `/regent:propose` z nowym podejściem |
-| `Status: Approved`, 0 tasków `[x]` | gotowe do implementacji | `/regent:apply {nazwa}` |
-| część tasków `[x]` | implementacja w toku | `/regent:apply {nazwa} --tasks {pierwszy nieodhaczony}` |
-| wszystkie `[x]`, brak `verification.md` | zaimplementowane, niezweryfikowane | `/regent:verify {nazwa}` |
-| `verification.md` = FAIL | weryfikacja oblana | patrz „Ścieżka FAIL" w `/regent:verify` (rezygnacja → `/regent:archive {nazwa} --abandon`) |
-| `verification.md` = PASS | gotowe do zamknięcia | `/regent:archive {nazwa}` |
+| no `proposal.md` | change incomplete | `/regent:propose {name}` from scratch (or delete the directory) |
+| `Status: Draft` | proposal awaits acceptance | read the files → `approve` in `/regent:propose` |
+| `Status: Rejected` | rejected at the proposal stage | `/regent:archive {name} --abandon` or `/regent:propose` with a new approach |
+| `Status: Approved`, 0 tasks `[x]` | ready for implementation | `/regent:apply {name}` |
+| some tasks `[x]` | implementation in progress | `/regent:apply {name} --tasks {first unchecked}` |
+| all `[x]`, no `verification.md` | implemented, unverified | `/regent:verify {name}` |
+| `verification.md` = FAIL | verification failed | see "FAIL path" in `/regent:verify` (giving up → `/regent:archive {name} --abandon`) |
+| `verification.md` = PASS | ready to close | `/regent:archive {name}` |
 
-**Dryf kodu wobec weryfikacji (miękkie ostrzeżenie):** gdy `verification.md` ma PASS,
-uruchom `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh drift {nazwa}`. WARN (plik z Affected Files zmieniony od `Commit HEAD`) →
-„⚠️ kod zmiany ruszył się po weryfikacji — rozważ re-run `/regent:verify {nazwa}`".
+**Code drift relative to verification (soft warning):** when `verification.md` has PASS,
+run `bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh drift {name}`. WARN (a file from Affected Files changed since `Commit HEAD`) →
+"⚠️ the change's code moved after verification — consider re-running `/regent:verify {name}`".
 
-**Przerwany task (najczęstszy przypadek po przerwanej sesji):** task odhaczasz dopiero po
-commicie (`/regent:apply` 4c), więc dla pierwszego nieodhaczonego taska sprawdź dwa stany:
+**Interrupted task (the most common case after an interrupted session):** a task is checked off only after
+the commit (`/regent:apply` 4c), so for the first unchecked task check two states:
 ```
-⚠️ {nazwa}: T-04 — jest commit po ostatnim zapisanym (commit: …), który dotyka plików taska
-   → commit się udał, brakuje śladu: dopisz ✅ (commit: … · testy: …) zamiast powtarzać task.
-⚠️ {nazwa}: T-04 — niezacommitowane zmiany w plikach z Affected Files (git status)
-   → praca w toku: dokończ task (testy zielone) i commit, zamiast zaczynać od nowa.
+⚠️ {name}: T-04 — there is a commit after the last recorded (commit: …) that touches the task's files
+   → the commit succeeded, the trace is missing: append ✅ (commit: … · tests: …) instead of repeating the task.
+⚠️ {name}: T-04 — uncommitted changes in files from Affected Files (git status)
+   → work in progress: finish the task (tests green) and commit, instead of starting over.
 ```
 
 ---
 
-## Krok 3.8: Rozjazd speców z kodem (tylko `/regent:status --drift`)
+## Step 3.8: Spec/code divergence (only `/regent:status --drift`)
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh stale      # commity ruszające pliki zarchiwizowanych zmian, nieobecne w żadnym tasks.md
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh stale      # commits touching files of archived changes, absent from every tasks.md
 ```
-Każdy WARN to kod zmieniony poza Twoim cyklem SDD — hotfix bez follow-upu, ręczna poprawka
-albo praca kolegi poza cyklem SDD (a change made through SDD also shows up in `ai/changes/`). Twój main spec domeny
-mógł przestać opisywać prawdę → zaktualizuj go (`/regent:propose` na zmianę zachowania,
-`/regent:bugfix` na błąd). Squash bez klucza ticketu skrypt rozpoznaje po zawartości plików —
-gdy lokalne hashe cyklu zniknęły (gc, inna maszyna), WARN bywa fałszywy. Bez flagi `--drift`
-pomiń ten krok (to audyt, nie odczyt).
+Each WARN is code changed outside your SDD cycle — a hotfix without follow-up, a manual fix
+or a colleague's work outside the SDD cycle (a change made through SDD also shows up in `ai/changes/`). Your domain main spec
+may have stopped describing the truth → update it (`/regent:propose` for a behavior change,
+`/regent:bugfix` for a bug). The script recognizes a squash without a ticket key by file contents —
+when the cycle's local hashes are gone (gc, another machine), the WARN may be false. Without the `--drift` flag
+skip this step (it is an audit, not a read).
 
-## Krok 4: Specyfikacje
+## Step 4: Specifications
 
 ```bash
 ls ai/specs/ 2>/dev/null
 ```
 
 ```
-## Specyfikacje
+## Specifications
 
-| Domena | Plik | Ostatnia zmiana |
-|--------|------|----------------|
+| Domain | File | Last change |
+|--------|------|-------------|
 | Users | ai/specs/users.md | 2025-03-18 |
 | Auth | ai/specs/auth.md | 2025-03-15 |
 ```
 
 ---
 
-## Krok 5: Sugestie
+## Step 5: Suggestions
 
 ```
-## Sugestie
+## Suggestions
 
-Na podstawie stanu projektu:
-1. [sugestia — np. "user-registration ma 1 pending task → /regent:apply"]
-2. [sugestia — np. "ai/docs/patterns/testing-patterns.md puste → uzupełnij"]
+Based on the project state:
+1. [suggestion — e.g. "user-registration has 1 pending task → /regent:apply"]
+2. [suggestion — e.g. "ai/docs/patterns/testing-patterns.md empty → fill it in"]
 ```
 
 ---
 
-Timeline: 1-2 minuty
+Timeline: 1-2 minutes

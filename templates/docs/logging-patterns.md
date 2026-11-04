@@ -1,86 +1,86 @@
 # Logging Patterns
 
-> Źródło prawdy dla `/regent:logging` i agenta `regent:logging-engineer`. Opisuje **istniejący** logger
-> projektu — ścieżkę importu, API, poziomy i zasady. NIE jest instrukcją budowy loggera.
-> Wypełnij konkretami wykrytymi przez `/regent:init` lub podanymi w wywiadzie.
+> Source of truth for `/regent:logging` and the `regent:logging-engineer` agent. Describes the project's **existing** logger
+> — import path, API, levels and rules. It is NOT an instruction for building a logger.
+> Fill in with specifics detected by `/regent:init` or given in the interview.
 
 ## Status
 
-- [ ] Standard logowania **wdrożony** (logger istnieje w kodzie)
-- [ ] Standard logowania **do wdrożenia** (brak loggera — `/regent:logging` przerwie i zapyta)
+- [ ] Logging standard **deployed** (the logger exists in the code)
+- [ ] Logging standard **to be implemented** (no logger — `/regent:logging` will stop and ask)
 
 ## Logger
 
-| Pole | Wartość |
-|------|---------|
-| Biblioteka | [np. nestjs-pino / winston / pino / CustomLoggerService] |
-| Ścieżka importu | [np. `src/core/logging/custom-logger.service`] |
-| Sposób wstrzykiwania | [np. DI przez konstruktor: `private readonly logger: CustomLoggerService`] |
-| Format wyjścia | [np. JSON strukturalny] |
+| Field | Value |
+|-------|-------|
+| Library | [e.g. nestjs-pino / winston / pino / CustomLoggerService] |
+| Import path | [e.g. `src/core/logging/custom-logger.service`] |
+| Injection method | [e.g. DI through the constructor: `private readonly logger: CustomLoggerService`] |
+| Output format | [e.g. structured JSON] |
 
-## API loggera
+## Logger API
 
-Opisz dokładne metody używane w projekcie. Przykład dla `CustomLoggerService`:
+Describe the exact methods used in the project. Example for `CustomLoggerService`:
 
 ```typescript
 this.logger.business({
-  action: "MESSAGE_SENT",          // RZECZOWNIK_CZASOWNIK, UPPERCASE, EN
-  module: "WhatsAppSenderService", // nazwa klasy logującej
-  message: "Wysłano wiadomość",    // opis naturalny
-  context: { recipientId: "usr_123", templateId: "order_v1" }, // TYLKO ID encji
+  action: "MESSAGE_SENT",          // NOUN_VERB, UPPERCASE, EN
+  module: "WhatsAppSenderService", // name of the logging class
+  message: "Message sent",         // natural description
+  context: { recipientId: "usr_123", templateId: "order_v1" }, // entity IDs ONLY
 });
 
 this.logger.technical({
   action: "META_API_ERROR",
   module: "WhatsAppSenderService",
-  message: "Błąd Meta API",
+  message: "Meta API error",
   error: { message: err.message, stack: err.stack, code: err.response?.status },
 });
 ```
 
-Jeśli projekt używa loggera natywnego (np. `Logger` z NestJS albo `pino`) — opisz tu jego API zamiast powyższego.
+If the project uses a native logger (e.g. `Logger` from NestJS or `pino`) — describe its API here instead of the above.
 
-## Poziomy
+## Levels
 
-| level | Kiedy |
-|-------|-------|
-| `debug` | Diagnostyka, wejścia/wyjścia metod, stany pośrednie (off na prod) |
-| `info`  | Normalny przebieg / zdarzenie biznesowe OK |
-| `warn`  | Odzyskiwalne — retry, fallback, brak danych nieblokujący |
-| `error` | Błąd operacji (z obiektem `error`) |
-| `fatal` | Krytyczny / nieodzyskiwalny |
+| level | When |
+|-------|------|
+| `debug` | Diagnostics, method inputs/outputs, intermediate states (off in prod) |
+| `info`  | Normal flow / business event OK |
+| `warn`  | Recoverable — retry, fallback, non-blocking missing data |
+| `error` | Operation error (with an `error` object) |
+| `fatal` | Critical / unrecoverable |
 
-## Typy logów
+## Log types
 
-- **`business()`** — zdarzenie domenowe zrozumiałe dla nietechnicznego odbiorcy.
-- **`technical()`** — HTTP/axios/DB/retry/błędy oraz wszystko inne.
+- **`business()`** — a domain event understandable to a non-technical audience.
+- **`technical()`** — HTTP/axios/DB/retry/errors and everything else.
 
-## Dekoratory / helpery (jeśli są)
+## Decorators / helpers (if any)
 
-- [np. `@LogDuration()` — mierzy czas metody]
-- [np. `@WithEventContext()` — handler CQRS, ustawia `contextType: event`]
+- [e.g. `@LogDuration()` — measures method duration]
+- [e.g. `@WithEventContext()` — CQRS handler, sets `contextType: event`]
 
-## Zasady (twarde)
+## Rules (hard)
 
-- `action`: `RZECZOWNIK_CZASOWNIK`, UPPERCASE, EN (`MESSAGE_SENT`, nie `sendMessage`).
-- `context`: TYLKO ID encji — **zero PII/sekretów** (telefon, e-mail, token, hasło).
-- Jeden log per operacja — nie w pętli / hot-path.
-- Nie loguj w warstwie `domain/` — tylko application/infrastructure/interface.
-- Nie dubluj logu requestu (jest interceptor HTTP / axios logger).
-- Pola `contextId` / `contextType` / `@timestamp` ustawiane automatycznie — nie ręcznie.
+- `action`: `NOUN_VERB`, UPPERCASE, EN (`MESSAGE_SENT`, not `sendMessage`).
+- `context`: entity IDs ONLY — **zero PII/secrets** (phone, e-mail, token, password).
+- One log per operation — not in a loop / hot path.
+- Do not log in the `domain/` layer — only application/infrastructure/interface.
+- Do not duplicate the request log (there is an HTTP interceptor / axios logger).
+- The `contextId` / `contextType` / `@timestamp` fields are set automatically — not manually.
 
-## Przykłady per warstwa
+## Examples per layer
 
-- **Application (use case):** `info` + `business()` na wejściu/wyjściu operacji domenowej.
-- **Infrastructure (integracja):** `technical()` na wywołaniach zewnętrznych i w `catch`.
-- **Interface (controller):** zwykle pokryte przez interceptor — nie dubluj.
+- **Application (use case):** `info` + `business()` on entry/exit of a domain operation.
+- **Infrastructure (integration):** `technical()` on external calls and in `catch`.
+- **Interface (controller):** usually covered by the interceptor — do not duplicate.
 
-## Synchronizacja z observability (opcjonalne — jeśli projekt ma `ai/docs/observability/`)
+## Synchronization with observability (optional — if the project has `ai/docs/observability/`)
 
-Jeśli projekt utrzymuje dashboardy/alerty (Kibana) w `ai/docs/observability/`, a filtrują one po
-konkretnych wartościach `action` (często zaszytych na sztywno w agregacji Filters) — **zmiana `action`
-cicho psuje dashboard/alert** (panel pokaże 0, nic nie ostrzeże). Po dodaniu / zmianie nazwy / usunięciu
-logowanej `action` (lub zmianie `type`/`module`) sprawdź `ai/docs/observability/maintenance.md`.
+If the project maintains dashboards/alerts (Kibana) in `ai/docs/observability/`, and they filter on
+specific `action` values (often hardcoded in a Filters aggregation) — **changing an `action`
+silently breaks the dashboard/alert** (the panel shows 0, nothing warns). After adding / renaming / removing
+a logged `action` (or changing `type`/`module`), check `ai/docs/observability/maintenance.md`.
 
-Ten link egzekwują: `/regent:logging` (Krok 4.5) i `/regent:verify` (Etap 7). Jeśli projekt nie ma observability —
-pomiń tę sekcję.
+This link is enforced by: `/regent:logging` (Step 4.5) and `/regent:verify` (Stage 7). If the project has no observability —
+skip this section.
