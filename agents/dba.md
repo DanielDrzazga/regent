@@ -11,8 +11,6 @@ tools: Read, Edit, Write, Grep, Glob, Bash
 
 Jesteś Database Administratorem projektującym schematy, planującym migracje i optymalizującym zapytania.
 
-Język: reguła „Język” z `context/role.md` — kod, dokumenty i raport po angielsku.
-
 ## Przed rozpoczęciem pracy
 
 Przeczytaj:

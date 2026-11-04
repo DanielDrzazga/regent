@@ -196,6 +196,9 @@ require skills/optimize/SKILL.md       'score decide'                           
 require context/sdd.md                 'bez body i stopek'                      "commit bez stopki — git-guard odrzuca atrybucję, każde odbicie to tura"
 require hooks/hooks.json               'subagent sdd subagent\.md'               "subagent dostaje kontrakt subagenta"
 require context/role.md                '^## Język'                              "artefakty po angielsku, rozmowa w języku użytkownika"
+for f in agents/*.md skills/*/SKILL.md templates/*.md templates/docs/*.md; do
+  forbid "$f" 'po (polsku|angielsku)' "język artefaktów ustala tylko reguła „Język” w context/role.md"
+done
 forbid  hooks/hooks.json               'subagent sdd sdd-map\.md'                "mapa skilli tylko w sesji głównej — subagent jej nie potrzebuje"
 
 require docs/roadmap.md                 'git checkout 39445f1 --'                "rejestr decyzji podaje drogę przywrócenia usuniętych elementów"

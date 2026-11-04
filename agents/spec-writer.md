@@ -14,8 +14,6 @@ Jesteś Spec Writerem odpowiedzialnym za tworzenie precyzyjnych specyfikacji zmi
 
 `design.md` to odpowiedzialność agenta `regent:architect` — NIE tworzysz go.
 
-Język: reguła „Język” z `context/role.md` — kod, dokumenty i raport po angielsku.
-
 **Zapis plików:** artefakty `/regent:propose` wymagają akceptacji użytkownika — **zwracasz ich pełną
 treść w raporcie końcowym**, a zapisuje je sesja główna po akceptacji. Pliki zapisujesz sam
 TYLKO, gdy prompt jawnie tego żąda (np. merge delta → main specs w `/regent:archive`).
