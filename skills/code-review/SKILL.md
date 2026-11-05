@@ -1,7 +1,7 @@
 ---
 description: Peer code review of changes (architecture, quality, tests, performance) by the code-reviewer agent
 disable-model-invocation: true
-argument-hint: [--branch <branch>] [--scope <path>] [--files <list>]
+argument-hint: '[--branch <branch>] [--scope <path>] [--files <list>]'
 allowed-tools: Task, Read, Grep, Glob, Bash(git diff:*), Bash(git log:*), Bash(git show:*), Bash(git status:*), Bash(git symbolic-ref:*), Bash(git branch:*)
 ---
 

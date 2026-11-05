@@ -1,7 +1,7 @@
 ---
 description: Atomic commits following the git workflow (format, pre-commit checks, approval)
 disable-model-invocation: true
-argument-hint: [description]
+argument-hint: '[description]'
 allowed-tools: Read, Grep, Glob, Bash
 ---
 

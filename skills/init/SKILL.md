@@ -1,7 +1,7 @@
 ---
 description: SDD project initialization — fill ai/docs/ (stack, patterns, conventions) + Makefile
 disable-model-invocation: true
-argument-hint: [--detect | --manual]
+argument-hint: '[--detect | --manual]'
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, AskUserQuestion, SendMessage, Bash
 ---
 

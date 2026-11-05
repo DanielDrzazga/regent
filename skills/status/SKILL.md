@@ -1,6 +1,6 @@
 ---
 description: SDD project status overview — configuration, active changes, "where am I" after an interrupted session, archive, specifications
-argument-hint: [--drift]
+argument-hint: '[--drift]'
 allowed-tools: Read, Grep, Glob, Bash(ls:*), Bash(git log:*), Bash(git status:*), Bash(git rev-parse:*), Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/sdd-check.sh:*)
 ---
 

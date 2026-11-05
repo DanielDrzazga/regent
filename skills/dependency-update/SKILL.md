@@ -1,7 +1,7 @@
 ---
 description: Dependency updates and security patches (audit, categorization, code adaptation)
 disable-model-invocation: true
-argument-hint: [security-only|all|specific <pkg>]
+argument-hint: '[security-only|all|specific <pkg>]'
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, Bash
 ---
 

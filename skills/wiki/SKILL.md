@@ -1,7 +1,7 @@
 ---
 description: Living business wiki in Obsidian — skeleton from code, content from your sources (notes, emails, transcripts)
 disable-model-invocation: true
-argument-hint: [init | ingest <file|url> | query <question> | lint [--fix] | sync | confirm <page>]
+argument-hint: '[init | ingest <file|url> | query <question> | lint [--fix] | sync | confirm <page>]'
 allowed-tools: Task, Read, Write, Edit, Grep, Glob, AskUserQuestion, WebFetch, SendMessage, Bash(ls:*), Bash(find:*), Bash(grep:*), Bash(git log:*), Bash(git diff:*), Bash(git status:*), Bash(git rev-parse:*), Bash(git cat-file:*), Bash(git config:*), Bash(mkdir:*), Bash(wc:*), Bash(sort:*), Bash(head:*), Bash(date:*)
 ---
 
