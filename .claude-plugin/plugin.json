@@ -1,0 +1,9 @@
+{
+  "name": "regent",
+  "version": "1.1.1",
+  "description": "Regent — SDD framework for Claude Code: propose → apply → verify → archive skills, role agents and validation scripts",
+  "author": {
+    "name": "Daniel Drzazga",
+    "url": "https://github.com/DanielDrzazga"
+  }
+}
