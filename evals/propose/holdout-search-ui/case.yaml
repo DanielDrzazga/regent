@@ -1,0 +1,52 @@
+schema_version: "1.0"
+name: propose-holdout-search-ui
+description: An M change across [BE] and [FE] (search-ui) — the architect writes the design with an API↔UI contract.
+tags: [propose, propose-holdout]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:propose search-ui"
+  model: sonnet
+  max_turns: 100
+  timeout_seconds: 2400
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "You work without a user — this is an automated evaluation. If `/usr/bin/git` fails with an xcrun cache error (the macOS eval sandbox blocks the Xcode shim), use `/opt/homebrew/bin/git` for every git command. Every yes/no consent question is answered \"yes\": do not ask, continue. When the skill says to ask with AskUserQuestion, pick the recommended option and record the decision where the skill says. This is one turn: when the skill presents the Draft for review, stop there — the review is the end of this run. When the skill asks you to describe the change, answer: \"1. Problem and goal: users with many notes cannot find one quickly; they want to search. 2. Behavior: the note store searches notes by a phrase in the title or the body, case-insensitive; an empty or whitespace-only phrase returns all notes. The web list gets a search box above it and a result count below it; the list shows only the matching notes. 3. Scope: IN — search in the note store, the API client call, the search box and the result count in the web UI; OUT — full-text indexing, search history, highlighting. 4. Constraints: the web UI gets data only through the API client.\""
+
+graders:
+  - name: delegates-spec-writer
+    type: tool_used
+    tool: Agent
+    input_match: "regent:spec-writer"
+    min: 1
+    arm: both
+  - name: delegates-architect
+    type: tool_used
+    tool: Agent
+    input_match: "regent:architect"
+    min: 1
+    arm: both
+  - name: proposal-draft
+    type: regex
+    target: {source: file, path: ai/changes/search-ui/proposal.md}
+    pattern: "Status\\W+Draft"
+  - name: tasks-have-fe
+    type: regex
+    target: {source: file, path: ai/changes/search-ui/tasks.md}
+    pattern: "\\[FE\\]"
+  - name: no-src-change
+    type: file_exists
+    path: "src/**"
+    exists: false
+  - name: no-web-change
+    type: file_exists
+    path: "web/**"
+    exists: false
+  - name: api-contract
+    type: llm
+    focus: {source: file, path: ai/changes/search-ui/design.md}
+    criteria: "PASS if the design defines the contract between the backend and the web UI for search (the API client function or endpoint, its parameter and the shape of the returned data) and lists affected files in both the store (src/) and the web UI (web/). Otherwise FAIL."
+  - name: ac-coverage
+    type: llm
+    focus: {source: file, path: ai/changes/search-ui/specs/notes.md}
+    criteria: "PASS if the delta spec has acceptance criteria in Given-When-Then form that together cover: a case-insensitive match in the title, a match in the body, an empty or whitespace-only phrase returning all notes, the search box, and the result count. It must not add indexing, history or highlighting. Otherwise FAIL."

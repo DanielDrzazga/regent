@@ -1,0 +1,41 @@
+schema_version: "1.0"
+name: wiki-holdout-query
+description: query answered by one page — a [[page]] citation, from the wiki only (no raw, no code), nothing filed.
+tags: [wiki, wiki-holdout]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:wiki query dlaczego archiwizujemy notatki zamiast je usuwać"
+  model: sonnet
+  max_turns: 25
+  timeout_seconds: 600
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "You work without a user — this is an automated evaluation. If `/usr/bin/git` fails with an xcrun cache error (the macOS eval sandbox blocks the Xcode shim), use `/opt/homebrew/bin/git` for every git command. Every yes/no consent question is answered \"yes\": do not ask, continue. When the skill says to ask with AskUserQuestion, pick the recommended option and record the decision where the skill says."
+
+graders:
+  - name: cites-page
+    type: regex
+    target: last_message
+    pattern: "\\[\\[Archiving instead of deleting"
+  - name: answer
+    type: llm
+    criteria: "PASS if the answer says notes are archived instead of deleted because a customer support consultant must be able to restore a note at the user's request for up to 2 years. Otherwise FAIL."
+  - name: no-raw
+    type: tool_used
+    tool: Read
+    input_match: "ai/wiki/raw/"
+    min: 0
+    max: 0
+    arm: both
+  - name: no-code
+    type: tool_used
+    tool: Read
+    input_match: "/(src|web)/"
+    min: 0
+    max: 0
+    arm: both
+  - name: no-write
+    type: file_exists
+    path: "ai/wiki/**"
+    exists: false

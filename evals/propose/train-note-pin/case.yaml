@@ -1,0 +1,56 @@
+schema_version: "1.0"
+name: propose-train-note-pin
+description: An S change (note-pin, one module, no DB) — interview answered up front, full artifacts, run ends at the Draft review.
+tags: [propose, propose-train]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:propose note-pin"
+  model: sonnet
+  max_turns: 80
+  timeout_seconds: 1800
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "You work without a user — this is an automated evaluation. If `/usr/bin/git` fails with an xcrun cache error (the macOS eval sandbox blocks the Xcode shim), use `/opt/homebrew/bin/git` for every git command. Every yes/no consent question is answered \"yes\": do not ask, continue. When the skill says to ask with AskUserQuestion, pick the recommended option and record the decision where the skill says. This is one turn: when the skill presents the Draft for review, stop there — the review is the end of this run. When the skill asks you to describe the change, answer: \"1. Problem and goal: users lose important notes among many others; they want to keep chosen notes at the top of the list. 2. Behavior: a user pins or unpins a note by its id; the list shows pinned notes first, newest first among them, then the other notes newest first; pinning or unpinning an id that does not exist throws NoteNotFoundError; pinning an already pinned note changes nothing. 3. Scope: IN — pin and unpin in the note store and the list order; OUT — the UI, a limit on the number of pinned notes, storing the pin in the database. 4. Constraints: none.\""
+
+graders:
+  - name: delegates-spec-writer
+    type: tool_used
+    tool: Agent
+    input_match: "regent:spec-writer"
+    min: 1
+    arm: both
+  - name: proposal-draft
+    type: regex
+    target: {source: file, path: ai/changes/note-pin/proposal.md}
+    pattern: "Status\\W+Draft"
+  - name: delta-written
+    type: file_exists
+    path: "ai/changes/note-pin/specs/*.md"
+  - name: design-written
+    type: file_exists
+    path: "ai/changes/note-pin/design.md"
+  - name: tasks-written
+    type: regex
+    target: {source: file, path: ai/changes/note-pin/tasks.md}
+    pattern: "T-01:"
+  - name: size-s
+    type: regex
+    target: {source: file, path: ai/changes/note-pin/tasks.md}
+    pattern: "Size: S"
+  - name: affected-files
+    type: regex
+    target: {source: file, path: ai/changes/note-pin/design.md}
+    pattern: "src/notes\\.js"
+  - name: no-code-change
+    type: file_exists
+    path: "src/**"
+    exists: false
+  - name: ac-coverage
+    type: llm
+    focus: {source: file, path: ai/changes/note-pin/specs/notes.md}
+    criteria: "PASS if the delta spec has an ADDED or MODIFIED requirement with acceptance criteria in Given-When-Then form that together cover: pinned notes listed first (newest first among them) and the rest after them, unpinning a note, NoteNotFoundError for an id that does not exist, and pinning an already pinned note changing nothing. It must not add a UI, a pin limit or database storage. Otherwise FAIL."
+  - name: artifacts-in-english
+    type: llm
+    focus: {source: file, path: ai/changes/note-pin/proposal.md}
+    criteria: "PASS if the proposal is written in English (domain terms such as Note may be capitalized; a quoted Polish term from the project docs is acceptable). Otherwise FAIL."

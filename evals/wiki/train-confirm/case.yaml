@@ -1,0 +1,40 @@
+schema_version: "1.0"
+name: wiki-train-confirm
+description: confirm of a hypothesis with a conflict — confirmed, the resolution in the content and in raw, conflict closed.
+tags: [wiki, wiki-train]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:wiki confirm \"Title length limit\""
+  model: sonnet
+  max_turns: 30
+  timeout_seconds: 900
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "You work without a user — this is an automated evaluation. If `/usr/bin/git` fails with an xcrun cache error (the macOS eval sandbox blocks the Xcode shim), use `/opt/homebrew/bin/git` for every git command. Every yes/no consent question is answered \"yes\": do not ask, continue. When the skill says to ask with AskUserQuestion, pick the recommended option and record the decision where the skill says. When the skill asks for a resolution, the user answers: \"It is a hard limit: a title has at most 80 characters after trimming whitespace, a longer one is rejected. We agreed on this with customer support on 2026-10-05, because a longer title does not fit in the list view.\""
+
+graders:
+  - name: confirmed
+    type: regex
+    target: {source: file, path: "ai/wiki/knowledge/Title length limit.md"}
+    pattern: "confidence: confirmed"
+  - name: conflict-closed
+    type: regex
+    target: {source: file, path: "ai/wiki/knowledge/Title length limit.md"}
+    pattern: "Conflict — open since"
+    match: not_contains
+  - name: new-source
+    type: regex
+    target: {source: file, path: "ai/wiki/knowledge/Title length limit.md"}
+    pattern: "sources:(?:.|\\n\\s*- )*?\\[\\[(?!2026-09-15 Spotkanie o archiwizacji\\]\\])"
+  - name: raw-resolution
+    type: file_exists
+    path: "ai/wiki/raw/*.md"
+  - name: log-confirm
+    type: regex
+    target: {source: file, path: ai/wiki/log.md}
+    pattern: "## \\[\\d{4}-\\d{2}-\\d{2}\\] confirm"
+  - name: resolution-in-content
+    type: llm
+    focus: {source: file, path: "ai/wiki/knowledge/Title length limit.md"}
+    criteria: "PASS if the page states that 80 characters is a hard limit: a note title longer than 80 characters (counted after trimming whitespace) is rejected, and the page no longer presents this as an open question. Otherwise FAIL."

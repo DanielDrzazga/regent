@@ -1,0 +1,53 @@
+schema_version: "1.0"
+name: apply-holdout-db-be
+description: A [DB] task to regent:dba, then [BE] (note-tags).
+tags: [apply, apply-holdout]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:apply note-tags"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill]
+  append_system_prompt: "You work without a user — this is an automated evaluation. If `/usr/bin/git` fails with an xcrun cache error (the macOS eval sandbox blocks the Xcode shim), use `/opt/homebrew/bin/git` for every git command. Every yes/no consent question is answered \"yes\": do not ask, continue. When the skill says to ask with AskUserQuestion, pick the recommended option and record the decision where the skill says."
+
+graders:
+  - name: delegates-dba
+    type: tool_used
+    tool: Agent
+    input_match: "regent:dba"
+    min: 1
+    arm: both
+  - name: delegates-backend-dev
+    type: tool_used
+    tool: Agent
+    input_match: "regent:backend-dev"
+    min: 1
+    arm: both
+  - name: no-sendmessage
+    type: tool_used
+    tool: SendMessage
+    min: 0
+    max: 0
+    arm: both
+  - name: separate-commit-per-task
+    type: regex
+    target: {source: file, path: ai/changes/note-tags/tasks.md}
+    pattern: "T-01:.*commit: ([0-9a-f]{7})[\\s\\S]*T-02:.*commit: (?!\\1)[0-9a-f]{7}"
+  - name: T-01-closed
+    type: regex
+    target: {source: file, path: ai/changes/note-tags/tasks.md}
+    pattern: "- \\[x\\] T-01:.*commit: [0-9a-f]{7}"
+  - name: T-02-closed
+    type: regex
+    target: {source: file, path: ai/changes/note-tags/tasks.md}
+    pattern: "- \\[x\\] T-02:.*commit: [0-9a-f]{7}"
+  - name: migration-002
+    type: file_exists
+    path: migrations/002_create_note_tags.js
+  - name: tags-code
+    type: llm
+    focus: {source: file, path: src/tags.js}
+    criteria: "PASS if tagNote(db, noteId, tag) stores { noteId, tag } in db.tables.note_tags with the tag trimmed and lower-cased, does not add a duplicate for the same note and tag, and noteIdsWithTag(db, tag) returns the note ids for a tag regardless of letter case. Otherwise FAIL."

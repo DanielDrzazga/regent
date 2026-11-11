@@ -1,0 +1,50 @@
+schema_version: "1.0"
+name: apply-train-dependency
+description: T-02 waits for T-01 (note-archive) — two rounds and a new subagent for each, no SendMessage.
+tags: [apply, apply-train]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:apply note-archive"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill]
+  append_system_prompt: "You work without a user — this is an automated evaluation. If `/usr/bin/git` fails with an xcrun cache error (the macOS eval sandbox blocks the Xcode shim), use `/opt/homebrew/bin/git` for every git command. Every yes/no consent question is answered \"yes\": do not ask, continue. When the skill says to ask with AskUserQuestion, pick the recommended option and record the decision where the skill says."
+
+graders:
+  - name: delegates-backend-dev
+    type: tool_used
+    tool: Agent
+    input_match: "regent:backend-dev"
+    min: 2
+    arm: both
+  - name: no-sendmessage
+    type: tool_used
+    tool: SendMessage
+    min: 0
+    max: 0
+    arm: both
+  - name: separate-commit-per-task
+    type: regex
+    target: {source: file, path: ai/changes/note-archive/tasks.md}
+    pattern: "T-01:.*commit: ([0-9a-f]{7})[\\s\\S]*T-02:.*commit: (?!\\1)[0-9a-f]{7}"
+  - name: T-01-closed
+    type: regex
+    target: {source: file, path: ai/changes/note-archive/tasks.md}
+    pattern: "- \\[x\\] T-01:.*commit: [0-9a-f]{7}"
+  - name: T-02-closed
+    type: regex
+    target: {source: file, path: ai/changes/note-archive/tasks.md}
+    pattern: "- \\[x\\] T-02:.*commit: [0-9a-f]{7}"
+  - name: red-before-green
+    type: regex
+    target: trace
+    # RED as the node:test spec reporter prints it (ℹ fail N), as TAP prints it (# fail N), or as a test
+    # file that fails to load because the module does not exist yet — then a later green run.
+    pattern: "(?:(?:#|ℹ) fail [1-9]|ERR_MODULE_NOT_FOUND|AssertionError)[\\s\\S]*(?:#|ℹ) fail 0"
+  - name: archive-code
+    type: llm
+    focus: {source: file, path: src/notes.js}
+    criteria: "PASS if this JavaScript note store satisfies all of: archive(id) marks the note archived (archived: true) and returns a copy; a newly created note has archived: false; archiving an unknown id throws NoteNotFoundError with code 'NOTE_NOT_FOUND'; list() leaves out archived notes and list({ includeArchived: true }) includes them. Otherwise FAIL."

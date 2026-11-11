@@ -1,0 +1,50 @@
+schema_version: "1.0"
+name: apply-train-two-tasks
+description: Two independent [BE] tasks (note-search) — delegation, a commit and a trace per task.
+tags: [apply, apply-train]
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:apply note-search"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill]
+  append_system_prompt: "You work without a user — this is an automated evaluation. If `/usr/bin/git` fails with an xcrun cache error (the macOS eval sandbox blocks the Xcode shim), use `/opt/homebrew/bin/git` for every git command. Every yes/no consent question is answered \"yes\": do not ask, continue. When the skill says to ask with AskUserQuestion, pick the recommended option and record the decision where the skill says."
+
+graders:
+  - name: delegates-backend-dev
+    type: tool_used
+    tool: Agent
+    input_match: "regent:backend-dev"
+    min: 1
+    arm: both
+  - name: no-sendmessage
+    type: tool_used
+    tool: SendMessage
+    min: 0
+    max: 0
+    arm: both
+  - name: separate-commit-per-task
+    type: regex
+    target: {source: file, path: ai/changes/note-search/tasks.md}
+    pattern: "T-01:.*commit: ([0-9a-f]{7})[\\s\\S]*T-02:.*commit: (?!\\1)[0-9a-f]{7}"
+  - name: T-01-closed
+    type: regex
+    target: {source: file, path: ai/changes/note-search/tasks.md}
+    pattern: "- \\[x\\] T-01:.*commit: [0-9a-f]{7}"
+  - name: T-02-closed
+    type: regex
+    target: {source: file, path: ai/changes/note-search/tasks.md}
+    pattern: "- \\[x\\] T-02:.*commit: [0-9a-f]{7}"
+  - name: red-before-green
+    type: regex
+    target: trace
+    # RED as the node:test spec reporter prints it (ℹ fail N), as TAP prints it (# fail N), or as a test
+    # file that fails to load because the module does not exist yet — then a later green run.
+    pattern: "(?:(?:#|ℹ) fail [1-9]|ERR_MODULE_NOT_FOUND|AssertionError)[\\s\\S]*(?:#|ℹ) fail 0"
+  - name: search-ac-tests
+    type: llm
+    focus: {source: file, path: test/search.test.js}
+    criteria: "PASS if the file contains node:test tests that together check: (a) a query matched in a note title regardless of letter case, (b) a query matched in a note body, (c) an empty or whitespace-only query returning all notes. The number of assertions and the order of tests do not matter. Otherwise FAIL."

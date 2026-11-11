@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use Regent, please cite it as below."
+title: "Regent — SDD framework for Claude Code"
+type: software
+authors:
+  - family-names: Drzazga
+    given-names: Daniel
+license: Apache-2.0
+repository-code: "https://github.com/DanielDrzazga/regent"
+url: "https://github.com/DanielDrzazga/regent"
+version: 1.4.0
+date-released: 2026-11-11
+keywords:
+  - claude-code
+  - claude-code-plugin
+  - spec-driven-development
+  - tdd
+  - ai-agents

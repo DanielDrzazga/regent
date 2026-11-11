@@ -1,0 +1,65 @@
+schema_version: "1.0"
+name: wiki-holdout-init
+description: init without a vault — one architect run, a vault skeleton with the sync anchor, no code names in the index.
+tags: [wiki, wiki-holdout]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:wiki init"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 2400
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill, SendMessage]
+  append_system_prompt: "You work without a user — this is an automated evaluation. If `/usr/bin/git` fails with an xcrun cache error (the macOS eval sandbox blocks the Xcode shim), use `/opt/homebrew/bin/git` for every git command. Every yes/no consent question is answered \"yes\": do not ask, continue. When the skill says to ask with AskUserQuestion, pick the recommended option and record the decision where the skill says."
+
+graders:
+  - name: delegates-architect-once
+    type: tool_used
+    tool: Agent
+    input_match: "regent:architect"
+    min: 1
+    max: 1
+    arm: both
+  - name: knowledge-pages
+    type: file_exists
+    path: "ai/wiki/knowledge/*.md"
+  - name: obsidian
+    type: file_exists
+    path: "ai/wiki/.obsidian/*.json"
+  - name: sync-anchor
+    type: regex
+    target: {source: file, path: ai/wiki/Home.md}
+    pattern: "last-sync-sha: [0-9a-f]{7}"
+  - name: log-init
+    type: regex
+    target: {source: file, path: ai/wiki/log.md}
+    pattern: "## \\[\\d{4}-\\d{2}-\\d{2}\\] init"
+  - name: index-has-note
+    type: regex
+    target: {source: file, path: ai/wiki/index.md}
+    pattern: "\\[\\[Note"
+  - name: index-without-code-names
+    type: regex
+    target: {source: file, path: ai/wiki/index.md}
+    pattern: "createNoteStore|EmptyTitleError|renderNoteList|\\.js\\b"
+    match: not_contains
+  - name: skeleton-covers-domain
+    type: llm
+    focus: {source: file, path: ai/wiki/index.md}
+    criteria: "PASS if the index lists the entities Note and User, a rule that a note without a title (empty after trimming whitespace) is rejected, and a rule that the list shows notes from the newest. Page names and wording may differ. Otherwise FAIL."
+  - name: asks-why-not-guesses
+    type: llm
+    criteria: "PASS if the final report says there are open questions about what the code does not say (it may list them or give their number and point to where they are recorded) and does not state a reason why a note title is mandatory as a fact. Otherwise FAIL."
+  - name: obsidian-report
+    type: regex
+    target: last_message
+    pattern: "Obsidian"
+  - name: no-docs-write
+    type: file_exists
+    path: "ai/docs/**"
+    exists: false
+  - name: no-specs-write
+    type: file_exists
+    path: "ai/specs/**"
+    exists: false

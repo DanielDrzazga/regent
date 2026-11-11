@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "regent": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/DanielDrzazga/regent.git"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "regent@regent": true
+  }
+}

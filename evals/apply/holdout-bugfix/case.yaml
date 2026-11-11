@@ -1,0 +1,35 @@
+schema_version: "1.0"
+name: apply-holdout-bugfix
+description: /regent:bugfix — a whitespace-only title is stored instead of EmptyTitleError (backend-dev agent guard).
+tags: [apply, apply-holdout]
+runs: 3
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "/regent:bugfix notatka z tytułem z samych spacji zapisuje się, a według REQ-001/AC-2 powinna zwrócić EmptyTitleError"
+  model: sonnet
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, Skill]
+  append_system_prompt: "You work without a user — this is an automated evaluation. If `/usr/bin/git` fails with an xcrun cache error (the macOS eval sandbox blocks the Xcode shim), use `/opt/homebrew/bin/git` for every git command. Every yes/no consent question is answered \"yes\": do not ask, continue. When the skill says to ask with AskUserQuestion, pick the recommended option and record the decision where the skill says."
+
+graders:
+  - name: delegates-backend-dev
+    type: tool_used
+    tool: Agent
+    input_match: "regent:backend-dev"
+    min: 1
+    arm: both
+  - name: commit-fix
+    type: tool_used
+    tool: Bash
+    input_match: "git commit.*fix"
+    arm: both
+  - name: fix-code
+    type: llm
+    focus: {source: file, path: src/notes.js}
+    criteria: "PASS if create() checks for an empty title after trimming whitespace, so a title made only of spaces throws EmptyTitleError, and a normal title is still stored trimmed. Otherwise FAIL."
+  - name: regression-test
+    type: llm
+    focus: {source: file, path: test/notes.test.js}
+    criteria: "PASS if the file contains a test that creates a note whose title consists only of whitespace (for example '   ') and expects EmptyTitleError to be thrown. Otherwise FAIL."
