@@ -175,10 +175,10 @@ regent/
 │   ├── dba.md                    (sonnet)
 │   ├── security-auditor.md       (opus)
 │   └── logging-engineer.md       (sonnet)
-├── skills/                # 18 skills (/regent:propose, /regent:apply, ..., /regent:archive)
-├── templates/             # Change artifact templates + Makefile
+├── skills/                # 19 skills (/regent:propose, /regent:apply, ..., /regent:archive)
+├── templates/             # Change artifact templates, Makefile, dashboard.html (the board page)
 │   └── docs/              # ai/docs/ file templates (filled in by /regent:init)
-├── scripts/               # sdd-check.sh (artifact validation), framework-lint.sh, statusline.sh, session-tokens.sh, eval-score.sh
+├── scripts/               # sdd-check.sh (artifact validation), dashboard.sh (HTML board), usage.sh (usage per change), framework-lint.sh, statusline.sh, session-tokens.sh, eval-score.sh
 ├── evals/                 # skill eval sets (claude plugin eval, notes-app test project) — not used by the plugin at runtime
 ├── docs/                  # Framework documentation
 ├── .claude/               # rules for working on this repo (not part of the plugin)
@@ -267,6 +267,7 @@ Shortcuts outside the full cycle:
 | `/regent:debugging` | Systematic diagnosis (fix via `/regent:bugfix`) |
 | `/regent:dependency-update` | Dependency updates and security patches |
 | `/regent:status` | Overview of the project state |
+| `/regent:dashboard` | HTML kanban board of the SDD cycle (`--watch` — live) |
 | `/regent:explore` | Read-only analysis without commits |
 | `/regent:wiki` | Business wiki in Obsidian (`ai/wiki/`) — outside the SDD cycle |
 

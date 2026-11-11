@@ -1,0 +1,23 @@
+# Claude API prices in USD per million tokens, for the cost estimate of scripts/usage.sh.
+# First-party API rates as of the date below; cache write 5m = 1.25x input, 1h = 2x input, cache read per model.
+# Not covered: fast mode, Haiku 5.5 above 100K-token prompts, Bedrock/Vertex rates. Update the date with the prices.
+# as-of	2026-11-03
+# model	input	output	cache_write_5m	cache_write_1h	cache_read
+claude-fable-5-2	8	40	10	16	0.20
+claude-mythos-5-2	8	40	10	16	0.20
+claude-fable-5-1	10	50	12.5	20	0.25
+claude-mythos-5-1	10	50	12.5	20	0.25
+claude-fable-5	10	50	12.5	20	1.00
+claude-mythos-5	10	50	12.5	20	1.00
+claude-opus-5-5	4	20	5	8	0.20
+claude-opus-5	5	25	6.25	10	0.50
+claude-opus-4-8	5	25	6.25	10	0.50
+claude-opus-4-7	5	25	6.25	10	0.50
+claude-opus-4-6	5	25	6.25	10	0.50
+claude-opus-4-5	5	25	6.25	10	0.50
+claude-sonnet-5-5	2	10	2.5	4	0.10
+claude-sonnet-5	2	10	2.5	4	0.20
+claude-sonnet-4-6	3	15	3.75	6	0.30
+claude-sonnet-4-5	3	15	3.75	6	0.30
+claude-haiku-5-5	0.10	0.50	0.125	0.20	0.01
+claude-haiku-4-5	1	5	1.25	2	0.10

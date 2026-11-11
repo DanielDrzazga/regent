@@ -5,6 +5,24 @@ Regent releases. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 Makefile contract), MINOR: new skill/agent/step, PATCH: fixes and prompt tuning.
 Release procedure: [CONTRIBUTING.md → Releases](CONTRIBUTING.md#releases).
 
+## [1.5.0] - 2026-11-11
+
+### Added
+
+- `/regent:dashboard` and `scripts/dashboard.sh`: an HTML kanban board of the SDD cycle — a column per stage
+  (the "Where am I?" stages of `/regent:status`), a card per active change with task progress per layer,
+  verification stages and the next command, an Archive tab with closed changes as a filterable table, a side
+  panel with a timeline (proposal, decisions, task commits, verification, archive) and every file of the
+  change rendered. A static page from `templates/dashboard.html`, no server and no dependencies; archived
+  changes load on demand, so a long history keeps the board fast; `--watch` rebuilds the data and the open
+  page follows the work live ([docs/dashboard.md](docs/dashboard.md)).
+- `scripts/usage.sh` and `scripts/pricing.tsv`: Claude Code usage of a change measured from the session
+  transcripts — per `/regent:` command run the Regent version, active time, prompts, and per model × effort ×
+  agent the calls, tokens (input, cache write, cache read, output) and an API-equivalent cost. The board shows
+  it on the cards, in a Usage tab of the side panel and as columns of the Archive tab.
+- `/regent:archive` writes it to `usage.md` in the change before the move (transcripts expire after ~30 days),
+  and its summary gives the cost and the active time.
+
 ## [1.4.0] - 2026-11-11
 
 ### Added

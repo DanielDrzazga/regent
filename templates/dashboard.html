@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regent board</title>
+<!--
+  Regent board: kanban of the SDD cycle. Static page, no server and no dependencies: it re-reads
+  data.js (written next to it by scripts/dashboard.sh) every POLL_MS and re-renders on change.
+  The columns follow the "Where am I?" table of /regent:status (Step 3.7) — keep them in sync.
+-->
+<style>
+:root {
+  --bg: #f5f5f2; --panel: #ffffff; --card: #ffffff; --ink: #1d1d1b; --muted: #6b6b66; --faint: #9a9a93;
+  --line: #e2e1dc; --soft: #efeee9; --accent: #3b5bdb;
+  --ok: #2b8a3e; --ok-bg: #e6f4ea; --warn: #b35c00; --warn-bg: #fff1e0; --bad: #c92a2a; --bad-bg: #fde8e8;
+  --you: #7048e8; --you-bg: #f0ebff; --na: #868e96;
+  --c-propose: #7048e8; --c-ready: #1c7ed6; --c-apply: #e67700; --c-verify: #0c8599; --c-close: #2b8a3e; --c-done: #868e96;
+  --shadow: 0 1px 2px rgba(0,0,0,.06), 0 1px 1px rgba(0,0,0,.03);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141413; --panel: #1c1c1a; --card: #22221f; --ink: #ecebe6; --muted: #a3a29b; --faint: #77766f;
+    --line: #34332f; --soft: #2a2a27; --accent: #748ffc;
+    --ok: #69db7c; --ok-bg: #1d3323; --warn: #ffa94d; --warn-bg: #3a2a16; --bad: #ff8787; --bad-bg: #3d1f1f;
+    --you: #b197fc; --you-bg: #2c2440; --na: #868e96;
+    --shadow: 0 1px 2px rgba(0,0,0,.4);
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+button { font: inherit; color: inherit; }
+code, .mono { font-family: var(--mono); font-size: 12.5px; }
+
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; padding: 16px 24px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+.brand h1 { margin: 0; font-size: 18px; font-weight: 650; letter-spacing: -.01em; }
+.brand .proj { font-size: 18px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brand .branch { font-family: var(--mono); font-size: 12px; color: var(--muted); background: var(--soft); padding: 1px 7px; border-radius: 10px; }
+.stats { display: flex; gap: 18px; flex-wrap: wrap; }
+.stat b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); margin-left: 4px; }
+.stat.you b { color: var(--you); }
+.tools { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.tools input { width: 200px; max-width: 46vw; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--ink); font: inherit; }
+.stamp { color: var(--faint); font-size: 12px; white-space: nowrap; }
+.stamp .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ok); margin-right: 6px; vertical-align: 1px; }
+.stamp.stale .dot { background: var(--faint); }
+
+.views { display: flex; gap: 2px; background: var(--soft); padding: 3px; border-radius: 8px; }
+.view { border: 0; background: transparent; padding: 4px 12px; border-radius: 6px; cursor: pointer; color: var(--muted); font-size: 13px; }
+.view.on { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: var(--shadow); }
+.view span { font-variant-numeric: tabular-nums; color: var(--faint); margin-left: 4px; font-weight: 400; }
+
+main { padding: 18px 24px 32px; }
+.board { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-items: start; }
+@media (max-width: 1280px) { .board { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 820px)  { .board { grid-template-columns: repeat(2, minmax(0, 1fr)); } main, header { padding-left: 16px; padding-right: 16px; } }
+@media (max-width: 560px)  { .board { grid-template-columns: 1fr; } .tools { margin-left: 0; width: 100%; } .tools input { flex: 1; max-width: none; } }
+
+.col { background: var(--soft); border-radius: 10px; padding: 10px; min-height: 120px; border-top: 3px solid var(--colc, var(--line)); }
+.col-h { display: flex; align-items: baseline; gap: 8px; padding: 2px 4px 2px; }
+.col-h h2 { margin: 0; font-size: 13px; font-weight: 650; text-transform: uppercase; letter-spacing: .04em; }
+.col-h .n { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+.col-who { padding: 0 4px 10px; font-size: 12px; color: var(--muted); }
+.col-who code { font-size: 11.5px; }
+.empty { color: var(--faint); font-size: 12px; padding: 10px 4px; text-align: center; }
+.more { width: 100%; margin-top: 10px; padding: 6px; border: 1px dashed var(--line); border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; }
+
+.card { display: block; width: 100%; text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 11px; margin-bottom: 8px; cursor: pointer; box-shadow: var(--shadow); transition: border-color .12s; }
+.card:hover, .card:focus-visible { border-color: var(--accent); outline: none; }
+.card.sel { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+.card.done { opacity: .82; }
+.flag { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px; margin: 0 4px 6px 0; }
+.flag.you { color: var(--you); background: var(--you-bg); }
+.flag.bad { color: var(--bad); background: var(--bad-bg); }
+.flag.warn { color: var(--warn); background: var(--warn-bg); }
+.flag.ok { color: var(--ok); background: var(--ok-bg); }
+.flag.muted { color: var(--muted); background: var(--soft); }
+.card .t { font-weight: 600; font-size: 13.5px; word-break: break-word; }
+.card .sub { color: var(--muted); font-size: 12px; margin-top: 2px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.chip { font-size: 11px; padding: 0 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); line-height: 18px; white-space: nowrap; }
+.chip.type-feature { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+.chip.type-bugfix { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 35%, transparent); }
+.chip.type-refactor { color: var(--c-verify); border-color: color-mix(in srgb, var(--c-verify) 35%, transparent); }
+.prog { margin-top: 8px; }
+.prog .bar { height: 5px; border-radius: 3px; background: var(--soft); overflow: hidden; display: flex; }
+.prog .bar i { display: block; height: 100%; background: var(--c-apply); }
+.card.c-close .prog .bar i, .card.c-done .prog .bar i, .card.c-verify .prog .bar i { background: var(--ok); }
+.prog .lbl { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.stages { display: flex; gap: 2px; margin-top: 7px; }
+.stages i { flex: 1; height: 6px; border-radius: 2px; background: var(--soft); }
+.st-ok { background: var(--ok) !important; } .st-warn { background: var(--warn) !important; } .st-bad { background: var(--bad) !important; } .st-na { background: var(--line) !important; }
+.next { display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 7px; border-top: 1px solid var(--line); }
+.next code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-size: 11.5px; }
+.copy { border: 1px solid var(--line); background: var(--panel); border-radius: 5px; font-size: 11px; padding: 1px 7px; cursor: pointer; color: var(--muted); }
+.copy:hover { color: var(--ink); border-color: var(--accent); }
+.foot { display: flex; justify-content: space-between; color: var(--faint); font-size: 11.5px; margin-top: 6px; }
+
+.specs { margin-top: 24px; }
+.specs h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.specs .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.spec { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; }
+.spec b { margin-right: 6px; }
+.spec span { color: var(--muted); }
+
+.arch-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-bottom: 12px; color: var(--muted); font-size: 12.5px; }
+.arch-bar .types { display: flex; gap: 4px; flex-wrap: wrap; }
+.arch-bar .types button { border: 1px solid var(--line); background: var(--card); border-radius: 12px; padding: 2px 10px; font-size: 12px; cursor: pointer; color: var(--muted); }
+.arch-bar .types button.on { border-color: var(--accent); color: var(--ink); }
+.arch { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.arch th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--soft); white-space: nowrap; }
+.arch td { padding: 7px 12px; border-bottom: 1px solid var(--soft); vertical-align: top; font-size: 13px; }
+.arch tr.row { cursor: pointer; }
+.arch tr.row:hover td, .arch tr.row:focus-visible td { background: var(--soft); outline: none; }
+.arch tr.row.sel td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.arch tr.month td { background: var(--bg); color: var(--muted); font-size: 12px; font-weight: 600; padding: 10px 12px 4px; border-bottom: 1px solid var(--line); }
+.arch .nm { font-weight: 600; word-break: break-word; }
+.arch .sm { display: block; color: var(--muted); font-size: 12px; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 520px; }
+.arch .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.arch .d { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+@media (max-width: 820px) { .arch .hide-s { display: none; } .arch .sm { max-width: 60vw; } }
+.loading { color: var(--muted); padding: 20px 0; }
+.chip.cost { color: var(--ink); font-variant-numeric: tabular-nums; }
+.ugrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; margin-bottom: 12px; }
+.ut { border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; }
+.ut b { display: block; font-size: 15px; font-variant-numeric: tabular-nums; }
+.ut span { color: var(--muted); font-size: 11.5px; }
+.utab { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; }
+.utab th, .utab td { text-align: left; padding: 4px 5px; border-bottom: 1px solid var(--soft); white-space: nowrap; }
+.usec { overflow-x: auto; }
+.usec h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 16px 0 6px; }
+.utab th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
+.utab td.n, .utab th.n { text-align: right; font-variant-numeric: tabular-nums; }
+.note { color: var(--faint); font-size: 11.5px; margin: 4px 0 0; }
+
+.notice { max-width: 640px; margin: 60px auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 20px 24px; }
+.notice h2 { margin-top: 0; font-size: 16px; }
+
+/* drawer */
+.scrim { position: fixed; inset: 0; background: rgba(0,0,0,.25); opacity: 0; pointer-events: none; transition: opacity .18s; }
+.scrim.on { opacity: 1; pointer-events: auto; }
+aside { position: fixed; top: 0; right: 0; bottom: 0; width: min(760px, 100vw); background: var(--panel); border-left: 1px solid var(--line); transform: translateX(100%); transition: transform .2s ease; display: flex; flex-direction: column; box-shadow: -8px 0 24px rgba(0,0,0,.12); }
+aside.on { transform: none; }
+.dr-h { padding: 16px 20px 0; border-bottom: 1px solid var(--line); }
+.dr-top { display: flex; align-items: flex-start; gap: 12px; }
+.dr-top h2 { margin: 0; font-size: 17px; word-break: break-word; }
+.dr-top .x { margin-left: auto; border: 0; background: transparent; font-size: 20px; line-height: 1; cursor: pointer; color: var(--muted); padding: 2px 6px; }
+.dr-meta { color: var(--muted); font-size: 12.5px; margin: 4px 0 10px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: thin; }
+.tab { border: 0; background: transparent; padding: 7px 11px; border-bottom: 2px solid transparent; cursor: pointer; color: var(--muted); white-space: nowrap; font-size: 13px; }
+.tab.on { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+.dr-b { flex: 1; overflow-y: auto; padding: 18px 22px 40px; }
+.sec { margin-bottom: 22px; }
+.sec > h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 0 0 10px; }
+.cycle { display: flex; gap: 0; margin-bottom: 4px; }
+.cycle div { flex: 1; text-align: center; font-size: 11.5px; padding: 6px 2px; color: var(--faint); border-bottom: 3px solid var(--line); }
+.cycle div.past { color: var(--muted); border-bottom-color: color-mix(in srgb, var(--ok) 55%, transparent); }
+.cycle div.now { color: var(--ink); font-weight: 650; border-bottom-color: var(--accent); }
+.tl { list-style: none; margin: 0; padding: 0 0 0 4px; }
+.tl li { position: relative; padding: 0 0 12px 22px; }
+.tl li::before { content: ""; position: absolute; left: 4px; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--panel); border: 2px solid var(--muted); }
+.tl li::after { content: ""; position: absolute; left: 9px; top: 18px; bottom: 0; width: 1px; background: var(--line); }
+.tl li:last-child::after { display: none; }
+.tl li.k-ok::before { border-color: var(--ok); background: var(--ok); }
+.tl li.k-bad::before { border-color: var(--bad); background: var(--bad); }
+.tl li.k-you::before { border-color: var(--you); }
+.tl li.k-commit::before { border-color: var(--c-apply); }
+.tl .d { font-family: var(--mono); font-size: 11.5px; color: var(--muted); margin-right: 8px; }
+.tl .w { color: var(--ink); }
+.tl .s { display: block; color: var(--muted); font-size: 12.5px; }
+.tasks { list-style: none; margin: 0; padding: 0; }
+.tasks .g { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin: 10px 0 4px; }
+.task { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--soft); align-items: baseline; }
+.task .box { flex: none; width: 15px; height: 15px; border-radius: 4px; border: 1.5px solid var(--faint); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; position: relative; top: 2px; }
+.task.done .box { background: var(--ok); border-color: var(--ok); color: #fff; }
+.task .tt { flex: 1; min-width: 0; }
+.task .id { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-right: 6px; }
+.task .tg { font-size: 10.5px; font-weight: 600; padding: 0 4px; border-radius: 3px; background: var(--soft); color: var(--muted); margin-right: 6px; }
+.task .r { display: block; font-size: 11.5px; color: var(--faint); }
+.task .h { font-family: var(--mono); font-size: 11.5px; color: var(--muted); flex: none; }
+.vgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.vst { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font-size: 12px; }
+.vst b { display: block; font-weight: 600; }
+.vst span { color: var(--muted); font-size: 11.5px; }
+.vst.ok { border-left: 3px solid var(--ok); } .vst.warn { border-left: 3px solid var(--warn); } .vst.bad { border-left: 3px solid var(--bad); } .vst.na { border-left: 3px solid var(--line); }
+
+/* rendered markdown */
+.md { word-wrap: break-word; }
+.md h1, .md h2, .md h3, .md h4, .md h5, .md h6 { margin: 1.2em 0 .5em; line-height: 1.25; }
+.md h1 { font-size: 20px; margin-top: 0; } .md h2 { font-size: 16.5px; padding-bottom: 4px; border-bottom: 1px solid var(--line); } .md h3 { font-size: 14.5px; } .md h4, .md h5, .md h6 { font-size: 13.5px; color: var(--muted); }
+.md p { margin: .5em 0 .8em; }
+.md pre { background: var(--soft); padding: 10px 12px; border-radius: 6px; overflow-x: auto; }
+.md pre code { font-size: 12px; }
+.md :not(pre) > code { background: var(--soft); padding: 1px 5px; border-radius: 4px; }
+.md blockquote { margin: .6em 0; padding: 2px 12px; border-left: 3px solid var(--line); color: var(--muted); }
+.md table { border-collapse: collapse; margin: .6em 0 1em; display: block; overflow-x: auto; max-width: 100%; }
+.md th, .md td { border: 1px solid var(--line); padding: 4px 9px; text-align: left; vertical-align: top; font-size: 13px; }
+.md th { background: var(--soft); font-weight: 600; }
+.md ul, .md ol { margin: .4em 0 .8em; padding-left: 0; list-style: none; }
+.md li { position: relative; padding-left: calc(18px + var(--ind, 0) * 18px); margin: 2px 0; }
+.md ul > li::before { content: "•"; position: absolute; left: calc(var(--ind, 0) * 18px + 4px); color: var(--faint); }
+.md ol > li .num { position: absolute; left: calc(var(--ind, 0) * 18px); color: var(--muted); font-variant-numeric: tabular-nums; }
+.md li.chk::before { content: none !important; }
+.md li.chk .cb { position: absolute; left: calc(var(--ind, 0) * 18px); top: 3px; width: 13px; height: 13px; border-radius: 3px; border: 1.5px solid var(--faint); font-size: 10px; line-height: 10px; text-align: center; }
+.md li.chk.x .cb { background: var(--ok); border-color: var(--ok); color: #fff; }
+.md hr { border: 0; border-top: 1px solid var(--line); margin: 1em 0; }
+.md a { color: var(--accent); }
+.ref { font-family: var(--mono); font-size: .92em; color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><h1>Regent</h1><span class="proj" id="proj"></span><span class="branch" id="branch" hidden></span></div>
+  <nav class="views" aria-label="View"><button class="view on" data-view="board">Board</button><button class="view" data-view="archive">Archive<span id="acount"></span></button></nav>
+  <div class="stats" id="stats"></div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="Filter changes" aria-label="Filter changes" autocomplete="off">
+    <span class="stamp" id="stamp"></span>
+  </div>
+</header>
+<main id="main"><div class="notice"><h2>Loading board…</h2></div></main>
+<div class="scrim" id="scrim"></div>
+<aside id="drawer" aria-hidden="true"></aside>
+
+<script>
+"use strict";
+const POLL_MS = 2000;
+const COLUMNS = [
+  { id: "propose", label: "Propose", who: "/regent:propose", note: "spec before code" },
+  { id: "ready",   label: "Approved", who: "/regent:apply", note: "ready for TDD" },
+  { id: "apply",   label: "Apply", who: "/regent:apply", note: "Red → Green → Refactor" },
+  { id: "verify",  label: "Verify", who: "/regent:verify", note: "9-stage verification" },
+  { id: "close",   label: "Close", who: "/regent:archive", note: "delta → main spec" },
+];
+const CYCLE = [...COLUMNS, { id: "done", label: "Archived" }];
+const FILE_ORDER = ["proposal.md", "design.md", "tasks.md", "verification.md"];
+const ARCHIVE_PAGE = 100;
+
+const state = {
+  data: null, sig: "", asig: "", open: null, tab: "overview", q: "", view: "board", loaded: false,
+  models: [], usage: {}, details: {}, amodels: {}, loading: {}, archLimit: ARCHIVE_PAGE, atype: "",
+};
+const $ = (id) => document.getElementById(id);
+
+// ---------- helpers ----------
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+// Field value like sdd-check.sh meta_field: "| Field | value |" or "Field: value"; first word unless it has a "/".
+function meta(src, field) {
+  if (!src) return "";
+  for (const raw of src.split("\n")) {
+    const line = raw.replace(/\r$/, "").replace(/[*`]/g, "");
+    let m = line.match(new RegExp("^\\|\\s*" + field + "\\s*\\|([^|]*)\\|"));
+    if (!m) m = line.match(new RegExp("^" + field + ":\\s(.*)$"));
+    if (m) { const v = m[1].trim(); return v.includes("/") ? v : v.split(/\s+/)[0]; }
+  }
+  return "";
+}
+function days(a, b) {
+  const da = Date.parse(a), db = b ? Date.parse(b) : Date.now();
+  return isNaN(da) || isNaN(db) ? null : Math.max(0, Math.round((db - da) / 86400000));
+}
+function stripComments(src) { return src.replace(/<!--[\s\S]*?-->/g, ""); }
+function fk(n) { n = +n || 0; return n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e3 ? Math.round(n / 1e3) + "k" : String(n); }
+function fdur(s) { s = Math.round(+s || 0); return s >= 3600 ? Math.floor(s / 3600) + "h " + Math.floor((s % 3600) / 60) + "m" : s >= 60 ? Math.floor(s / 60) + "m" : s + "s"; }
+function fusd(c) { return c === null || c === undefined || c === "" || isNaN(+c) ? "?" : "$" + (+c).toFixed(2); }
+function fdate(epoch) {
+  const d = new Date(epoch * 1000), p = (x) => String(x).padStart(2, "0");
+  return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`;
+}
+
+// ---------- usage (scripts/usage.sh: R/M records live, usage.md in the archive) ----------
+// One shape for both: total (numbers), runs and models (display strings).
+function usageMap(txt) {
+  const runs = {}, by = {}, lines = (txt || "").split("\n").map(l => l.split("\t"));
+  let asof = "";
+  for (const f of lines) {
+    if (f[0] === "P") asof = f[1];
+    if (f[0] !== "R") continue;
+    runs[f[1]] = { change: f[2], cmd: f[3], ver: f[4], start: +f[6], active: +f[8], prompts: +f[9], calls: 0, tin: 0, tcw: 0, tcr: 0, tout: 0, cost: 0, unknown: false, models: [] };
+    (by[f[2]] = by[f[2]] || []).push(runs[f[1]]);
+  }
+  for (const f of lines) {
+    const r = f[0] === "M" && runs[f[1]];
+    if (!r) continue;
+    const x = { cmd: r.cmd, model: f[2], effort: f[3], agent: f[4], calls: +f[5], tin: +f[6], tcw: +f[7] + +f[8], tcr: +f[9], tout: +f[10], cost: +f[11] };
+    r.models.push(x);
+    for (const k of ["calls", "tin", "tcw", "tcr", "tout"]) r[k] += x[k];
+    if (x.cost < 0) r.unknown = true; else r.cost += x.cost;
+  }
+  const out = {};
+  for (const [ch, rs] of Object.entries(by)) {
+    rs.sort((a, b) => a.start - b.start);
+    const total = { cost: 0, active: 0, prompts: 0, calls: 0, tin: 0, tcw: 0, tcr: 0, tout: 0, runs: rs.length };
+    for (const r of rs) for (const k of ["cost", "active", "prompts", "calls", "tin", "tcw", "tcr", "tout"]) total[k] += r[k];
+    total.regent = [...new Set(rs.map(r => r.ver).filter(Boolean))].join("/");
+    out[ch] = {
+      total, asof, live: true,
+      runs: rs.map(r => ({ start: fdate(r.start), cmd: r.cmd, ver: r.ver || "?", active: fdur(r.active), prompts: r.prompts, calls: r.calls, tin: fk(r.tin), tcw: fk(r.tcw), tcr: fk(r.tcr), tout: fk(r.tout), cost: fusd(r.cost) + (r.unknown ? " + ?" : "") })),
+      models: rs.flatMap(r => r.models).map(x => ({ cmd: x.cmd, model: x.model, effort: x.effort, agent: x.agent, calls: x.calls, tin: fk(x.tin), tcw: fk(x.tcw), tcr: fk(x.tcr), tout: fk(x.tout), cost: x.cost < 0 ? "?" : fusd(x.cost) })),
+    };
+  }
+  return out;
+}
+function usageFromMd(src) {
+  if (!src) return null;
+  const n = (k) => +meta(src, k) || 0;
+  const total = { cost: n("Cost USD"), active: n("Active seconds"), runs: n("Runs"), prompts: n("Prompts"), calls: n("Calls"),
+    tin: n("Input tokens"), tcw: n("Cache write tokens"), tcr: n("Cache read tokens"), tout: n("Output tokens"), regent: meta(src, "Regent") };
+  const runs = [], models = [];
+  for (const l of src.split("\n")) {
+    if (!/^\|/.test(l) || /^\|\s*-/.test(l)) continue;
+    const c = cells(l).map(x => x.replace(/`/g, ""));
+    if (c.length === 11 && /^\d{4}-\d{2}-\d{2}/.test(c[0])) runs.push({ start: c[0], cmd: c[1], ver: c[2], active: c[3], prompts: c[4], calls: c[5], tin: c[6], tcw: c[7], tcr: c[8], tout: c[9], cost: c[10] });
+    if (c.length === 10 && /^\/regent:/.test(c[0])) models.push({ cmd: c[0], model: c[1], effort: c[2], agent: c[3], calls: c[4], tin: c[5], tcw: c[6], tcr: c[7], tout: c[8], cost: c[9] });
+  }
+  return { total, runs, models, asof: meta(src, "Prices"), live: false };
+}
+function usageSection(u) {
+  const t = u.total;
+  const tiles = [["≈ " + fusd(t.cost), "cost (API-equivalent)"], [fdur(t.active), "active time"], [t.runs, "runs"], [t.prompts, "prompts"],
+    [t.calls, "API calls"], [fk(t.tin), "input"], [fk(t.tcw), "cache write"], [fk(t.tcr), "cache read"], [fk(t.tout), "output"], [t.regent || "?", "Regent"]];
+  const cmd = (c) => `<code>${esc(String(c).replace(/^\/regent:/, ""))}</code>`;
+  const tok = (x) => `<td class="n">${esc(x.tin)}</td><td class="n">${esc(x.tcw)}</td><td class="n">${esc(x.tcr)}</td><td class="n">${esc(x.tout)}</td><td class="n">${esc(x.cost)}</td>`;
+  const tokh = '<th class="n">Input</th><th class="n">Cache wr.</th><th class="n">Cache rd.</th><th class="n">Output</th><th class="n">Cost</th>';
+  let h = '<div class="usec"><div class="ugrid">' + tiles.map(([v, l]) => `<div class="ut"><b>${esc(v)}</b><span>${esc(l)}</span></div>`).join("") + "</div>";
+  if (u.runs.length) {
+    h += `<h4>Runs</h4><table class="utab"><thead><tr><th>Started</th><th>Command</th><th>Regent</th><th class="n">Active</th><th class="n">Prompts</th><th class="n">Calls</th>${tokh}</tr></thead><tbody>` +
+      u.runs.map(r => `<tr><td>${esc(String(r.start).slice(5))}</td><td>${cmd(r.cmd)}</td><td>${esc(r.ver)}</td><td class="n">${esc(r.active)}</td><td class="n">${esc(r.prompts)}</td><td class="n">${esc(r.calls)}</td>${tok(r)}</tr>`).join("") + "</tbody></table>";
+  }
+  if (u.models.length) {
+    h += `<h4>By model, effort and agent</h4><table class="utab"><thead><tr><th>Command</th><th>Model</th><th>Effort</th><th>Agent</th><th class="n">Calls</th>${tokh}</tr></thead><tbody>` +
+      u.models.map(x => `<tr><td>${cmd(x.cmd)}</td><td>${esc(String(x.model).replace(/^claude-/, ""))}</td><td>${esc(x.effort)}</td><td>${esc(String(x.agent).replace(/^regent:/, ""))}</td><td class="n">${esc(x.calls)}</td>${tok(x)}</tr>`).join("") + "</tbody></table>";
+  }
+  h += `<p class="note">${u.live ? "Live, " : "From usage.md, "}measured from the Claude Code transcripts on this machine (times UTC); cost = tokens × API prices${u.asof ? " of " + esc(u.asof) : ""}, not a bill.${u.live ? " /regent:archive keeps it in usage.md." : ""}</p></div>`;
+  return h;
+}
+
+// ---------- parsing ----------
+function parseTasks(src) {
+  const out = { list: [], size: "" };
+  if (!src) return out;
+  let grp = "", fence = false;
+  for (const raw of src.split("\n")) {
+    const l = raw.replace(/\r$/, "");
+    if (/^\s*(```|~~~)/.test(l)) { fence = !fence; continue; }
+    if (fence) continue;
+    let m = l.match(/^## (.*)$/);
+    if (m) { grp = m[1].trim(); continue; }
+    m = l.match(/Size:\s*([SML])\b/);
+    if (m) out.size = m[1];
+    m = l.match(/^\s*- \[(.?)\]\s*(.*)$/);
+    if (!m) continue;
+    const txt = m[2];
+    const id = (txt.match(/T-\d+/) || [""])[0];
+    const tag = (txt.match(/\[(BE|FE|DB)\]/) || ["", ""])[1];
+    const hash = (txt.match(/commit:\s*([0-9a-f]{7,40})/) || ["", ""])[1];
+    const reqs = [...new Set(txt.match(/(REQ|INV)-\d+/g) || [])];
+    let title = txt.replace(/^(T-\d+)\s*:?\s*/, "").replace(/\[(BE|FE|DB)\]\s*/, "").replace(/✅.*$/, "");
+    title = title.split(/\s+[—–]\s+/)[0].trim();
+    out.list.push({ done: m[1] === "x" || m[1] === "X", id, tag, hash, reqs, title, grp });
+  }
+  return out;
+}
+function parseStages(src) {
+  const out = [];
+  if (!src) return out;
+  for (const raw of stripComments(src).split("\n")) {
+    const m = raw.match(/^\|\s*(\d+)\s*\|([^|]*)\|([^|]*)\|/);
+    if (!m) continue;
+    const status = m[3].trim();
+    out.push({ n: +m[1], name: m[2].trim(), status, k: stageKind(status) });
+  }
+  return out;
+}
+function stageKind(s) {
+  if (/❌|🔴|FAIL|BLOCK/i.test(s)) return "bad";
+  if (/⚠|🟡|WARN/i.test(s)) return "warn";
+  if (/✅|PASS|OK/i.test(s)) return "ok";
+  if (/N\/A/i.test(s)) return "na";
+  return "";
+}
+function parseDecisions(src) {
+  const out = [];
+  if (!src) return out;
+  const body = stripComments(src);
+  const i = body.search(/^## Decisions and assumptions/m);
+  if (i < 0) return out;
+  const sec = body.slice(i).split(/\n## /)[0];
+  for (const raw of sec.split("\n")) {
+    const m = raw.match(/^\|\s*(\d{4}-\d{2}-\d{2})\s*\|\s*([A-Z]+)\s*\|([^|]*)\|([^|]*)\|/);
+    if (m) out.push({ date: m[1], type: m[2], issue: m[3].trim(), res: m[4].trim() });
+  }
+  return out;
+}
+function firstHeading(src) {
+  if (!src) return "";
+  const m = stripComments(src).match(/^### Summary\s*\n+([^\n#|][^\n]*)/m) || stripComments(src).match(/^### What is the problem\?\s*\n+([^\n#|][^\n]*)/m);
+  return m && !/^\[/.test(m[1].trim()) ? m[1].trim() : "";
+}
+
+// "sha<TAB>date<TAB>subject" lines → lookup by the first 7 characters (tasks.md records short hashes).
+function commitMap(txt) {
+  const map = {};
+  for (const l of (txt || "").split("\n")) {
+    const [h, d, ...s] = l.split("\t");
+    if (h && d) map[h.slice(0, 7)] = { date: d, subj: s.join("\t") };
+  }
+  return { get: (h) => map[(h || "").slice(0, 7)] };
+}
+
+function model(c, commits) {
+  const f = {};
+  for (const [p, body] of c.files) f[p] = body;
+  const p = f["proposal.md"], v = f["verification.md"];
+  const tasks = parseTasks(f["tasks.md"]);
+  const done = tasks.list.filter(t => t.done).length, total = tasks.list.length;
+  const m = {
+    key: c.place + "/" + c.dir, c, f, name: c.name, place: c.place,
+    type: meta(p, "Type") || meta(p, "Typ"), status: meta(p, "Status"), ticket: meta(p, "Ticket"),
+    created: meta(p, "Created"), summary: firstHeading(p),
+    tasks, done, total, size: tasks.size, commits,
+    verdict: meta(v, "Verdict"), vdate: meta(v, "Date"), vhead: meta(v, "Commit HEAD"),
+    stages: parseStages(v), decisions: parseDecisions(p), drift: c.drift || 0,
+    usage: c.place === "archive" ? usageFromMd(f["usage.md"]) : (state.usage[c.name] || null),
+  };
+  if (!/^(feature|bugfix|refactor)$/.test(m.type)) m.type = m.type && !m.type.includes("/") ? m.type : "";
+  if (m.ticket && (/^(NONE|-)$/i.test(m.ticket) || m.ticket.includes("["))) m.ticket = "";
+  if (m.created && !/^\d{4}-\d{2}-\d{2}$/.test(m.created)) m.created = "";
+  Object.assign(m, stageOf(m));
+  return m;
+}
+
+// Mirror of /regent:status Step 3.7 ("Where am I?").
+function stageOf(m) {
+  const n = m.name;
+  if (m.place === "archive") {
+    const ab = /Abandoned|Rejected/i.test(m.status);
+    return { col: "done", flag: ab ? ["muted", "abandoned"] : null, next: "" };
+  }
+  if (!m.f["proposal.md"]) return { col: "propose", flag: ["warn", "incomplete"], next: `/regent:propose ${n}` };
+  if (m.status === "Draft") return { col: "propose", flag: ["you", "awaits your approval"], next: `/regent:propose ${n}` };
+  if (m.status === "Rejected") return { col: "propose", flag: ["bad", "rejected"], next: `/regent:archive ${n} --abandon` };
+  if (m.status !== "Approved") return { col: "propose", flag: ["warn", "Status: " + (m.status || "none")], next: `/regent:propose ${n}` };
+  if (m.total === 0 || m.done === 0) return { col: "ready", flag: null, next: `/regent:apply ${n}` };
+  if (m.done < m.total) {
+    const t = m.tasks.list.find(x => !x.done);
+    const num = t && t.id ? " --tasks " + String(+t.id.slice(2)) : "";
+    return { col: "apply", flag: null, next: `/regent:apply ${n}${num}` };
+  }
+  if (!m.f["verification.md"]) return { col: "verify", flag: ["you", "unverified"], next: `/regent:verify ${n}` };
+  if (m.verdict !== "PASS") return { col: "verify", flag: ["bad", "verification " + (m.verdict || "?")], next: `/regent:verify ${n}` };
+  return { col: "close", flag: m.drift ? ["warn", "code moved after verification"] : ["ok", "verified"], next: `/regent:archive ${n}` };
+}
+
+// ---------- markdown (escapes first, then a small subset) ----------
+function inline(s) {
+  return s.split(/(`[^`]*`)/).map(part => {
+    if (/^`[^`]*`$/.test(part)) return "<code>" + esc(part.slice(1, -1)) + "</code>";
+    let t = esc(part);
+    t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    t = t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, "$1");
+    t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    t = t.replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?!\w)/g, "$1<em>$2</em>");
+    t = t.replace(/\b((?:REQ|INV)-\d+(?:\/AC-\d+)?|T-\d+)\b/g, '<span class="ref">$1</span>');
+    return t;
+  }).join("");
+}
+function cells(l) { return l.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(x => x.trim()); }
+function md(src) {
+  const L = stripComments(src || "").replace(/\r/g, "").split("\n");
+  const out = []; let para = []; let i = 0;
+  const flush = () => { if (para.length) { out.push("<p>" + inline(para.join(" ")) + "</p>"); para = []; } };
+  while (i < L.length) {
+    const l = L[i]; let m;
+    if ((m = l.match(/^\s*(```|~~~)/))) {
+      flush(); const buf = []; i++;
+      while (i < L.length && !L[i].trim().startsWith(m[1])) buf.push(L[i++]);
+      i++; out.push("<pre><code>" + esc(buf.join("\n")) + "</code></pre>"); continue;
+    }
+    if (/^\s*$/.test(l)) { flush(); i++; continue; }
+    if ((m = l.match(/^(#{1,6})\s+(.*)$/))) { flush(); const n = m[1].length; out.push(`<h${n}>${inline(m[2])}</h${n}>`); i++; continue; }
+    if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(l)) { flush(); out.push("<hr>"); i++; continue; }
+    if (/^\s*>/.test(l)) {
+      flush(); const buf = [];
+      while (i < L.length && /^\s*>/.test(L[i])) buf.push(L[i++].replace(/^\s*>\s?/, ""));
+      out.push("<blockquote>" + md(buf.join("\n")) + "</blockquote>"); continue;
+    }
+    if (/^\s*\|/.test(l) && i + 1 < L.length && /^\s*\|?\s*:?-{2,}/.test(L[i + 1])) {
+      flush(); const head = cells(l); i += 2; const rows = [];
+      while (i < L.length && /^\s*\|/.test(L[i])) rows.push(cells(L[i++]));
+      out.push("<table><thead><tr>" + head.map(h => "<th>" + inline(h) + "</th>").join("") + "</tr></thead><tbody>" +
+        rows.map(r => "<tr>" + r.map(c => "<td>" + inline(c) + "</td>").join("") + "</tr>").join("") + "</tbody></table>");
+      continue;
+    }
+    if (/^\s*([-*+]|\d+[.)])\s+/.test(l)) {
+      flush(); const ordered = /^\s*\d/.test(l); const items = [];
+      while (i < L.length) {
+        const x = L[i]; const lm = x.match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/);
+        if (lm) { items.push({ ind: Math.min(4, Math.floor(lm[1].replace(/\t/g, "  ").length / 2)), mark: lm[2], text: lm[3] }); i++; continue; }
+        if (/^\s{2,}\S/.test(x) && items.length) { items[items.length - 1].text += " " + x.trim(); i++; continue; }
+        break;
+      }
+      out.push((ordered ? "<ol>" : "<ul>") + items.map(it => {
+        const cb = it.text.match(/^\[(.?)\]\s*(.*)$/);
+        if (cb) { const x = /x/i.test(cb[1]); return `<li class="chk${x ? " x" : ""}" style="--ind:${it.ind}"><span class="cb">${x ? "✓" : ""}</span>${inline(cb[2])}</li>`; }
+        const num = ordered ? `<span class="num">${esc(it.mark)}</span>` : "";
+        return `<li style="--ind:${it.ind}">${num}${inline(it.text)}</li>`;
+      }).join("") + (ordered ? "</ol>" : "</ul>"));
+      continue;
+    }
+    para.push(l.trim()); i++;
+  }
+  flush();
+  return out.join("\n");
+}
+
+// ---------- rendering ----------
+function card(m) {
+  const pct = m.total ? Math.round(100 * m.done / m.total) : 0;
+  const flag = m.flag ? `<span class="flag ${m.flag[0]}">${esc(m.flag[1])}</span>` : "";
+  const chips = [
+    m.type ? `<span class="chip type-${esc(m.type)}">${esc(m.type)}</span>` : "",
+    m.size ? `<span class="chip">size ${esc(m.size)}</span>` : "",
+    m.ticket ? `<span class="chip mono">${esc(m.ticket)}</span>` : "",
+    m.usage ? `<span class="chip cost" title="API-equivalent cost · active time">≈ ${esc(fusd(m.usage.total.cost))} · ${esc(fdur(m.usage.total.active))}</span>` : "",
+    m.place === "archive" && m.c.archived ? `<span class="chip">${esc(m.c.archived)}</span>` : "",
+  ].join("");
+  const layers = {};
+  for (const t of m.tasks.list) { const k = t.tag || "BE"; layers[k] = layers[k] || [0, 0]; layers[k][1]++; if (t.done) layers[k][0]++; }
+  const ltxt = Object.keys(layers).length > 1 ? Object.entries(layers).map(([k, v]) => `${k} ${v[0]}/${v[1]}`).join(" · ") : "";
+  const prog = m.total ? `<div class="prog"><div class="bar"><i style="width:${pct}%"></i></div><div class="lbl"><span>${m.done}/${m.total} tasks</span><span>${esc(ltxt)}</span></div></div>` : "";
+  const stg = m.stages.length ? `<div class="stages" title="verification stages">${m.stages.map(s => `<i class="st-${s.k || "na"}" title="${esc(s.n + ". " + s.name + ": " + s.status)}"></i>`).join("")}</div>` : "";
+  const next = m.next ? `<div class="next"><code title="${esc(m.next)}">${esc(m.next)}</code><span class="copy" role="button" tabindex="0" data-copy="${esc(m.next)}">copy</span></div>` : "";
+  const age = days(m.created, m.place === "archive" ? m.c.archived : null);
+  const foot = (age !== null || m.c.updated) ? `<div class="foot"><span>${age !== null ? (m.place === "archive" ? `took ${age} d` : `day ${age + 1}`) : ""}</span><span>${m.c.updated ? "updated " + esc(m.c.updated) : ""}</span></div>` : "";
+  return `<div class="card c-${m.col}${state.open === m.key ? " sel" : ""}" role="button" tabindex="0" data-key="${esc(m.key)}">` +
+    flag + `<div class="t">${esc(m.name)}</div>` + (m.summary ? `<div class="sub">${esc(m.summary)}</div>` : "") +
+    `<div class="chips">${chips}</div>` + prog + stg + next + foot + "</div>";
+}
+
+function render() {
+  const d = state.data;
+  $("proj").textContent = d.project || "";
+  document.title = "Regent board · " + (d.project || "");
+  const br = $("branch"); br.hidden = !d.branch; br.textContent = d.branch || "";
+  const active = state.models;
+  const arch = d.archive || [];
+  const you = active.filter(m => m.flag && (m.flag[0] === "you" || m.flag[0] === "bad")).length;
+  const tDone = active.reduce((a, m) => a + m.done, 0), tAll = active.reduce((a, m) => a + m.total, 0);
+  $("stats").innerHTML =
+    `<div class="stat"><b>${active.length}</b><span>active</span></div>` +
+    `<div class="stat${you ? " you" : ""}"><b>${you}</b><span>need you</span></div>` +
+    `<div class="stat"><b>${tDone}/${tAll}</b><span>tasks</span></div>` +
+    `<div class="stat" title="API-equivalent cost of the active changes, from the transcripts"><b>≈ ${fusd(active.reduce((a, m) => a + (m.usage ? m.usage.total.cost : 0), 0))}</b><span>active</span></div>`;
+  $("acount").textContent = arch.length;
+  document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("on", b.dataset.view === state.view));
+  $("main").innerHTML = state.view === "archive" ? archiveView(arch) : boardView(active);
+  if (state.open) drawer();
+}
+
+function matches(q, ...fields) { return !q || fields.join(" ").toLowerCase().includes(q); }
+
+function boardView(active) {
+  const q = state.q.trim().toLowerCase();
+  const vis = active.filter(m => matches(q, m.name, m.type, m.ticket, m.summary));
+  let html = '<div class="board">';
+  for (const col of COLUMNS) {
+    const items = vis.filter(m => m.col === col.id)
+      .sort((a, b) => (a.flag && a.flag[0] === "you" ? -1 : 0) - (b.flag && b.flag[0] === "you" ? -1 : 0) || a.name.localeCompare(b.name));
+    html += `<section class="col" style="--colc:var(--c-${col.id})"><div class="col-h"><h2>${col.label}</h2><span class="n">${items.length}</span></div>` +
+      `<div class="col-who"><code>${esc(col.who)}</code>${col.note ? " · " + esc(col.note) : ""}</div>` +
+      (items.length ? items.map(card).join("") : '<div class="empty">—</div>') + "</section>";
+  }
+  html += "</div>";
+  const specs = specIndex(state.data.index || "");
+  if (specs.length) {
+    html += '<div class="specs"><h3>Main specs · ai/specs/</h3><div class="row">' +
+      specs.map(s => `<div class="spec"><b>${esc(s.dom)}</b><span>${s.req} REQ · ${s.ac} AC</span></div>`).join("") + "</div></div>";
+  }
+  return html;
+}
+
+const ABANDONED = /Abandoned|Rejected/i;
+function archiveView(arch) {
+  const q = state.q.trim().toLowerCase();
+  const kinds = { "": arch.length };
+  for (const a of arch) { const k = ABANDONED.test(a.status) ? "abandoned" : a.type || "other"; kinds[k] = (kinds[k] || 0) + 1; }
+  const vis = arch.filter(a => {
+    const k = ABANDONED.test(a.status) ? "abandoned" : a.type || "other";
+    return (!state.atype || state.atype === k) && matches(q, a.name, a.type, a.ticket, a.summary, a.archived);
+  }).sort((a, b) => (a.dir < b.dir ? 1 : a.dir > b.dir ? -1 : 0));
+  const shown = vis.slice(0, state.archLimit);
+  let html = '<div class="arch-bar"><div class="types">' + Object.keys(kinds).map(k =>
+    `<button class="${state.atype === k ? "on" : ""}" data-atype="${esc(k)}">${k ? esc(k) : "all"} ${kinds[k]}</button>`).join("") +
+    `</div><span>${vis.length === arch.length ? "" : vis.length + " of "}${arch.length} archived changes · newest first</span></div>`;
+  if (!arch.length) return html + '<div class="notice"><h2>No archived changes</h2><p><code>/regent:archive</code> moves a closed change to <code>ai/changes/archive/</code>.</p></div>';
+  html += '<table class="arch"><thead><tr><th>Archived</th><th>Change</th><th class="hide-s">Type</th><th class="hide-s">Ticket</th><th>Tasks</th><th class="hide-s">Verdict</th><th class="hide-s">Took</th><th class="hide-s">Active</th><th>Cost</th><th class="hide-s">Regent</th></tr></thead><tbody>';
+  let month = "";
+  for (const a of shown) {
+    const mo = (a.archived || "").slice(0, 7) || "undated";
+    if (mo !== month) { month = mo; html += `<tr class="month"><td colspan="10">${esc(mo)}</td></tr>`; }
+    const key = "archive/" + a.dir;
+    const ab = ABANDONED.test(a.status);
+    const took = days(a.created, a.archived);
+    const verdict = ab ? '<span class="flag muted">abandoned</span>' : a.verdict ? `<span class="flag ${a.verdict === "PASS" ? "ok" : "bad"}">${esc(a.verdict)}</span>` : "";
+    html += `<tr class="row${state.open === key ? " sel" : ""}" tabindex="0" data-key="${esc(key)}">` +
+      `<td class="d">${esc(a.archived || "—")}</td>` +
+      `<td><span class="nm">${esc(a.name)}</span>${a.summary ? `<span class="sm">${esc(a.summary)}</span>` : ""}</td>` +
+      `<td class="hide-s">${a.type ? `<span class="chip type-${esc(a.type)}">${esc(a.type)}</span>` : ""}</td>` +
+      `<td class="hide-s mono">${esc(a.ticket && !/^(NONE|-)$/i.test(a.ticket) && !a.ticket.includes("[") ? a.ticket : "")}</td>` +
+      `<td class="num">${a.total ? a.done + "/" + a.total : "—"}${a.size ? " · " + esc(a.size) : ""}</td>` +
+      `<td class="hide-s">${verdict}</td>` +
+      `<td class="hide-s num">${took !== null ? took + " d" : ""}</td>` +
+      `<td class="hide-s num">${a.active !== "" ? esc(fdur(a.active)) : ""}</td>` +
+      `<td class="num">${a.cost !== "" ? "≈ " + esc(fusd(a.cost)) : ""}</td>` +
+      `<td class="hide-s d">${esc(a.regent || "")}</td></tr>`;
+  }
+  html += "</tbody></table>";
+  if (vis.length > shown.length) html += `<button class="more" data-more="1">show ${Math.min(ARCHIVE_PAGE, vis.length - shown.length)} more · ${vis.length - shown.length} left</button>`;
+  return html;
+}
+
+function specIndex(txt) {
+  const by = {};
+  for (const l of txt.split("\n")) {
+    const m = l.match(/^([^:\s]+): (REQ|INV)-\d+ .*\(AC: (\d+)\)\s*$/);
+    if (!m) continue;
+    by[m[1]] = by[m[1]] || { dom: m[1], req: 0, ac: 0 };
+    by[m[1]].req++; by[m[1]].ac += +m[3];
+  }
+  return Object.values(by);
+}
+
+function overview(m) {
+  const at = CYCLE.findIndex(c => c.id === m.col);
+  let h = '<div class="sec"><div class="cycle">' + CYCLE.map((c, i) => `<div class="${i < at ? "past" : i === at ? "now" : ""}">${c.label}</div>`).join("") + "</div></div>";
+  if (m.next) h += `<div class="sec"><h3>Next step</h3><div class="next" style="border:0;padding:0;margin:0"><code>${esc(m.next)}</code><span class="copy" role="button" tabindex="0" data-copy="${esc(m.next)}">copy</span></div></div>`;
+
+  const ev = [];
+  if (m.created) ev.push({ d: m.created, k: "", w: "Proposal created", s: m.type ? m.type + (m.ticket ? " · " + m.ticket : "") : "" });
+  for (const x of m.decisions) ev.push({ d: x.date, k: x.type === "AMEND" ? "you" : "", w: x.type, s: (x.issue ? x.issue + " → " : "") + x.res });
+  for (const t of m.tasks.list) {
+    if (!t.done) continue;
+    const c = t.hash && m.commits.get(t.hash);
+    ev.push({ d: c ? c.date : "", k: "commit", w: `${t.id || "task"} done`, s: (t.title || "") + (t.hash ? ` · ${t.hash.slice(0, 7)}` + (c ? " " + c.subj : "") : "") });
+  }
+  if (m.usage) for (const r of m.usage.runs) ev.push({ d: r.start, k: "", w: r.cmd, s: `${r.cost} · ${r.active} · ${r.calls} calls · Regent ${r.ver}` });
+  if (m.vdate || m.verdict) ev.push({ d: m.vdate, k: m.verdict === "PASS" ? "ok" : "bad", w: "Verification " + (m.verdict || "?"), s: m.vhead ? "at " + m.vhead.slice(0, 7) : "" });
+  if (m.place === "archive") ev.push({ d: m.c.archived, k: "ok", w: /Abandoned|Rejected/i.test(m.status) ? "Abandoned" : "Archived", s: "" });
+  else if (m.flag && m.flag[0] === "you") ev.push({ d: "", k: "you", w: "Waiting for you", s: m.flag[1] });
+  ev.forEach((e, i) => (e.i = i));
+  ev.sort((a, b) => (a.d && b.d ? a.d.localeCompare(b.d) : 0) || a.i - b.i);
+  if (ev.length) h += '<div class="sec"><h3>Timeline</h3><ul class="tl">' + ev.map(e =>
+    `<li class="k-${e.k}"><span class="d">${esc(e.d || "—")}</span><span class="w">${esc(e.w)}</span>${e.s ? `<span class="s">${inline(e.s)}</span>` : ""}</li>`).join("") + "</ul></div>";
+
+  if (m.total) {
+    let g = null;
+    h += `<div class="sec"><h3>Tasks · ${m.done}/${m.total}${m.size ? " · size " + esc(m.size) : ""}</h3><ul class="tasks">`;
+    for (const t of m.tasks.list) {
+      if (t.grp !== g) { g = t.grp; if (g) h += `<li class="g">${esc(g)}</li>`; }
+      h += `<li class="task${t.done ? " done" : ""}"><span class="box">${t.done ? "✓" : ""}</span><span class="tt">` +
+        (t.id ? `<span class="id">${esc(t.id)}</span>` : "") + (t.tag ? `<span class="tg">${esc(t.tag)}</span>` : "") + esc(t.title) +
+        (t.reqs.length ? `<span class="r">${esc(t.reqs.join(" · "))}</span>` : "") + "</span>" +
+        (t.hash ? `<span class="h">${esc(t.hash.slice(0, 7))}</span>` : "") + "</li>";
+    }
+    h += "</ul></div>";
+  }
+  if (m.stages.length) {
+    h += `<div class="sec"><h3>Verification · ${esc(m.verdict || "?")}${m.vdate ? " · " + esc(m.vdate) : ""}</h3><div class="vgrid">` +
+      m.stages.map(s => `<div class="vst ${s.k}"><b>${s.n}. ${esc(s.name)}</b><span>${esc(s.status)}</span></div>`).join("") + "</div></div>";
+  }
+  return h;
+}
+
+function files(m) {
+  const names = Object.keys(m.f).filter(p => !(m.usage && p === "usage.md"));
+  const rank = (p) => { const i = FILE_ORDER.indexOf(p); return i >= 0 ? i : p.startsWith("specs/") ? 10 : 20; };
+  return names.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+}
+
+// Active changes are in data.js; an archived one comes from archive/<dir>.js, loaded on first open.
+function getModel(key) {
+  if (!key.startsWith("archive/")) return state.models.find(x => x.key === key) || null;
+  const dir = key.slice(8);
+  const s = (state.data.archive || []).find(a => a.dir === dir);
+  if (!s) return null;
+  if (state.amodels[dir]) return state.amodels[dir];
+  const det = state.details[dir];
+  if (!det) { loadDetail(dir); return { pending: true, s }; }
+  if (det.error) return { pending: true, s, error: true };
+  return (state.amodels[dir] = model({ name: s.name, dir, place: "archive", archived: s.archived, updated: "", drift: 0, files: det.files }, commitMap(det.commits)));
+}
+function loadDetail(dir) {
+  if (state.loading[dir]) return;
+  state.loading[dir] = true;
+  const s = document.createElement("script");
+  s.src = "archive/" + encodeURIComponent(dir) + ".js?t=" + Date.now();
+  s.onload = () => { s.remove(); delete state.loading[dir]; };
+  s.onerror = () => { s.remove(); delete state.loading[dir]; state.details[dir] = { error: true }; if (state.open === "archive/" + dir) drawer(); };
+  document.head.appendChild(s);
+}
+window.regentArchive = function (dir, d) {
+  state.details[dir] = d;
+  if (state.open === "archive/" + dir) drawer();
+};
+
+function drawer() {
+  const m = getModel(state.open);
+  const el = $("drawer");
+  if (!m) { closeDrawer(); return; }
+  if (m.pending) {
+    el.innerHTML = `<div class="dr-h"><div class="dr-top"><h2>${esc(m.s.name)}</h2><button class="x" data-close="1" aria-label="Close">×</button></div>` +
+      `<div class="dr-meta"><span class="mono">ai/changes/archive/${esc(m.s.dir)}/</span></div></div>` +
+      `<div class="dr-b"><div class="loading">${m.error ? "Could not load archive/" + esc(m.s.dir) + ".js — rerun dashboard.sh." : "Loading…"}</div></div>`;
+    el.dataset.key = ""; el.classList.add("on"); el.setAttribute("aria-hidden", "false"); $("scrim").classList.add("on");
+    return;
+  }
+  const body = el.querySelector(".dr-b");
+  const keep = body && el.dataset.key === m.key && el.dataset.tab === state.tab ? body.scrollTop : 0;
+  const fl = files(m);
+  const tabs = ["overview", ...(m.usage ? ["usage"] : []), ...fl];
+  if (!tabs.includes(state.tab)) state.tab = "overview";
+  const content = state.tab === "overview" ? overview(m) : state.tab === "usage" ? usageSection(m.usage) : '<div class="md">' + md(m.f[state.tab]) + "</div>";
+  const meta = [m.type, m.ticket, m.status && "Status: " + m.status, m.c.dir !== m.name && m.c.dir].filter(Boolean);
+  el.innerHTML = `<div class="dr-h"><div class="dr-top"><div>${m.flag ? `<span class="flag ${m.flag[0]}">${esc(m.flag[1])}</span>` : ""}<h2>${esc(m.name)}</h2></div><button class="x" data-close="1" aria-label="Close">×</button></div>` +
+    `<div class="dr-meta">${meta.map(x => `<span>${esc(x)}</span>`).join("")}<span class="mono">ai/changes/${m.place === "archive" ? "archive/" : ""}${esc(m.c.dir)}/</span></div>` +
+    `<div class="tabs">` + tabs.map(t => `<button class="tab${t === state.tab ? " on" : ""}" data-tab="${esc(t)}">${t === "overview" ? "Overview" : t === "usage" ? "Usage" : esc(t)}</button>`).join("") + "</div></div>" +
+    `<div class="dr-b">${content}</div>`;
+  el.dataset.key = m.key; el.dataset.tab = state.tab;
+  el.querySelector(".dr-b").scrollTop = keep;
+  el.classList.add("on"); el.setAttribute("aria-hidden", "false"); $("scrim").classList.add("on");
+}
+function openDrawer(key, tab) {
+  state.open = key; state.tab = tab || "overview";
+  writeHash(); render();
+}
+function closeDrawer() {
+  state.open = null; writeHash();
+  $("drawer").classList.remove("on"); $("drawer").setAttribute("aria-hidden", "true"); $("scrim").classList.remove("on");
+  document.querySelectorAll(".sel").forEach(c => c.classList.remove("sel"));
+}
+function writeHash() {
+  const p = new URLSearchParams();
+  if (state.view !== "board") p.set("v", state.view);
+  if (state.open) { p.set("c", state.open); if (state.tab !== "overview") p.set("f", state.tab); }
+  const h = p.toString();
+  history.replaceState(null, "", h ? "#" + h : location.pathname + location.search);
+}
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (p.get("v") === "archive") state.view = "archive";
+  if (p.get("c")) { state.open = p.get("c"); state.tab = p.get("f") || "overview"; }
+}
+
+function copy(text, el) {
+  const done = () => { const o = el.textContent; el.textContent = "copied"; setTimeout(() => (el.textContent = o), 1200); };
+  if (navigator.clipboard && window.isSecureContext !== false) navigator.clipboard.writeText(text).then(done, () => fallback());
+  else fallback();
+  function fallback() {
+    const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); } catch (e) { /* nothing to do */ }
+    ta.remove();
+  }
+}
+
+// ---------- events ----------
+document.addEventListener("click", (e) => {
+  const c = e.target.closest("[data-copy]");
+  if (c) { e.stopPropagation(); copy(c.dataset.copy, c); return; }
+  if (e.target.closest("[data-close]") || e.target.id === "scrim") { closeDrawer(); return; }
+  const t = e.target.closest("[data-tab]");
+  if (t) { state.tab = t.dataset.tab; writeHash(); drawer(); return; }
+  const v = e.target.closest("[data-view]");
+  if (v) { state.view = v.dataset.view; writeHash(); render(); window.scrollTo(0, 0); return; }
+  const a = e.target.closest("[data-atype]");
+  if (a) { state.atype = a.dataset.atype; state.archLimit = ARCHIVE_PAGE; render(); return; }
+  if (e.target.closest("[data-more]")) { state.archLimit += ARCHIVE_PAGE; render(); return; }
+  const k = e.target.closest("[data-key]");
+  if (k) openDrawer(k.dataset.key);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && state.open) { closeDrawer(); return; }
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches("[data-key], [data-copy]")) { e.preventDefault(); e.target.click(); }
+});
+$("q").addEventListener("input", (e) => { state.q = e.target.value; state.archLimit = ARCHIVE_PAGE; render(); });
+
+// ---------- data ----------
+window.regentBoard = function (d) {
+  state.loaded = true;
+  $("stamp").classList.remove("stale");
+  $("stamp").innerHTML = `<span class="dot"></span>data ${esc(d.generated || "")}`;
+  if (d.sig && d.sig === state.sig) return;
+  state.sig = d.sig || "";
+  const asig = JSON.stringify(d.archive || []);
+  if (asig !== state.asig) { state.asig = asig; state.details = {}; state.amodels = {}; }
+  state.data = d;
+  state.usage = usageMap(d.usage);
+  const cm = commitMap(d.commits);
+  state.models = d.changes.map(c => model(c, cm));
+  render();
+};
+let failed = 0;
+function load() {
+  const s = document.createElement("script");
+  s.src = "data.js?t=" + Date.now();
+  s.onload = () => { s.remove(); failed = 0; };
+  s.onerror = () => {
+    s.remove(); failed++;
+    if (!state.loaded) $("main").innerHTML = '<div class="notice"><h2>No board data</h2><p>data.js is missing next to this page. In the project root run:</p><pre><code>bash ${CLAUDE_PLUGIN_ROOT}/scripts/dashboard.sh --open</code></pre><p>or <code>/regent:dashboard</code> in Claude Code.</p></div>';
+    else $("stamp").classList.add("stale");
+  };
+  document.head.appendChild(s);
+}
+window.addEventListener("hashchange", () => {
+  state.open = null; state.view = "board"; state.tab = "overview"; readHash();
+  if (!state.data) return;
+  if (!state.open) closeDrawer();
+  render();
+});
+readHash();
+load();
+setInterval(load, POLL_MS);
+</script>
+</body>
+</html>

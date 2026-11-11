@@ -21,6 +21,8 @@ commands `${CLAUDE_PLUGIN_ROOT}` means the plugin directory — when working on 
 |--------|--------------|--------|
 | [`scripts/statusline.sh`](../scripts/statusline.sh) | [statusline.md](statusline.md) | Statusline with a context counter and a warning threshold |
 | [`scripts/sdd-check.sh`](../scripts/sdd-check.sh) | [sdd-check.md](sdd-check.md) | Deterministic validation of artifacts in a project: delta, tasks, AC coverage, merge, drift |
+| [`scripts/dashboard.sh`](../scripts/dashboard.sh) | [dashboard.md](dashboard.md) | HTML kanban board of the SDD cycle (`/regent:dashboard`): `data.js` next to `templates/dashboard.html`, `--watch` follows the work live |
+| [`scripts/usage.sh`](../scripts/usage.sh) | [dashboard.md](dashboard.md#usage-metrics) | Claude Code usage per change from the session transcripts: runs, Regent version, model, effort, agent, time, tokens, API-equivalent cost (`scripts/pricing.tsv`); `usage.md` in `/regent:archive` |
 | [`scripts/hooks/git-guard.sh`](../scripts/hooks/git-guard.sh) | [`/regent:init` Step 3.5](../skills/init/SKILL.md) | The plugin's PreToolUse hook: in projects with `ai/docs/` blocks `git add .`/`-A`, `git commit -a`, `--no-verify`, `-c core.hooksPath`, AI attribution in commits and PRs; `GIT_GUARD_FORCE=1` forces |
 | [`scripts/hooks/session-context.sh`](../scripts/hooks/session-context.sh) | script header | SessionStart/SubagentStart hook: injects `context/role.md` always, with `ai/docs/` `sdd.md` and `subagent.md` (session and subagent) and `sdd-map.md` (session only) |
 | [`scripts/hooks/sync-bin.sh`](../scripts/hooks/sync-bin.sh) | [statusline.md](statusline.md) | SessionStart hook: copies `statusline.sh` and `session-tokens.sh` to `${CLAUDE_PLUGIN_DATA}/bin/` |

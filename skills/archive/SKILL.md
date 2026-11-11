@@ -153,9 +153,17 @@ Show the user the diff of the source of truth: `git diff -- ai/specs` (changes n
 `--abandon` → **before** the move set `Status: Abandoned` in `proposal.md`. An abandoned change
 in `archive/` looks the same as a finished one; this field is the only thing that tells them apart.
 
+**Usage record** (also with `--abandon`): the change's Claude Code usage per command run — Regent version, model,
+effort, agent, active time, tokens, API-equivalent cost — measured by the script from this machine's session
+transcripts, which Claude Code deletes after ~30 days; in `usage.md` it stays with the archive:
+
 ```bash
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/usage.sh {name} > ai/changes/{name}/usage.md && git add ai/changes/{name}/usage.md || rm -f ai/changes/{name}/usage.md
 git mv ai/changes/{name} ai/changes/archive/{YYYY-MM-DD}-{name} && git commit -m "chore: archive {name}"
 ```
+
+Exit code 3 (no run of the change in the transcripts — work on another machine, or transcripts already
+deleted) → no `usage.md`; say so in the summary.
 
 Structure after archiving:
 ```
@@ -165,7 +173,8 @@ ai/changes/archive/2025-03-20-user-registration/
 │   └── users.md (delta)
 ├── design.md
 ├── tasks.md
-└── verification.md
+├── verification.md
+└── usage.md (when the transcripts had runs of the change)
 ```
 
 ---
@@ -243,6 +252,9 @@ skip the table; the trace stays in the archive and in git.
 
 ### Archived to:
 - ai/changes/archive/{YYYY-MM-DD}-{name}/
+
+### Usage:   (Cost USD, Active seconds and Runs from the usage.md table — or "no usage.md: no runs in the transcripts")
+≈ $4.12 · active 1h 12m · 5 runs
 
 ### Commits included:   (hashes `(commit: …)` from tasks.md)
 - abc1234 feat: (KEY) create user entity

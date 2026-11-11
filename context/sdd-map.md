@@ -26,6 +26,7 @@ to type instead of reproducing its steps.
 | `/regent:debugging` | Systematic diagnosis (fix via `/regent:bugfix`) |
 | `/regent:dependency-update` | Dependency updates and security patches |
 | `/regent:status` | Overview of the project state |
+| `/regent:dashboard` | HTML kanban board of the SDD cycle (`--watch` — live) |
 | `/regent:explore` | Read-only analysis without commits |
 | `/regent:wiki` | Business wiki in Obsidian (`ai/wiki/`) — outside the SDD cycle |
 
@@ -62,4 +63,4 @@ in the main session (then it runs on the session's model, not on the agent's mod
 | `/regent:explore` | `regent:architect` (read-only — analysis, no files/commits) |
 | `/regent:wiki` | `regent:architect` (domain analysis; writes the pages in `init`, a diff description in `ingest`) |
 
-No delegation (mechanical, they run in the main session): `/regent:commit`, `/regent:status`.
+No delegation (mechanical, they run in the main session): `/regent:commit`, `/regent:status`, `/regent:dashboard`.
