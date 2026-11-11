@@ -53,4 +53,4 @@ graders:
   - name: count-plural-forms
     type: llm
     focus: {source: file, path: web/result-count.js}
-    criteria: "PASS if renderResultCount(n) returns an element with role=\"status\" whose text is 'Brak wyników' for 0, '1 notatka' for 1, 'N notatki' for numbers ending in 2-4 except 12-14 (e.g. 2, 3, 22), and 'N notatek' otherwise (e.g. 5, 12, 25). Otherwise FAIL."
+    criteria: "PASS if renderResultCount(n) returns the HTML string <p role=\"status\">…</p> (a string, as the spec asks — not a DOM element) whose text is 'Brak wyników' for 0, '1 notatka' for 1, 'N notatki' for numbers ending in 2-4 except 12-14 (e.g. 2, 3, 22), and 'N notatek' otherwise (e.g. 5, 12, 25). Otherwise FAIL."

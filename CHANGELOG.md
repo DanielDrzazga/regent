@@ -5,6 +5,14 @@ Regent releases. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/
 Makefile contract), MINOR: new skill/agent/step, PATCH: fixes and prompt tuning.
 Release procedure: [CONTRIBUTING.md → Releases](CONTRIBUTING.md#releases).
 
+## [1.4.1] - 2026-11-12
+
+### Fixed
+
+- Eval `apply-train-fe-two`: the `count-plural-forms` judge asked for "an element", while the spec asks
+  `renderResultCount` to return the HTML string `<p role="status">…</p>` — correct code failed in about
+  17 of 19 runs. The criterion now names the string.
+
 ## [1.4.0] - 2026-11-11
 
 ### Added

@@ -8,8 +8,8 @@ authors:
 license: Apache-2.0
 repository-code: "https://github.com/DanielDrzazga/regent"
 url: "https://github.com/DanielDrzazga/regent"
-version: 1.4.0
-date-released: 2026-11-11
+version: 1.4.1
+date-released: 2026-11-12
 keywords:
   - claude-code
   - claude-code-plugin
