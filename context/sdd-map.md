@@ -26,7 +26,7 @@ to type instead of reproducing its steps.
 | `/regent:debugging` | Systematic diagnosis (fix via `/regent:bugfix`) |
 | `/regent:dependency-update` | Dependency updates and security patches |
 | `/regent:status` | Overview of the project state |
-| `/regent:dashboard` | HTML kanban board of the SDD cycle (`--watch` — live) |
+| `/regent:dashboard` | HTML kanban board of the SDD cycle (kept fresh by the plugin's hooks) |
 | `/regent:explore` | Read-only analysis without commits |
 | `/regent:wiki` | Business wiki in Obsidian (`ai/wiki/`) — outside the SDD cycle |
 

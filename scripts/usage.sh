@@ -15,8 +15,8 @@
 #   usage.sh --tsv            records for scripts/dashboard.sh:
 #                             R run change command regent session start end active prompts   (epoch seconds)
 #                             M run model effort agent calls input cw5m cw1h cache_read output cost_usd
-# Options: --cache DIR (parsed sessions; default ${TMPDIR:-/tmp}/regent-usage/<project>-<checksum>) — a session
-# is parsed again only when its transcript changed.
+# Options: --cache DIR (parsed sessions; default: the board's usage-cache, ~/.cache/regent/boards/<project>-<sum>/)
+# — a session is parsed again only when its transcript changed; a parsed session stays after Claude Code deletes it.
 # Environment: REGENT_TRANSCRIPTS — the transcript directory (default: Claude Code's directory of this project).
 # Exit code: 0 = OK, 2 = wrong usage, 3 = no run of <change> in the transcripts.
 
@@ -42,8 +42,9 @@ done
 
 project=$(basename "$(pwd)")
 if [ -z "$cache" ]; then
+  # the board's cache (scripts/dashboard.sh): the hooks keep it current, and it outlives deleted transcripts
   sum=$(pwd | cksum | cut -d' ' -f1)
-  cache="${TMPDIR:-/tmp}/regent-usage/$project-$sum"
+  cache="${REGENT_BOARDS:-${HOME:-/tmp}/.cache/regent/boards}/$project-$sum/usage-cache"
 fi
 mkdir -p "$cache" 2>/dev/null || { echo "ERROR cannot create $cache"; exit 2; }
 

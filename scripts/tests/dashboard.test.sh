@@ -118,6 +118,55 @@ echo 'v2' > "$P/src/app.js"; g add -A; g commit -q -m "fix: outside the cycle"
 run --out "$O"; expect_code 0
 grep -qE '"dir":"done-one"[^{]*"drift":1' "$O/data.js" && ok || bad "done-one drift should be 1"
 
+# --- hook builds -------------------------------------------------------------------------------
+B="$T/boards"
+hookrun() { out=$(cd "$1" && REGENT_BOARDS="$B" REGENT_TRANSCRIPTS="$T/no-transcripts" "$BASH" "$DASH" --hook "$2" 2>&1); code=$?; }
+board() { ls -d "$B"/*/ 2>/dev/null | head -n 1; }
+
+name="hook: no ai/ — nothing, no board"
+mkdir -p "$T/plain"
+hookrun "$T/plain" turn; expect_code 0
+[ -z "$out" ] && ok || bad "hook printed output"
+[ -z "$(board)" ] && ok || bad "board written for a project without ai/"
+
+name="hook: quiet build at one path per project"
+hookrun "$P" start; expect_code 0
+[ -z "$out" ] && ok || bad "hook printed output"
+D2=$(board)
+[ -n "$D2" ] && [ -f "${D2}data.js" ] && [ -f "${D2}index.html" ] && ok || bad "no board under REGENT_BOARDS"
+[ ! -d "${D2}.lock" ] && ok || bad "lock left after the build"
+
+name="hook: a build in progress — request recorded, no second build"
+mkdir "${D2}.lock"; s1=$(cksum < "${D2}data.js")
+echo "- [ ] T-03: [BE] new — no REQ: x — verification: y" >> "$C/doing/tasks.md"
+hookrun "$P" turn; expect_code 0
+[ -f "${D2}.pending" ] && ok || bad "no .pending for the running build"
+[ "$s1" = "$(cksum < "${D2}data.js")" ] && ok || bad "built despite the lock"
+rmdir "${D2}.lock"
+
+name="hook: tools throttled to one build per 20 s"
+hookrun "$P" turn; expect_code 0
+grep -qF 'T-03: [BE] new' "${D2}data.js" && ok || bad "turn build missed the change"
+echo "- [ ] T-04: [BE] newer — no REQ: x — verification: y" >> "$C/doing/tasks.md"
+hookrun "$P" tool; expect_code 0
+grep -qF 'T-04' "${D2}data.js" && bad "tool build ran within 20 s" || ok
+echo $(( $(date +%s) - 60 )) > "${D2}.hook-at"
+hookrun "$P" tool; expect_code 0
+grep -qF 'T-04' "${D2}data.js" && ok || bad "tool build skipped after 20 s"
+
+name="hook script: returns at once, the build finishes in the background"
+H="$HERE/../hooks/dashboard-refresh.sh"
+rm -rf "$B"
+out=$(cd "$T" && printf '{}' | CLAUDE_PROJECT_DIR="$P" REGENT_BOARDS="$B" REGENT_TRANSCRIPTS="$T/no-transcripts" "$BASH" "$H" start 2>&1); code=$?
+expect_code 0
+[ -z "$out" ] && ok || bad "hook script printed output"
+i=0; while [ $i -lt 60 ] && ! ls "$B"/*/data.js >/dev/null 2>&1; do sleep 0.5; i=$((i + 1)); done
+ls "$B"/*/data.js >/dev/null 2>&1 && ok || bad "no board 30 s after the hook"
+out=$(CLAUDE_PROJECT_DIR="$T/plain" "$BASH" "$H" turn 2>&1); code=$?
+expect_code 0
+out=$("$BASH" "$H" 2>&1); code=$?
+expect_code 0; expect_has 'usage: <start\|turn\|tool>'
+
 name="data.js is valid JavaScript"
 if command -v node >/dev/null 2>&1; then
   res=$(node -e 'let d; global.window = { regentBoard: (x) => { d = x } }; require(process.argv[1]);

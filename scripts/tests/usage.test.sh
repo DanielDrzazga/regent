@@ -94,6 +94,14 @@ expect_has '| 2026-11-10 12:00 | `/regent:bugfix` | ? | 1m | 1 | 2 |'
 expect_has '| Calls | 2 |'
 expect_not '/regent:hotfix'
 
+name="/regent:propose before its change directory exists — counted once the directory appears"
+printf '%s\n' '{"promptId":"n1","type":"user","message":{"role":"user","content":"<command-name>/regent:propose</command-name> <command-args>brand-new</command-args>"},"timestamp":"2026-11-10T14:00:00.000Z"}' > "$X/s4.jsonl"
+tool msg_d1 Write '{"file_path":"ai/changes/brand-new/proposal.md","content":"x"}' >> "$X/s4.jsonl"
+run brand-new; expect_code 3
+run --tsv; expect_not "$(printf '\tbrand-new\t')"
+mkdir -p "$P/ai/changes/brand-new"
+run brand-new; expect_code 0; expect_has '| Runs | 1 |'
+
 name="tsv records for the dashboard"
 run --tsv; expect_code 0
 expect_not "$(printf '\tgone-change\t')"

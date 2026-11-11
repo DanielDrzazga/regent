@@ -7,16 +7,31 @@ closed changes, and both open the details of a change in a side panel. It is the
 
 ## Running it
 
-In the project root (where `ai/` lives):
+Nothing to run while you work in Claude Code. In a project with `ai/`, the plugin's hooks rebuild the board
+in the background (`scripts/hooks/dashboard-refresh.sh`, registered in `hooks/hooks.json`):
+
+| Hook | When | Build |
+|------|------|-------|
+| `SessionStart` | a session starts | full (also checks every archived file) |
+| `Stop`, `SubagentStop` | a turn or a subagent ends | quick |
+| `PostToolUse` (Write, Edit, Bash…) | tools work during a long turn | quick, at most every 20 s |
+
+The hook returns at once (about 0.1 s) and leaves the build to a background process, so Claude does not wait.
+Hooks run outside the model: no tokens, no plan limit. The board has one path per project,
+`~/.cache/regent/boards/<project>-<checksum>/index.html` (`REGENT_BOARDS` changes the root), so a browser tab
+left open follows every session of the project. Two sessions in one project share the board: one build runs at
+a time, and a request during a build makes it run once more. When the last session ends nothing is left running;
+the board keeps its last state.
+
+`/regent:dashboard` builds the board at once and opens it in the browser. Outside Claude Code, in the project root:
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT}/scripts/dashboard.sh --open             # write the board, open the browser
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/dashboard.sh --open             # build, open the browser
 bash ${CLAUDE_PLUGIN_ROOT}/scripts/dashboard.sh --watch            # rebuild every 3 s until Ctrl-C
 bash ${CLAUDE_PLUGIN_ROOT}/scripts/dashboard.sh --watch 10 --out .board
 ```
 
-The script prints `Board: <path>`. The default output directory is
-`${TMPDIR:-/tmp}/regent-dashboard/<project>-<checksum>/`, so nothing lands in the project.
+The script prints `Board: <path>`; nothing lands in the project.
 
 ## How it works
 
@@ -57,7 +72,11 @@ They follow "Where am I?" in `/regent:status` (Step 3.7); a change of that table
 | Verify | all tasks `[x]` · verdict FAIL | unverified · verification FAIL |
 | Close | verdict PASS | verified · code moved after verification |
 
-"Need you" in the header counts the cards waiting for the user (approval, verification) or failing.
+Above the stages, **Your move** lists the changes that wait on you (a proposal to approve, verification to run
+or fix, a rejected change, code moved after verification) with the reason and the command to copy; the header
+sums it up in one sentence. An empty stage keeps its place in the sequence but gives its width to the others.
+
+The theme button in the header cycles Auto (follows the system), Light and Dark; the browser remembers the choice.
 
 ## Archive tab
 
@@ -87,10 +106,13 @@ Archive tab a cost, active time and Regent version per change — to compare cha
   does not write the billed amount to the transcript (only the statusline gets a session total, live), and on a
   subscription plan there is no per-token bill at all — the number compares changes and releases, it is not an invoice.
 
-Active changes are measured live on every board build (sessions whose transcript changed since the last build
-are parsed again). Claude Code deletes transcripts after ~30 days (`cleanupPeriodDays`) and keeps them on the
-machine that did the work, so `/regent:archive` writes the measurement to `usage.md` in the change — it is
-archived with it, and the Archive tab reads it from there.
+The measurement is kept continuously: every board build (the hooks run one after every turn) parses the
+sessions whose transcript changed into the board's cache, `~/.cache/regent/boards/<project>-<checksum>/usage-cache/`.
+A parsed session stays there after Claude Code deletes its transcript (after ~30 days, `cleanupPeriodDays`).
+The cache is per machine and outside the repo, so `/regent:archive` also writes the measurement to `usage.md`
+in the change, which is archived and versioned with it. A change moved to `ai/changes/archive/` by hand has no
+`usage.md`: the board then shows its usage from the cache, and `usage.sh <change> > …/usage.md` writes the file
+later, from the same cache.
 
 Everything runs in bash and awk on local files: it costs no tokens and no plan limit. The only model work is
 one short command in `/regent:archive`.

@@ -10,9 +10,13 @@
 # down --watch. Read-only for the project: it writes only to the output directory.
 #
 # Usage (in the project root):  bash ${CLAUDE_PLUGIN_ROOT}/scripts/dashboard.sh [--out DIR] [--watch [SEC]] [--open]
-#   --out DIR      output directory (default: ${TMPDIR:-/tmp}/regent-dashboard/<project>-<checksum>)
+#   --out DIR      output directory (default: ${REGENT_BOARDS:-~/.cache/regent/boards}/<project>-<checksum>,
+#                  the same path for every session of the project, so a browser tab stays valid)
 #   --watch [SEC]  rebuild data.js every SEC seconds (default 3) until Ctrl-C
 #   --open         open the board in the default browser
+#   --hook EVENT   quiet build for the plugin hooks (scripts/hooks/dashboard-refresh.sh): start | turn | tool;
+#                  one build at a time per board (a request during a build makes it run once more),
+#                  "tool" at most every 20 s, "start" also checks every archived file
 # Output: "Board: <path to index.html>". Exit code: 0 = board written, 2 = wrong usage or no ai/.
 
 set -u
@@ -20,12 +24,14 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 TEMPLATE="$HERE/../templates/dashboard.html"
 CHECK="$HERE/sdd-check.sh"
 ARCH=ai/changes/archive
+TOOL_INTERVAL=20
 
-usage() { sed -n '2,16p' "$0" | sed -E 's/^# ?//'; exit 2; }
+usage() { sed -n '2,20p' "$0" | sed -E 's/^# ?//'; exit 2; }
 
 out=""
 watch=0
 open=0
+hook=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --out) [ $# -ge 2 ] || usage; out=$2; shift 2 ;;
@@ -37,17 +43,24 @@ while [ $# -gt 0 ]; do
         *) watch=$1; shift ;;
       esac ;;
     --open) open=1; shift ;;
+    --hook)
+      [ $# -ge 2 ] || usage
+      case "$2" in start|turn|tool) hook=$2 ;; *) usage ;; esac
+      shift 2 ;;
     *) usage ;;
   esac
 done
 
-[ -d ai ] || { echo "ERROR no ai/ directory — run in the SDD project root (/regent:init first)"; exit 2; }
+if [ ! -d ai ]; then
+  [ -n "$hook" ] && exit 0
+  echo "ERROR no ai/ directory — run in the SDD project root (/regent:init first)"; exit 2
+fi
 [ -f "$TEMPLATE" ] || { echo "ERROR missing $TEMPLATE"; exit 2; }
 
 project=$(basename "$(pwd)")
 if [ -z "$out" ]; then
   sum=$(pwd | cksum | cut -d' ' -f1)
-  out="${TMPDIR:-/tmp}/regent-dashboard/$project-$sum"
+  out="${REGENT_BOARDS:-${HOME:-/tmp}/.cache/regent/boards}/$project-$sum"
 fi
 mkdir -p "$out" 2>/dev/null || { echo "ERROR cannot create $out"; exit 2; }
 
@@ -282,6 +295,33 @@ open_board() {
   esac
   return 0
 }
+
+# Hook builds: several sessions of one project share the board, so one builds at a time; a request that
+# arrives during a build leaves .pending and the running build goes once more. A killed build's lock
+# expires after 5 minutes.
+if [ -n "$hook" ]; then
+  if [ "$hook" = tool ] && [ -f "$out/.hook-at" ]; then
+    last=$(cat "$out/.hook-at" 2>/dev/null)
+    [ $(( $(date +%s) - ${last:-0} )) -lt $TOOL_INTERVAL ] && exit 0
+  fi
+  date +%s > "$out/.hook-at"
+  lock="$out/.lock"
+  [ -d "$lock" ] && [ -n "$(find "$lock" -maxdepth 0 -mmin +5 2>/dev/null)" ] && rmdir "$lock" 2>/dev/null
+  if ! mkdir "$lock" 2>/dev/null; then
+    touch "$out/.pending"
+    exit 0
+  fi
+  trap 'rmdir "$lock" 2>/dev/null' EXIT
+  mode=quick
+  [ "$hook" = start ] && mode=full
+  while :; do
+    rm -f "$out/.pending"
+    build "$mode" >/dev/null 2>&1
+    [ -f "$out/.pending" ] || break
+    mode=quick
+  done
+  exit 0
+fi
 
 build full
 board="$out/index.html"

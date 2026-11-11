@@ -141,8 +141,9 @@ are run by you: Claude will not invoke them and will give you the command to typ
 also take no session context).
 
 The plugin registers hooks (`hooks/hooks.json`): the `context/` context in the session and subagents, git-guard
-in projects with `ai/docs/`, and a copy of the statusline to a fixed path
-([`docs/statusline.md`](docs/statusline.md)).
+in projects with `ai/docs/`, a copy of the statusline to a fixed path
+([`docs/statusline.md`](docs/statusline.md)), and in projects with `ai/` a background refresh of the HTML board
+after every turn ([`docs/dashboard.md`](docs/dashboard.md)).
 
 ### Migrating from the `~/.claude` setup
 
@@ -267,7 +268,7 @@ Shortcuts outside the full cycle:
 | `/regent:debugging` | Systematic diagnosis (fix via `/regent:bugfix`) |
 | `/regent:dependency-update` | Dependency updates and security patches |
 | `/regent:status` | Overview of the project state |
-| `/regent:dashboard` | HTML kanban board of the SDD cycle (`--watch` — live) |
+| `/regent:dashboard` | HTML kanban board of the SDD cycle (kept fresh by the plugin's hooks) |
 | `/regent:explore` | Read-only analysis without commits |
 | `/regent:wiki` | Business wiki in Obsidian (`ai/wiki/`) — outside the SDD cycle |
 
